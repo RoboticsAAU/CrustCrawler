@@ -7,7 +7,17 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Arduino", "Arduino\Arduino.
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Computer", "Computer\Computer.vcxproj", "{D156DB89-05C9-4FB8-9EAA-D1B672E9F7EE}"
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Dynamixel2Arduino-0.4.9", "Arduino\Libraries\Dynamixel2Arduino\0.4.9\Dynamixel2Arduino\Dynamixel2Arduino-0.4.9.vcxitems", "{E6EA743D-DA0A-40BE-B2C0-95D0C20D89AC}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "DynamixelShield-0.2.4", "Arduino\Libraries\DynamixelShield\0.2.4\DynamixelShield\DynamixelShield-0.2.4.vcxitems", "{F98D40C7-8B00-45C4-BE85-0977726D3488}"
+EndProject
 Global
+	GlobalSection(SharedMSBuildProjectFiles) = preSolution
+		Arduino\Libraries\Dynamixel2Arduino\0.4.9\Dynamixel2Arduino\Dynamixel2Arduino-0.4.9.vcxitems*{c5f80730-f44f-4478-bdae-6634efc2ca88}*SharedItemsImports = 4
+		Arduino\Libraries\DynamixelShield\0.2.4\DynamixelShield\DynamixelShield-0.2.4.vcxitems*{c5f80730-f44f-4478-bdae-6634efc2ca88}*SharedItemsImports = 4
+		Arduino\Libraries\Dynamixel2Arduino\0.4.9\Dynamixel2Arduino\Dynamixel2Arduino-0.4.9.vcxitems*{e6ea743d-da0a-40be-b2c0-95d0c20d89ac}*SharedItemsImports = 9
+		Arduino\Libraries\DynamixelShield\0.2.4\DynamixelShield\DynamixelShield-0.2.4.vcxitems*{f98d40c7-8b00-45c4-be85-0977726d3488}*SharedItemsImports = 9
+	EndGlobalSection
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|x64 = Debug|x64
 		Debug|x86 = Debug|x86

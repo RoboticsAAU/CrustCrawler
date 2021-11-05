@@ -4,6 +4,7 @@
 
 #define DYNAMIXEL_SERIAL Serial
 #define DEBUG_SERIAL Serial1
+#define DATA_SERIAL Serial2
 //const uint8_t DIRECTION_PIN = 2; // DYNAMIXEL Shield DIR PIN
 
 

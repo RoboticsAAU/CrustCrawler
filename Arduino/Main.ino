@@ -1,5 +1,8 @@
 #include "ComputerConnector.h"
 
+#include "Dynamixel2Arduino.h"
+#include "DynamixelShield.h"
+
 int counter = 0;
 
 ComputerConnector* computerConnector;

@@ -12,6 +12,16 @@ ComputerConnector::~ComputerConnector() {
 
 
 int* ComputerConnector::getComputerData() {
+
+
+	if(DATA_SERIAL.available()){
+		DATA_SERIAL.readBytesUntil("\n");
+
+
+
+
+	}
+
 	/*emergencyStop = false;
 	controlMode = 1;
 	positiveDirection = true;
