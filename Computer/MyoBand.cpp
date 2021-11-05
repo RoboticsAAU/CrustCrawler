@@ -12,7 +12,11 @@ MyoBand::MyoBand() : onArm(false), isUnlocked(false), isPaired(true) {
         // We then add our object to the Hub as a Listener, making it possible to retrieve data when a device event occurs
         // A device event is when the MyoBand updates emg data, pose, etc.
         pHub->addListener(this);
-
+        
+        // We unlock the MyoBand
+        pMyo->unlock(myo::Myo::unlockHold);
+        isUnlocked = true;
+        
         // We enable the EMG stream
         pMyo->setStreamEmg(myo::Myo::streamEmgEnabled);
 
@@ -22,24 +26,33 @@ MyoBand::MyoBand() : onArm(false), isUnlocked(false), isPaired(true) {
 }
 
 MyoBand::~MyoBand() {
+    pMyo->lock();
     delete pHub;
 }
 
 myo::Pose MyoBand::getPose() {
-    if ( !isPaired || !onArm || !isUnlocked ) {
-        return myo::Pose::unknown;
-    }
+    // We call for events
     pHub->runOnce(20);
+    
+    // If we read a pose and we haven't registred that the MyoBand is on the arm, we set onArm to be true
+    if ( currentPose != myo::Pose::unknown && !onArm ) {
+        onArm = true;
+    }
+
+    // If we still aren't connected and unlocked we set the pose to unknown
+    if (!isPaired || !onArm || !isUnlocked) {
+        currentPose = myo::Pose::unknown;
+    }
+
     return currentPose;
 }
 
 std::vector<int8_t> MyoBand::getEMGdata() {
-    /*
     if ( !isPaired || !onArm || !isUnlocked ) {
         std::vector<int8_t> empty(8, 0);
         return empty;
     }
-    */
+
     pHub->runOnce(20);
     return emgSamples;
 }
@@ -48,6 +61,7 @@ std::vector<int8_t> MyoBand::getEMGdata() {
 
 // Calling pHub->run() or pHub->runOnce() makes the MyoBand call the functions declared in DeviceListener. 
 // These functions can be overwritten to do what we like, which is what we will do here below:
+
 void MyoBand::onPair(myo::Myo* myo, uint64_t timestamp, myo::FirmwareVersion firmwareVersion) {
     isPaired = true;
 }
@@ -78,10 +92,7 @@ void MyoBand::onPose(myo::Myo* myo, uint64_t timestamp, myo::Pose pose) {
 }
 
 void MyoBand::onEmgData(myo::Myo* myo, uint64_t timestamp, const int8_t* emg) {
-    //emgSamples.insert(emgSamples.begin(),emg, emg + 8);
-    for (int i = 0; i < 8; i++) {
-        emgSamples[i] = emg[i];
-    }
+    emgSamples.assign(emg, emg + 8);
 }
 
 #ifdef _DEBUG
@@ -103,8 +114,6 @@ void MyoBand::print()
         std::string emgString = oss.str();
         std::cout << '[' << emgString << std::string(4 - emgString.size(), ' ') << ']';
     }
-
-    
 }
 #endif
 

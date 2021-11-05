@@ -62,7 +62,7 @@ public:
 
     void onUnlock(myo::Myo* myo, uint64_t timestamp) override;
     void onLock(myo::Myo* myo, uint64_t timestamp) override;
-
+   
     void onArmSync(myo::Myo* myo, uint64_t timestamp, myo::Arm arm, myo::XDirection xDirection, float rotation, myo::WarmupState warmupState) override;
     void onArmUnsync(myo::Myo* myo, uint64_t timestamp) override;
 

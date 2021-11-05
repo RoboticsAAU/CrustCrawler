@@ -124,13 +124,13 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>$(SolutionDir)$(ProjectName)\lib\myo-sdk-win-0.9.0\include</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)$(ProjectName)\lib\myo-sdk-win-0.9.0\include;$(SolutionDir)$(ProjectName)\lib\simple_serial_port\include</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <AdditionalDependencies>$(SolutionDir)/$(ProjectName)/lib/myo-sdk-win-0.9.0/lib/myo64.lib;%(AdditionalDependencies)</AdditionalDependencies>
-      <AdditionalLibraryDirectories>$(SolutionDir)$(ProjectName)\lib\myo-sdk-win-0.9.0\lib</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>$(SolutionDir)$(ProjectName)\lib\myo-sdk-win-0.9.0\lib;$(SolutionDir)$(ProjectName)\lib\simple_serial_port</AdditionalLibraryDirectories>
     </Link>
     <PostBuildEvent>
       <Command>COPY "$(ProjectDir)lib\myo-sdk-win-0.9.0\bin\myo64.dll" "$(OutDir)"</Command>
@@ -154,12 +154,14 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="Filter.h" />
+    <ClInclude Include="lib\simple_serial_port\include\SimpleSerial.h" />
     <ClInclude Include="MyoBand.h" />
     <ClInclude Include="resource.h" />
     <ClInclude Include="SerialLink.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Filter.cpp" />
+    <ClCompile Include="lib\simple_serial_port\include\SimpleSerial.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="MyoBand.cpp" />
     <ClCompile Include="SerialLink.cpp" />
@@ -169,6 +171,9 @@
   </ItemGroup>
   <ItemGroup>
     <None Include=".gitignore" />
+  </ItemGroup>
+  <ItemGroup>
+    <Text Include="lib\simple_serial_port\include\syntax_config.txt" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

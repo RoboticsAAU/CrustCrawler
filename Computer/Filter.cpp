@@ -1,38 +1,33 @@
 ﻿#include "Filter.h"
 
-Filtering::Filtering(int sample_size, MyoBand &MyoBand) : pMyoBand(&MyoBand), samples(sample_size,0), sample_size(sample_size){
-	//Currently does nothing
+Filtering::Filtering(int sampleSize, MyoBand &MyoBand) : pMyoBand(&MyoBand), samples(sampleSize,0), m_sampleSize(sampleSize){
+	for(int i = 0; i < sampleSize; i++){
+		std::vector<int8_t> rawEMGdata = pMyoBand->getEMGdata();
+		double sample = averageEMG(rawEMGdata);
+		samples.at(i) = sample;
+	}
 }
 
-void Filtering::Update(){
-	std::vector<int8_t> tmpRawEMG = pMyoBand->getEMGdata();
-	
-	if(counter == sample_size){
-		counter = 0;
-	}
-
+double Filtering::averageEMG(std::vector<int8_t> &emgSample){
 	int sum = 0;
-	for(int i = 0; i < tmpRawEMG.size(); i++){
-		sum += std::abs(tmpRawEMG.at(i));
+	for(int i = 0; i < 8; i++){
+		sum += abs(emgSample.at(0));
 	}
+	return (sum / (double)emgSample.size());
+}
 
-	current_sample_avg = sum / tmpRawEMG.size(); //the size of tmpRawEMG would in reality always be 8
-	
-	samples.at(counter) = current_sample_avg;
-	counter++;
+void Filtering::UpdateSamples(){
+	std::vector<int8_t> rawEMGdata = pMyoBand->getEMGdata();
+	double sample = averageEMG(rawEMGdata);
 
+	samples.erase(samples.begin());
+	samples.push_back(sample);
 }	
-
 
 double Filtering::MoveAvg(){
 	//The moving average is calculated for the 8-channel sample averages contained in the vector "samples"
-	Update();
-	int sum = 0;
-	for(int i = 0; i<sample_size; i++){
-		sum += samples[i];
-	}
+	UpdateSamples();
+	int sum = std::accumulate(samples.begin(), samples.end(), 0);
 
-	double avg = sum/sample_size;
-
-	return avg; 
+	return sum / m_sampleSize;
 }

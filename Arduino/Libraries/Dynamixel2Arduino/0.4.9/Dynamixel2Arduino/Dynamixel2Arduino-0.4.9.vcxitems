@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding ="utf-8" ?>
+<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003" >
+  <PropertyGroup Label="Globals" >
+    <MSBuildAllProjects>$(MSBuildAllProjects);$(MSBuildThisFileFullPath)</MSBuildAllProjects>
+    <HasSharedItems>true</HasSharedItems>
+    <ItemsProjectGuid>{e6ea743d-da0a-40be-b2c0-95d0c20d89ac}</ItemsProjectGuid>
+  </PropertyGroup>
+  <ItemDefinitionGroup>
+    <ClCompile>
+      <AdditionalIncludeDirectories>%(AdditionalIncludeDirectories);$(MSBuildThisFileDirectory)</AdditionalIncludeDirectories>
+    </ClCompile>
+  </ItemDefinitionGroup>
+  <ItemGroup>
+    <ProjectCapability Include="SourceItemsFromImports" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="$(MSBuildThisFileDirectory)src\actuator.cpp" />
+<ClCompile Include="$(MSBuildThisFileDirectory)src\Dynamixel2Arduino.cpp" />
+<ClCompile Include="$(MSBuildThisFileDirectory)src\dxl_c\protocol.c" />
+<ClCompile Include="$(MSBuildThisFileDirectory)src\utility\master.cpp" />
+<ClCompile Include="$(MSBuildThisFileDirectory)src\utility\port_handler.cpp" />
+<ClCompile Include="$(MSBuildThisFileDirectory)src\utility\slave.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="$(MSBuildThisFileDirectory)src\actuator.h" />
+<ClInclude Include="$(MSBuildThisFileDirectory)src\Dynamixel2Arduino.h" />
+<ClInclude Include="$(MSBuildThisFileDirectory)src\dxl_c\protocol.h" />
+<ClInclude Include="$(MSBuildThisFileDirectory)src\utility\config.h" />
+<ClInclude Include="$(MSBuildThisFileDirectory)src\utility\master.h" />
+<ClInclude Include="$(MSBuildThisFileDirectory)src\utility\port_handler.h" />
+<ClInclude Include="$(MSBuildThisFileDirectory)src\utility\slave.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <Text Include="$(MSBuildThisFileDirectory)CONTRIBUTIONS.txt" />
+<Text Include="$(MSBuildThisFileDirectory)keywords.txt" />
+<Text Include="$(MSBuildThisFileDirectory)library.properties" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="$(MSBuildThisFileDirectory)install.sh" />
+<None Include="$(MSBuildThisFileDirectory)LICENSE" />
+<None Include="$(MSBuildThisFileDirectory)README.md" />
+  </ItemGroup>
+</Project>

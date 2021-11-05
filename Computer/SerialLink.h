@@ -1,4 +1,23 @@
-﻿#pragma once
+﻿
+#include "SimpleSerial.h"
+#include <cstring>
+
+class SerialLink {
+    //char com_port[] = "\\\\.\\COM11";
+    //DWORD COM_BAUD_RATE = CBR_9600;
+public:
+    SerialLink(std::string& comPort, DWORD baudRate);
+
+	void sendData(std::string testMessage);
+
+private:
+	std::string comPort;
+	DWORD baudRate;
+	SimpleSerial* Serial;
+};
+
+/*
+#pragma once
 
 #include <Windows.h>
 #include <stdio.h>
@@ -36,3 +55,4 @@ public:
 	~SerialLink();
 	bool connected_;
 };
+*/
