@@ -1,18 +1,15 @@
 #include "ComputerConnector.h"
-#include "HardwareSerial.h"
 
 ComputerConnector::ComputerConnector() {
-	Serial1.begin(115200);
-	while (!Serial1.available()) {};
+	DEBUG_SERIAL.begin(115200);
+	//while (!DEBUG_SERIAL.available()) {};
 }
 
 ComputerConnector::~ComputerConnector() {
 
 }
 
-void ComputerConnector::debugPrintLine(std::string & str) {
-	Serial1.println(str);
-}
+
 
 int* ComputerConnector::getComputerData() {
 	/*emergencyStop = false;

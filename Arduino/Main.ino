@@ -1,5 +1,7 @@
 #include "ComputerConnector.h"
 
+int counter = 0;
+
 ComputerConnector* computerConnector;
 
 void setup() {
@@ -7,7 +9,10 @@ void setup() {
 }
 
 void loop() {
-	computerConnector->debugPrintLine("Hello World!");
+	computerConnector->debugPrint("This is the value: ");
+	computerConnector->debugPrintLine(20);
+
+	counter++;
 	delay(1000);
 }
 
