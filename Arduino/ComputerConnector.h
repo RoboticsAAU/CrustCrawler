@@ -7,7 +7,7 @@ public:
 	~ComputerConnector();
 
 	//Print something to the serial monitor
-	void debugPrintLine(String input);
+	void debugPrintLine();
 	
 	//Get the data from the computer
 	int* getComputerData();

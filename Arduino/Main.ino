@@ -4,8 +4,6 @@ ComputerConnector* computerConnector;
 
 void setup() {
 	computerConnector = new ComputerConnector();
-
-
 }
 
 void loop() {

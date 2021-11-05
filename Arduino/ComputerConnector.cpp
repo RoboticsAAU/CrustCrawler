@@ -1,9 +1,9 @@
 #include "ComputerConnector.h"
 #include "HardwareSerial.h"
-#include "string.h"
 
 ComputerConnector::ComputerConnector() {
 	Serial1.begin(115200);
+	while (!Serial1.available()) {};
 }
 
 ComputerConnector::~ComputerConnector() {
@@ -11,7 +11,7 @@ ComputerConnector::~ComputerConnector() {
 }
 
 void ComputerConnector::debugPrintLine() {
-	Serial1.println(input);
+	Serial1.println();
 }
 
 int* ComputerConnector::getComputerData() {
