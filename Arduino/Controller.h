@@ -1,4 +1,5 @@
 #pragma once
+#include "ComputerConnector.h"
 
 // For dynamixel control
 #include "Dynamixel2Arduino.h"
@@ -23,7 +24,9 @@ public:
 
 
 private:
-//Updates everything
+	void _ComputerOutputToVelocity(bool emergencyStop, unsigned int controlMode, bool sign, unsigned int speed);
+
+	//Updates everything
 	void _UpdateChain();
 	void _UpdateAngles();
 
@@ -31,7 +34,8 @@ private:
 	void _SpaceConverter(SpaceType desiredSpace);
 
 	//Functions to go between motion states 
-	double _CalculusOperator(OperationType operationType, double desiredValue, double currentValue, int numberOfTimes);
+	double _CalculusOperator(OperationType operationType, double currentValue, double previousValue, int numberOfTimes);
+	double m_lastValue{ 0 };
 
 
 	void _ForwardKinematics();

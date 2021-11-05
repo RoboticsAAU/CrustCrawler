@@ -27,6 +27,42 @@ Controller::~Controller(){
     delete p_dynamixel;
 } 
 
+void Controller::_ComputerOutputToVelocity(bool emergencyStop, unsigned int controlMode, bool sign, unsigned int speed) {
+	if (emergencyStop) {
+		inputVelocities.m_Vel1 = 0;
+		inputVelocities.m_Vel2 = 0;
+		inputVelocities.m_Vel3 = 0;
+	}
+
+	int direction = sign ? 1 : -1;
+
+
+	//Control mode: 1 = base, 2 = in/out, 3 = up/down
+	switch (controlMode){
+	case 1:{
+		inputVelocities.m_Vel1 = direction*speed;
+		inputVelocities.m_Vel2 = 0;
+		inputVelocities.m_Vel3 = 0;
+
+		inputVelocities.currentSpaceType = JointSpace;
+	}
+	case 2:{
+		inputVelocities.m_Vel1 = direction*speed;
+		inputVelocities.m_Vel2 = 0;
+		inputVelocities.m_Vel3 = 0;
+
+		inputVelocities.currentSpaceType = CartesianSpace;
+	}
+	case 3: {
+		inputVelocities.m_Vel1 = 0;
+		inputVelocities.m_Vel2 = 0;
+		inputVelocities.m_Vel3 = direction*speed;
+
+		inputVelocities.currentSpaceType = CartesianSpace;
+	}
+	}
+}
+
 void Controller::_UpdateChain(){
     _UpdateAngles();
     _ForwardKinematics();
@@ -44,17 +80,14 @@ void Controller::_UpdateAngles(){
 	_AngleConverter(Radians);
 }
 
-double Controller::_CalculusOperator(OperationType desiredOperation, double desiredValue, double currentValue, int numberOfTimes){
+double Controller::_CalculusOperator(OperationType desiredOperation, double currentValue, double previousValue, int numberOfTimes){
 	switch (desiredOperation){
 	case Differentiation:{
-		
-		}
-		case Integration:{
 
+	}
+	case Integration:{
 
-		}
-		
-
+	}	
 	}
 }
 
@@ -108,7 +141,7 @@ void Controller::_AngleConverter(UnitType desiredUnit) {
 
 void Controller::_SpaceConverter(SpaceType desiredSpace){
 	if(desiredSpace == inputVelocities.currentSpaceType){
-		return; 
+		return;
 	}
 	
 //	//Forward Jacobian:

@@ -14,7 +14,7 @@ enum SpaceType {
 enum OperationType {
 	Differentiation,
 	Integration
-}
+};
 
 struct Joint { 
 	unsigned int m_id;

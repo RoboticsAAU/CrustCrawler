@@ -35,8 +35,6 @@ void ComputerConnector::updateComputerData() {
   }
 
 
-
-
 	/*emergencyStop = false;
 	controlMode = 1;
 	positiveDirection = true;
