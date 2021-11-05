@@ -1,4 +1,6 @@
 #pragma once
+#include <string>
+
 class ComputerConnector
 {
 
@@ -7,7 +9,7 @@ public:
 	~ComputerConnector();
 
 	//Print something to the serial monitor
-	void debugPrintLine();
+	void debugPrintLine(std::string & str);
 	
 	//Get the data from the computer
 	int* getComputerData();

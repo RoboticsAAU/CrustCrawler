@@ -10,20 +10,20 @@ ComputerConnector::~ComputerConnector() {
 
 }
 
-void ComputerConnector::debugPrintLine() {
-	Serial1.println();
+void ComputerConnector::debugPrintLine(std::string & str) {
+	Serial1.println(str);
 }
 
 int* ComputerConnector::getComputerData() {
-	emergencyStop = false;
+	/*emergencyStop = false;
 	controlMode = 1;
 	positiveDirection = true;
 	speed = 200;
-
+	
 	dataArray = { emergencyStop, controlMode, positiveDirection, speed };
 
 	int* tmpArray = dataArray;
-	return tmpArray;
+	return tmpArray;*/
 }
 
 
