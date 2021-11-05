@@ -6,5 +6,6 @@ int main() {
 	{
 		MyoBand.print();
 	}
-   
+
+	return 0;
 }

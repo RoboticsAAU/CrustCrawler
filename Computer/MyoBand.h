@@ -27,12 +27,11 @@ public:
 #ifdef _DEBUG
     // For debugging purposes
     void print();
-
 #endif
 
 private:
+    // This is updated in onEmgData()
     std::vector<int8_t> emgSamples;
-    int pose;
 
     // This is set by onArmSync() and onArmUnsync().
     bool onArm;
@@ -49,7 +48,16 @@ private:
     // The Myo pointer provides access to the individual Myo instance
     myo::Myo* pMyo = NULL;
 
+
 public:
+    // DeviceListener Callback functions overrides
+
+    void onUnlock(myo::Myo* myo, uint64_t timestamp) override;
+    void onLock(myo::Myo* myo, uint64_t timestamp) override;
+
+
+         
+
     /*
     // onUnpair() is called whenever the Myo is disconnected from Myo Connect by the user.
     void onUnpair(myo::Myo* myo, uint64_t timestamp);

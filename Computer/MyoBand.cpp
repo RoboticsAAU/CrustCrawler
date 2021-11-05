@@ -1,27 +1,44 @@
 #include "MyoBand.h"
 
 MyoBand::MyoBand() : onArm(true), isUnlocked(false), currentPose() {
-    // We store a pointer to a heap allocated Hub object
-    pHub = new myo::Hub("com.AAU.MyoBand");
+        // We heap allocate the Hub object and store a pointer to it
+        pHub = new myo::Hub("com.AAU.MyoBand");
+        std::cout << "Created Hub" << std::endl;
 
-    // We then get the pointer to the individual Myo instance
-    pMyo = pHub->waitForMyo(1000);
-
-    // If the pointer is not properly instantiated we return a runtime error
-    if (!pMyo) {
-        std::runtime_error("Unable to find a Myo!");
-    }
-    else // We print, that we connected
-    {
+        // We then get the pointer to the individual Myo instance
+        pMyo = pHub->waitForMyo();
         std::cout << "Connected to a Myo armband" << std::endl;
-    }
 
-    // We then add our object to the Hub as a Listener, making it possible to retrieve data when a device event occurs
-    // A device event is when the MyoBand updates emg data, pose, etc.
-    pHub->addListener(this);
+        // We then add our object to the Hub as a Listener, making it possible to retrieve data when a device event occurs
+        // A device event is when the MyoBand updates emg data, pose, etc.
+        pHub->addListener(this);
+}
+
+myo::Pose MyoBand::getPose()
+{
+    pHub->runOnce(20);
+    return myo::Pose();
+}
+
+void MyoBand::getEMGdata() {
+    pHub->runOnce(20);
 }
 
 
+
+// Calling pHub->run() or pHub->runOnce() makes the MyoBand call the functions declared in DeviceListener. 
+// These functions can be overwritten to do what we like, which is what we will do here below:
+
+void MyoBand::onUnlock(myo::Myo* myo, uint64_t timestamp) {
+
+}
+
+void MyoBand::onLock(myo::Myo* myo, uint64_t timestamp) {
+
+}
+
+
+#ifdef _DEBUG
 void MyoBand::print()
 {
     // Clear the current line
@@ -36,9 +53,9 @@ void MyoBand::print()
         std::string poseString = currentPose.toString();
 
         std::cout << '[' << (isUnlocked ? "unlocked" : "locked  ") << ']'
-                  << '[' << poseString << std::string(14 - poseString.size(), ' ') << ']';
+            << '[' << poseString << std::string(14 - poseString.size(), ' ') << ']';
     }
-    
+
 
     // Clear the current line
     //std::cout << '\r';
@@ -48,6 +65,8 @@ void MyoBand::print()
     }
     std::cout << std::flush << std::flush;
 }
+#endif
+
 
 
 
@@ -104,3 +123,4 @@ void MyoBand::onEmgData(myo::Myo* myo, uint64_t timestamp, const int8_t* emg) {
     }
 }
 */
+

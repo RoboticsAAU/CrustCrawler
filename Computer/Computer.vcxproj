@@ -88,12 +88,12 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>WIN32;_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>$(SolutionDir)\$(ProjectName)\lib\myo-sdk-win-0.9.0\include</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)$(ProjectName)\lib\myo-sdk-win-0.9.0\include</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalLibraryDirectories>$(SolutionDir)/$(ProjectName)/lib/myo-sdk-win-0.9.0/lib</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>$(SolutionDir)$(ProjectName)\lib\myo-sdk-win-0.9.0\lib</AdditionalLibraryDirectories>
       <AdditionalDependencies>$(SolutionDir)/$(ProjectName)/lib/myo-sdk-win-0.9.0/lib/myo32.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
     <PostBuildEvent>
@@ -124,13 +124,13 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>$(SolutionDir)\$(ProjectName)\lib\myo-sdk-win-0.9.0\include</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(SolutionDir)$(ProjectName)\lib\myo-sdk-win-0.9.0\include</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <AdditionalDependencies>$(SolutionDir)/$(ProjectName)/lib/myo-sdk-win-0.9.0/lib/myo64.lib;%(AdditionalDependencies)</AdditionalDependencies>
-      <AdditionalLibraryDirectories>$(SolutionDir)/$(ProjectName)/lib/myo-sdk-win-0.9.0/lib</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>$(SolutionDir)$(ProjectName)\lib\myo-sdk-win-0.9.0\lib</AdditionalLibraryDirectories>
     </Link>
     <PostBuildEvent>
       <Command>COPY "$(ProjectDir)lib\myo-sdk-win-0.9.0\bin\myo64.dll" "$(OutDir)"</Command>
@@ -155,6 +155,7 @@
   <ItemGroup>
     <ClInclude Include="Filter.h" />
     <ClInclude Include="MyoBand.h" />
+    <ClInclude Include="resource.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Filter.cpp" />
@@ -163,6 +164,9 @@
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="Computer.rc" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include=".gitignore" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
