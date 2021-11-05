@@ -156,11 +156,13 @@
     <ClInclude Include="Filter.h" />
     <ClInclude Include="MyoBand.h" />
     <ClInclude Include="resource.h" />
+    <ClInclude Include="SerialLink.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Filter.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="MyoBand.cpp" />
+    <ClCompile Include="SerialLink.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="Computer.rc" />
