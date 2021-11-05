@@ -3,8 +3,6 @@
 #include "Dynamixel2Arduino.h"
 #include "DynamixelShield.h"
 
-int counter = 0;
-
 ComputerConnector* computerConnector;
 
 void setup() {
@@ -12,10 +10,9 @@ void setup() {
 }
 
 void loop() {
-	computerConnector->debugPrint("This is the value: ");
-	computerConnector->debugPrintLine(20);
+	//computerConnector->debugPrint("This is the value: ");
+	//computerConnector->debugPrintLine(20);
+	computerConnector->updateComputerData();
 
-	counter++;
-	delay(1000);
 }
 

@@ -27,7 +27,15 @@ public:
 		DEBUG_SERIAL.print(data);
 	}
 	//Get the data from the computer
-	int* getComputerData();
+	void updateComputerData();
+
+
+	//Getters for use in controller
+	bool getEmergancyStop() { return this->emergencyStop; };
+	unsigned int getControlMode() { return this->controlMode; };
+	bool getDirection() { return this->direction; };
+	double getSpeed() { return this->speed; };
+
 
 
 	
@@ -36,8 +44,12 @@ private:
 	//Variables received from computer 
 	bool emergencyStop;
 	unsigned int controlMode;
-	bool positiveDirection;
+	//bool positiveDirection;
+	bool direction;
 	unsigned int speed;
+	String _newData;
+	String _currentData;
+
 
 
 };

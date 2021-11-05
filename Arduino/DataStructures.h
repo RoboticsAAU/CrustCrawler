@@ -1,19 +1,28 @@
 #pragma once
 
-
 enum UnitType {
 	Degree,
 	Radians,
 	Raw
 };
 
-struct Joint {
+enum SpaceType {
+	JointSpace,
+	CartesianSpace
+};
 
+enum OperationType {
+	Differentiation,
+	Integration
+}
+
+struct Joint { 
 	unsigned int m_id;
-	unsigned int m_mass;
+	unsigned int m_mass; 
 	unsigned int m_length;
 	double m_minTheta, m_maxTheta;
 	double m_PWMlimit;
+	//InertiaTensor inertiaTensor;
 
 	Joint() {};
 
@@ -39,9 +48,24 @@ struct JointAngles {
 	};
 };
 
+struct Velocities {
+	double m_Vel1{ 0 }, m_Vel2{ 0 }, m_Vel3{ 0 };
+
+	SpaceType currentSpaceType;
+
+	Velocities() {};
+
+	Velocities(SpaceType inputSpaceType) {
+		currentSpaceType = inputSpaceType;
+	};
+};
+
 struct eePosition {
 	double x{ 0 }, y{ 0 }, z{ 0 };
 };
 
+//struct InertiaTensor {
+//	double Ixx, Iyy, Izz;
+//};
 
 
