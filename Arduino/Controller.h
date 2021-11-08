@@ -13,6 +13,8 @@
 // Custom headers
 #include "DataStructures.h"
 
+#define DYNAMIXEL_SERIAL Serial
+const uint8_t DIRECTION_PIN = 2; // DYNAMIXEL Shield DIR PIN
 
 class Controller
 {
