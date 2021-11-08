@@ -1,28 +1,34 @@
 #include "MyoBand.h"
 #include "Filter.h"
-#include "iostream"
 #include "SerialLink.h"
-#include <cstring>
+
+#include "iostream"
+#include <string>
 
 int main() {
+	// We create a myoband object first
 	MyoBand MyoBand;
-	Filtering Filter(100,MyoBand);
-	std::string comport = "\\\\.\\COM11";
-	SerialLink SerialTest(comport, (DWORD)CBR_9600);
 
-	string test = "Hello";
-	char com_port[] = "\\\\.\\COM11";
-    DWORD COM_BAUD_RATE = CBR_9600;
+	// We then create our filter object which depends on the myoband link
+	Filtering Filter(100, MyoBand);
+
+	// Then we need to specify the desired com port
+	std::string comPort = "\\\\.\\COM7";
+	// And the baud rate. They prefix with CBR_. So e.x. CBR_9600, CBR_56000, CBR_115200, etc...
+	DWORD baudRate = CBR_9600;
+	// From this we can now create our serial link
+	SerialLink SerialPort(comPort, baudRate, Filter);
+
 
 	while (true)
 	{
-		MyoBand.print();
-
 		#ifdef _DEBUG //Is true when we select "Debug Mode" in VS
-		std::cout << "Moving average: [" << Filter.MoveAvg() << "]" << std::flush;
+		//std::string test = "Hello";
+		//MyoBand.print();
+		//std::cout << "Moving average: [" << Filter.MoveAvg() << "]" << std::flush;
 		#endif
 
-		SerialTest.sendData(test);
+		SerialPort.sendData();
 	}
 
 	return 0;

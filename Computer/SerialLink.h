@@ -1,20 +1,30 @@
-﻿
-#include "SimpleSerial.h"
-#include <cstring>
+﻿#include "SimpleSerial.h"
+#include "Filter.h"
+#include "MyoBand.h"
+
+#include <Windows.h>
+#include <string>
+#include <vector>
+#include <iostream>
 
 class SerialLink {
-    //char com_port[] = "\\\\.\\COM11";
-    //DWORD COM_BAUD_RATE = CBR_9600;
 public:
-    SerialLink(std::string& comPort, DWORD baudRate);
+    SerialLink(std::string& comPort, DWORD baudRate, Filtering& FilterObject);
 
-	void sendData(std::string testMessage);
-
+	void sendData();
 private:
+	std::string packageConstructor();
+
+	MyoBand* pMyoBand;
+   
 	std::string comPort;
 	DWORD baudRate;
+
 	SimpleSerial* Serial;
+
+	bool isSent;
 };
+
 
 /*
 #pragma once

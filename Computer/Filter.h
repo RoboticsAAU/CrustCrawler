@@ -15,6 +15,9 @@ public:
 	// Calculates a moving average and return our signal magnitude
 	double MoveAvg();
 
+	// Used by SerialLink to get the same MyoBand pointer as the filter object
+	MyoBand* getMyoBandPointer() { return pMyoBand; }
+
 private:
 	// Assigned in constructor and used to call new EMG data
 	MyoBand* pMyoBand;
