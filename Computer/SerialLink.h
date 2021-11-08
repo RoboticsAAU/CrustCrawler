@@ -1,4 +1,4 @@
-﻿#include "SimpleSerial.h"
+﻿#include "lib/SimpleSerial/include/SimpleSerial.h"
 #include "Filter.h"
 #include "MyoBand.h"
 

@@ -1,4 +1,3 @@
-#include "stdafx.h"
 #include "SimpleSerial.h"
 
 SimpleSerial::SimpleSerial(char* com_port, DWORD COM_BAUD_RATE)
