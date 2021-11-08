@@ -1,7 +1,7 @@
 ﻿#include "SerialLink.h"
 
 SerialLink::SerialLink(std::string& comPort, DWORD baudRate, Filtering& FilterObject) 
-    : comPort(comPort), baudRate(baudRate), pMyoBand(FilterObject.getMyoBandPointer())
+    : comPort(comPort), baudRate(baudRate), pMyoBand(FilterObject.getMyoBandPointer()), isSent(false)
 {
     Serial = new SimpleSerial((char*)comPort.data(), baudRate);
 }

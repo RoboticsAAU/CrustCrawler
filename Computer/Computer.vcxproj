@@ -171,6 +171,7 @@
   </ItemGroup>
   <ItemGroup>
     <None Include=".gitignore" />
+    <None Include=".gitmodules" />
   </ItemGroup>
   <ItemGroup>
     <Text Include="lib\simple_serial_port\include\syntax_config.txt" />

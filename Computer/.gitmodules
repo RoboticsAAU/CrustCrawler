@@ -1,0 +1,3 @@
+[submodule "SimpleSerial"]
+	path = lib/simple_serial_port
+	url = https://github.com/dmicha16/simple_serial_port.git
