@@ -34,7 +34,7 @@ private:
 	void _SpaceConverter(SpaceType desiredSpace);
 
 	//Functions to go between motion states 
-	double _CalculusOperator(OperationType operationType, double currentValue, double previousValue, int numberOfTimes);
+	double _CalculusOperator(OperationType operationType, double currentValue, double& previousValue);
 	double m_lastValue{ 0 };
 
 

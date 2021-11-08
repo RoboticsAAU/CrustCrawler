@@ -45,6 +45,7 @@ void Controller::_ComputerOutputToVelocity(bool emergencyStop, unsigned int cont
 		inputVelocities.m_Vel3 = 0;
 
 		inputVelocities.currentSpaceType = JointSpace;
+		break;
 	}
 	case 2:{
 		inputVelocities.m_Vel1 = direction*speed;
@@ -52,6 +53,7 @@ void Controller::_ComputerOutputToVelocity(bool emergencyStop, unsigned int cont
 		inputVelocities.m_Vel3 = 0;
 
 		inputVelocities.currentSpaceType = CartesianSpace;
+		break;
 	}
 	case 3: {
 		inputVelocities.m_Vel1 = 0;
@@ -59,11 +61,13 @@ void Controller::_ComputerOutputToVelocity(bool emergencyStop, unsigned int cont
 		inputVelocities.m_Vel3 = direction*speed;
 
 		inputVelocities.currentSpaceType = CartesianSpace;
+		break;
 	}
 	}
 }
 
 void Controller::_UpdateChain(){
+	//_ComputerOutputToVelocity(); //Uncomment when computer output is available
     _UpdateAngles();
     _ForwardKinematics();
     _InverseDynamics();
@@ -80,15 +84,17 @@ void Controller::_UpdateAngles(){
 	_AngleConverter(Radians);
 }
 
-double Controller::_CalculusOperator(OperationType desiredOperation, double currentValue, double previousValue, int numberOfTimes){
+double Controller::_CalculusOperator(OperationType desiredOperation, double currentValue, double& previousValue){
 	switch (desiredOperation){
 	case Differentiation:{
-
+		return (currentValue - previousValue) / samplingTime;
 	}
 	case Integration:{
-
+		
 	}	
 	}
+	
+	previousValue = currentValue;
 }
 
 void Controller::_AngleConverter(UnitType desiredUnit) {
@@ -144,7 +150,7 @@ void Controller::_SpaceConverter(SpaceType desiredSpace){
 		return;
 	}
 	
-//	//Forward Jacobian:
+	//Forward Jacobian:
 	BLA::Matrix<3, 3> jacobian; 
 	jacobian(0,0) = sin(inputAngles.m_Theta1) * (m_Joint2.m_length * sin(inputAngles.m_Theta2) + m_Joint3.m_length * sin(inputAngles.m_Theta2 + inputAngles.m_Theta3));
 	jacobian(0,1) = -cos(inputAngles.m_Theta1) * (m_Joint2.m_length * cos(inputAngles.m_Theta2) + m_Joint3.m_length * cos(inputAngles.m_Theta2 + inputAngles.m_Theta3));
