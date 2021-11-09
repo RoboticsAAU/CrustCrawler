@@ -27,7 +27,6 @@ Controller::Controller(){
 }
 
 Controller::~Controller(){
-    delete p_dynamixel;
 } 
 
 void Controller::_ComputerOutputToVelocity(bool emergencyStop, unsigned int controlMode, bool sign, unsigned int speed) {
@@ -71,21 +70,9 @@ void Controller::_ComputerOutputToVelocity(bool emergencyStop, unsigned int cont
 
 void Controller::_UpdateChain(){
 	//_ComputerOutputToVelocity(); //Uncomment when computer output is available
-    _UpdateAngles();
     _ForwardKinematics();
     _InverseDynamics();
 } 
-
-void Controller::_UpdateAngles(){
-	inputAngles.m_Theta1 = p_dynamixel->getPresentPosition(1,UNIT_RAW);
-	inputAngles.m_Theta2 = p_dynamixel->getPresentPosition(2,UNIT_RAW);
-	inputAngles.m_Theta3 = p_dynamixel->getPresentPosition(3,UNIT_RAW);
-	inputAngles.m_Theta4 = p_dynamixel->getPresentPosition(4,UNIT_RAW);
-	inputAngles.m_Theta5 = p_dynamixel->getPresentPosition(5,UNIT_RAW);
-	
-	inputAngles.currentUnitType = Raw; 
-	_AngleConverter(Radians);  
-}
 
 double Controller::_CalculusOperator(OperationType desiredOperation, double currentValue, double& previousValue){
 	switch (desiredOperation){
@@ -98,54 +85,6 @@ double Controller::_CalculusOperator(OperationType desiredOperation, double curr
 	}
 	
 	previousValue = currentValue;
-}
-
-void Controller::_AngleConverter(UnitType desiredUnit) {
-	if (desiredUnit == inputAngles.currentUnitType) {
-		return;
-	}
-
-	double conversionConstant;
-
-	switch (desiredUnit) {
-	case Degree: {
-		if (inputAngles.currentUnitType == Radians) {
-			conversionConstant = 360 / (2 * M_PI);
-			break;
-		}
-		if (inputAngles.currentUnitType == Raw) {
-			conversionConstant = 360 / 4095;
-			break;
-		}
-	}
-	case Radians: {
-		if (inputAngles.currentUnitType == Degree) {
-			conversionConstant = (2 * M_PI) / 360;
-			break;
-		}
-		if (inputAngles.currentUnitType == Raw) {
-			conversionConstant = (2 * M_PI) / 4095;
-			break;
-		}
-	}
-	case Raw: {
-		if (inputAngles.currentUnitType == Degree) {
-			conversionConstant = 4095 / 360;
-			break;
-		}
-		if (inputAngles.currentUnitType == Degree) {
-			conversionConstant = 4095 / (2 * M_PI);
-			break;
-		}
-	}
-	}
-	inputAngles.m_Theta1 = inputAngles.m_Theta1 * conversionConstant;
-	inputAngles.m_Theta2 = inputAngles.m_Theta2 * conversionConstant;
-	inputAngles.m_Theta3 = inputAngles.m_Theta3 * conversionConstant;
-	inputAngles.m_Theta4 = inputAngles.m_Theta4 * conversionConstant;
-	inputAngles.m_Theta5 = inputAngles.m_Theta5 * conversionConstant;
-
-	inputAngles.currentUnitType = desiredUnit;
 }
 
 void Controller::_SpaceConverter(SpaceType desiredSpace){

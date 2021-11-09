@@ -32,7 +32,6 @@ private:
 	void _UpdateChain();
 	void _UpdateAngles();
 
-	void _AngleConverter(UnitType desiredUnit);
 	void _SpaceConverter(SpaceType desiredSpace);
 
 	//Functions to go between motion states 
