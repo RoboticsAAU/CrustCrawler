@@ -136,7 +136,7 @@ void Controller::_SpaceConverter(SpaceType desiredSpace){
 }
 
 void Controller::_ForwardKinematics(){
-	_AngleConverter(Radians);
+	//_AngleConverter(Radians);
 	m_eePosition.x = -cos(inputAngles.m_Theta1) * (m_Joint2.m_length * sin(inputAngles.m_Theta2) + m_Joint3.m_length * sin(inputAngles.m_Theta2 + inputAngles.m_Theta3));
 	m_eePosition.y = -sin(inputAngles.m_Theta1) * (m_Joint2.m_length * sin(inputAngles.m_Theta2) + m_Joint3.m_length * sin(inputAngles.m_Theta2 + inputAngles.m_Theta3));
 	m_eePosition.z = m_Joint1.m_length + m_Joint2.m_length * cos(inputAngles.m_Theta2) + m_Joint3.m_length * cos(inputAngles.m_Theta2 + inputAngles.m_Theta3);

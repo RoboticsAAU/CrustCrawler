@@ -1,9 +1,6 @@
 //Include header files.
 #include "DynamixelConnector.h"
 
-//Include dynamixel libraries
-#include "Dynamixel2Arduino.h"
-#include "DynamixelShield.h"
 
 #define DYNAMIXEL_SERIAL Serial
 const uint8_t DIRECTION_PIN = 2; // DYNAMIXEL Shield DIR PIN
@@ -30,10 +27,71 @@ DynamixelConnector::~DynamixelConnector() {
 //
 //}
 
+/// <summary>
+/// Gets the current joint angles in the specified unit.
+/// </summary>
+/// <param name="unitType"> The desired unit in which the angles will be returned </param>
+/// <returns> Joint angles in desired unit </returns>
 JointAngles DynamixelConnector::getJointAngles(UnitType unitType) {
 	_UpdateDynamixelAngles();
-	_AngleConverter(unitType);
-	return outputAngles;
+
+	AngleConverter(internalJointAngles,unitType);
+
+	return internalJointAngles;
+}
+
+
+/// <summary>
+/// Convert joint angles from the current joint angles to another.
+/// </summary>
+/// <param name="desiredUnit"> Convert to this unit type </param>
+/// <param name="inputAngles"> Reference to the joint angles which is to be converted </param>
+void DynamixelConnector::AngleConverter(JointAngles &inputAngles, UnitType desiredUnit) {
+	if (desiredUnit == inputAngles.currentUnitType) {
+		return;
+	}
+
+	double conversionConstant;
+
+	switch (desiredUnit) {
+		case Degree: {
+			if (inputAngles.currentUnitType == Radians) {
+				conversionConstant = 360 / (2 * M_PI);
+				break;
+			}
+			if (inputAngles.currentUnitType == Raw) {
+				conversionConstant = 360 / 4095;
+				break;
+			}
+		}
+		case Radians: {
+			if (inputAngles.currentUnitType == Degree) {
+				conversionConstant = (2 * M_PI) / 360;
+				break;
+			}
+			if (inputAngles.currentUnitType == Raw) {
+				conversionConstant = (2 * M_PI) / 4095;
+				break;
+			}
+		}
+		case Raw: {
+			if (inputAngles.currentUnitType == Degree) {
+				conversionConstant = 4095 / 360;
+				break;
+			}
+			if (inputAngles.currentUnitType == Degree) {
+				conversionConstant = 4095 / (2 * M_PI);
+				break;
+			}
+		}
+	}
+	inputAngles.m_Theta1 = inputAngles.m_Theta1 * conversionConstant;
+	inputAngles.m_Theta2 = inputAngles.m_Theta2 * conversionConstant;
+	inputAngles.m_Theta3 = inputAngles.m_Theta3 * conversionConstant;
+	inputAngles.m_Theta4 = inputAngles.m_Theta4 * conversionConstant;
+	inputAngles.m_Theta5 = inputAngles.m_Theta5 * conversionConstant;
+
+	inputAngles.currentUnitType = desiredUnit;
 }
 
 // ---------------------------PRIVATE--------------------------------
@@ -42,64 +100,11 @@ JointAngles DynamixelConnector::getJointAngles(UnitType unitType) {
 /// Directly read the servos raw position value. 
 /// </summary>
 void DynamixelConnector::_UpdateDynamixelAngles() {
-	rawDynamixelAngles.m_Theta1 = p_dynamixel->getPresentPosition(1, UNIT_RAW);
-	rawDynamixelAngles.m_Theta2 = p_dynamixel->getPresentPosition(2, UNIT_RAW);
-	rawDynamixelAngles.m_Theta3 = p_dynamixel->getPresentPosition(3, UNIT_RAW);
-	rawDynamixelAngles.m_Theta4 = p_dynamixel->getPresentPosition(4, UNIT_RAW);
-	rawDynamixelAngles.m_Theta5 = p_dynamixel->getPresentPosition(5, UNIT_RAW);
+	internalJointAngles.m_Theta1 = p_dynamixel->getPresentPosition(1, UNIT_RAW);
+	internalJointAngles.m_Theta2 = p_dynamixel->getPresentPosition(2, UNIT_RAW);
+	internalJointAngles.m_Theta3 = p_dynamixel->getPresentPosition(3, UNIT_RAW);
+	internalJointAngles.m_Theta4 = p_dynamixel->getPresentPosition(4, UNIT_RAW);
+	internalJointAngles.m_Theta5 = p_dynamixel->getPresentPosition(5, UNIT_RAW);
 
-	rawDynamixelAngles.currentUnitType = Raw;
+	internalJointAngles.currentUnitType = Raw;
 }
-
-/// <summary>
-/// Convert the internal raw motor angles to a desired unit type.
-/// </summary>
-/// <param name="desiredUnit"> Convert to this unit type </param>
-void DynamixelConnector::_AngleConverter(UnitType desiredUnit) {
-	if (desiredUnit == rawDynamixelAngles.currentUnitType) {
-		return;
-	}
-
-	double conversionConstant;
-
-	switch (desiredUnit) {
-	case Degree: {
-		if (rawDynamixelAngles.currentUnitType == Radians) {
-			conversionConstant = 360 / (2 * M_PI);
-			break;
-		}
-		if (rawDynamixelAngles.currentUnitType == Raw) {
-			conversionConstant = 360 / 4095;
-			break;
-		}
-	}
-	case Radians: {
-		if (rawDynamixelAngles.currentUnitType == Degree) {
-			conversionConstant = (2 * M_PI) / 360;
-			break;
-		}
-		if (rawDynamixelAngles.currentUnitType == Raw) {
-			conversionConstant = (2 * M_PI) / 4095;
-			break;
-		}
-	}
-	case Raw: {
-		if (rawDynamixelAngles.currentUnitType == Degree) {
-			conversionConstant = 4095 / 360;
-			break;
-		}
-		if (rawDynamixelAngles.currentUnitType == Degree) {
-			conversionConstant = 4095 / (2 * M_PI);
-			break;
-		}
-	}
-	}
-	outputAngles.m_Theta1 = rawDynamixelAngles.m_Theta1 * conversionConstant;
-	outputAngles.m_Theta2 = rawDynamixelAngles.m_Theta2 * conversionConstant;
-	outputAngles.m_Theta3 = rawDynamixelAngles.m_Theta3 * conversionConstant;
-	outputAngles.m_Theta4 = rawDynamixelAngles.m_Theta4 * conversionConstant;
-	outputAngles.m_Theta5 = rawDynamixelAngles.m_Theta5 * conversionConstant;
-
-	outputAngles.currentUnitType = desiredUnit;
-}
-
