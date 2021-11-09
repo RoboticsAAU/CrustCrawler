@@ -18,17 +18,16 @@ int main() {
 	DWORD baudRate = CBR_9600;
 	// From this we can now create our serial link
 	SerialLink SerialPort(comPort, baudRate, Filter);
-
-
+	
 	while (true)
-	{
+	{   
 		#ifdef _DEBUG //Is true when we select "Debug Mode" in VS
 		//std::string test = "Hello";
-		//MyoBand.print();
-		//std::cout << "Moving average: [" << Filter.MoveAvg() << "]" << std::flush;
+		MyoBand.print();
+		std::cout << "Moving average: [" << Filter.MoveAvg() << "]" << std::flush;
 		#endif
 
-		SerialPort.sendData();
+		//SerialPort.sendData();
 	}
 
 	return 0;
