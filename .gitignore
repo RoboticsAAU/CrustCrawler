@@ -362,4 +362,4 @@ MigrationBackup/
 # Fody - auto-generated XML schema
 FodyWeavers.xsd
 /Arduino/__vm/.Arduino.vsarduino.h
-/Arduino/__vm/Arduino.vcxproj
+/Arduino/__vm/.Arduino.vcxproj
