@@ -1,15 +1,19 @@
-#include "ComputerConnector.h"
+#include "Controller.h"
 
 #include "Dynamixel2Arduino.h"
 #include "DynamixelShield.h"
 
-ComputerConnector* computerConnector;
-
 void setup() {
-	computerConnector = new ComputerConnector();
+
+	Controller controller;
+
 }
 
 void loop() {
+	
+	controller.main();
+
+
 	//computerConnector->debugPrint("This is the value: ");
 	//computerConnector->debugPrintLine(20);
 	computerConnector->updateComputerData();

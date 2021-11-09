@@ -20,13 +20,13 @@ struct Joint {
 	unsigned int m_id;
 	unsigned int m_mass; 
 	unsigned int m_length;
-	double m_minTheta, m_maxTheta;
-	double m_PWMlimit;
+	int16_t m_minTheta, m_maxTheta;
+	uint16_t m_PWMlimit;
 	//InertiaTensor inertiaTensor;
 
 	Joint() {};
 
-	Joint(unsigned int id, unsigned int mass, unsigned int length, double minTheta, double maxTheta, double PWMlimit) {
+	Joint(unsigned int id, unsigned int mass, unsigned int length, int16_t minTheta, int16_t maxTheta, uint16_t PWMlimit) {
 		m_id = id;
 		m_mass = mass;
 		m_length = length;

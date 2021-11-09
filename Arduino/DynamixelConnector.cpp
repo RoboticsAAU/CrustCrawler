@@ -12,8 +12,14 @@ const uint16_t DYNAMIXEL_BAUDRATE = 57600;
 DynamixelConnector::DynamixelConnector() {
 	p_dynamixel = new Dynamixel2Arduino(DYNAMIXEL_SERIAL,DIRECTION_PIN);
 	p_dynamixel->begin(DYNAMIXEL_BAUDRATE);
-}
 
+	//Joint data
+	_Joint1 = Joint(1, 10, 6.6, -180, 180, 10);
+    _Joint2 = Joint(2, 10, 22.0, 10, 10, 10);
+    _Joint3 = Joint(3, 10, 14.7, 10, 10, 10);
+    _Joint4 = Joint(4, 10, 10, 10, 10, 10);
+    _Joint5 = Joint(5, 10, 10, 10, 10, 10);
+}
 
 /// <summary>
 /// Disable the dynamixel connection.
@@ -23,9 +29,20 @@ DynamixelConnector::~DynamixelConnector() {
 }
 
 // ---------------------------PUBLIC--------------------------------
-//void DynamixelConnector::setPWM(){
-//
-//}
+
+/// <summary>
+/// Sets the pwm of the specified servo.
+/// </summary>
+/// <param name="id"> The id of the servo</param>
+/// <param name="pwmData"> The pwm value to set the servo</param>
+void DynamixelConnector::setPWM(uint8_t id,uint16_t pwmData){
+
+	if (pwmData > _joints[id - 1].m_PWMlimit) {
+		throw "The pwm signal is above the PWM limit!";
+		return;
+	}
+	p_dynamixel->setGoalPWM(id, pwmData);
+}
 
 /// <summary>
 /// Gets the current joint angles in the specified unit.
@@ -39,7 +56,6 @@ JointAngles DynamixelConnector::getJointAngles(UnitType unitType) {
 
 	return internalJointAngles;
 }
-
 
 /// <summary>
 /// Convert joint angles from the current joint angles to another.
@@ -108,3 +124,21 @@ void DynamixelConnector::_UpdateDynamixelAngles() {
 
 	internalJointAngles.currentUnitType = Raw;
 }
+
+/// <summary>
+/// Write to the controll table of each dynamixel, in order to specify its proporties.
+/// </summary>
+void DynamixelConnector::_SetupDynamixelServos() {
+
+	for (uint8_t i = 0; i < 5; i++)
+	{	
+		p_dynamixel->torqueOff(_joints[i].m_id);
+		p_dynamixel->writeControlTableItem(ControlTableItem::OPERATING_MODE, _joints[i].m_id, OperatingMode::OP_PWM);
+		p_dynamixel->writeControlTableItem(ControlTableItem::MAX_POSITION_LIMIT, _joints[i].m_id, _joints[i].m_maxTheta); 
+		p_dynamixel->writeControlTableItem(ControlTableItem::MIN_POSITION_LIMIT, _joints[i].m_id, _joints[i].m_maxTheta);
+		p_dynamixel->writeControlTableItem(ControlTableItem::PWM_LIMIT, _joints[i].m_id, _joints[i].m_PWMlimit);
+		p_dynamixel->torqueOn(_joints[i].m_id);
+	}
+
+}
+

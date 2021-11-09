@@ -22,6 +22,8 @@ public:
 	Controller();
 	~Controller();
 
+	void main();
+
 	void debugPrint();
 
 
@@ -48,8 +50,11 @@ private:
 
 	JointAngles inputAngles;
 	Velocities inputVelocities;
-	Joint m_Joint1, m_Joint2, m_Joint3, m_Joint4, m_Joint5;
 	eePosition m_eePosition;
+
+
+
+	ComputerConnector* CC;
 
 
 //Defining PID controller variables

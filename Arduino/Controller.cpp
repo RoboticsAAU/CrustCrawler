@@ -1,16 +1,20 @@
 #include "Controller.h"
-
+#include "ComputerConnector.h"
 
 #include "DynamixelConnector.h"
 
 Controller::Controller(){
-	m_Joint1 = Joint(1, 10, 6.6, -180, 180, 10);
-    m_Joint2 = Joint(2, 10, 22.0, 10, 10, 10);
-    m_Joint3 = Joint(3, 10, 14.7, 10, 10, 10);
-    m_Joint4 = Joint(4, 10, 10, 10, 10, 10);
-    m_Joint5 = Joint(5, 10, 10, 10, 10, 10);
 
-	ComputerConnector CC;
+	ComputerConnector* CC = new ComputerConnector();
+	
+
+	
+
+
+
+
+
+
 //	Kinemati
 
 
@@ -28,6 +32,23 @@ Controller::Controller(){
 
 Controller::~Controller(){
 } 
+
+
+void Controller::main(){
+	
+
+	
+
+	CC->updateComputerData();
+
+
+	
+
+}
+
+
+
+
 
 void Controller::_ComputerOutputToVelocity(bool emergencyStop, unsigned int controlMode, bool sign, unsigned int speed) {
 	if (emergencyStop) {
