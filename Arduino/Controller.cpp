@@ -1,6 +1,8 @@
 #include "Controller.h"
 
 
+#include "DynamixelConnector.h"
+
 Controller::Controller(){
 	m_Joint1 = Joint(1, 10, 6.6, -180, 180, 10);
     m_Joint2 = Joint(2, 10, 22.0, 10, 10, 10);
@@ -8,9 +10,10 @@ Controller::Controller(){
     m_Joint4 = Joint(4, 10, 10, 10, 10, 10);
     m_Joint5 = Joint(5, 10, 10, 10, 10, 10);
 
-	p_dynamixel = new Dynamixel2Arduino(DYNAMIXEL_SERIAL, DIRECTION_PIN);
-    p_dynamixel->begin(57600);
-	 
+	ComputerConnector CC;
+//	Kinemati
+
+
     //// Initial motor setup
     //for (unsigned int i = 1; i < 6; i++)
     //{
@@ -19,7 +22,7 @@ Controller::Controller(){
     //    p_dynamixel->writeControlTableItem(ControlTableItem::PWM_LIMIT, i, 600);
     //    //p_dynamixel->torqueOn(i);
     //}
-
+	
     //m_currentTime = millis();
 }
 
@@ -81,7 +84,7 @@ void Controller::_UpdateAngles(){
 	inputAngles.m_Theta5 = p_dynamixel->getPresentPosition(5,UNIT_RAW);
 	
 	inputAngles.currentUnitType = Raw; 
-	_AngleConverter(Radians);
+	_AngleConverter(Radians);  
 }
 
 double Controller::_CalculusOperator(OperationType desiredOperation, double currentValue, double& previousValue){
