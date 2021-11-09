@@ -1,32 +1,36 @@
 ﻿#include "SerialLink.h"
 
-SerialLink::SerialLink(std::string& comPort, DWORD baudRate, Filtering& FilterObject) 
-    : comPort(comPort), baudRate(baudRate), pMyoBand(FilterObject.getMyoBandPointer()), isSent(false)
+SerialLink::SerialLink(char* comPort, DWORD baudRate, Filtering& FilterObject) 
+    : comPort(comPort), baudRate(baudRate), pFilterObject(&FilterObject), pMyoBand(FilterObject.getMyoBandPointer()), isSent(false)
 {
-    Serial = new SimpleSerial((char*)comPort.data(), baudRate);
+    Serial = new SimpleSerial(comPort, baudRate);
 }
 
 void SerialLink::sendData() {
     // We get our package from the package construtor
-    std::string package = packageConstructor();
+    char package[10]; // package[buffersize]
+    packageConstructor(package, sizeof(package));
 
     // Then we try to send it, and only set isSent to true once the package is actually sent
     while (!isSent)
     {
         // WriteSerialPort return true or false whether or not the package has been written.
-        isSent = Serial->WriteSerialPort((char*)package.data());
+        isSent = Serial->WriteSerialPort(package);
     }
     // If we were able to send the package, we set isSent to false for the next package
     isSent = false;
 }
 
-std::string SerialLink::packageConstructor() {
-    std::string EmergencyStop;
-    std::string Mode;
-    std::string Direction;
-    std::string EndByte;
+void SerialLink::packageConstructor(char* outString, int outStringSize) {
+    EmergencyStop;
+    Mode;
+    Direction;
+    getSpeed(Speed);
+}
 
-    return EmergencyStop + Mode + Direction + EndByte + EndByte;
+void SerialLink::getSpeed(char* outSpeed) {
+    double RAWspeed = pFilterObject->MoveAvg();
+    outSpeed = (char*)(&RAWspeed);
 }
 
 
