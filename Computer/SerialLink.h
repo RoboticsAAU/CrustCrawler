@@ -1,28 +1,37 @@
-﻿#include "lib/SimpleSerial/include/SimpleSerial.h"
+﻿#include "SimpleSerial.h"
 #include "Filter.h"
 #include "MyoBand.h"
 
 #include <Windows.h>
 #include <string>
-#include <vector>
 #include <iostream>
 
 class SerialLink {
 public:
-    SerialLink(std::string& comPort, DWORD baudRate, Filtering& FilterObject);
+    SerialLink(char* comPort, DWORD baudRate, Filtering& FilterObject);
 
 	void sendData();
 private:
-	std::string packageConstructor();
+	void packageConstructor(char* outString, int outStringSize);
 
+	void getSpeed(char* outSpeed);
+
+	Filtering* pFilterObject;
 	MyoBand* pMyoBand;
    
-	std::string comPort;
+	char* comPort;
 	DWORD baudRate;
 
 	SimpleSerial* Serial;
 
 	bool isSent;
+
+
+	char EmergencyStop;
+	char Mode;
+	char Direction;
+	char Speed[2];
+	char EndByte = 0xFF;
 };
 
 
