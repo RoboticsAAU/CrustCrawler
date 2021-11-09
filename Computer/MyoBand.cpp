@@ -100,20 +100,14 @@ void MyoBand::print()
 {
     // We get the current pose and EMGdata
     myo::Pose cPose = getPose();
+    std::string poseString = cPose.toString();
+
     std::vector<int8_t> cEMGdata = getEMGdata();
 
-    // We return to the start of the line
-    std::cout << '\r';
-
-    std::string poseString = cPose.toString();
-    std::cout << '[' << poseString << std::string(14 - poseString.size(), ' ') << ']';
-    
-    for (size_t i = 0; i < emgSamples.size(); i++) {
-        std::ostringstream oss;
-        oss << static_cast<int>(emgSamples[i]);
-        std::string emgString = oss.str();
-        std::cout << '[' << emgString << std::string(4 - emgString.size(), ' ') << ']';
-    }
+    printf("Pose: %12s ", (char*)poseString.data());
+    //printf("EMG data: [%4d][%4d][%4d][%4d][%4d][%4d][%4d][%4d] ", 
+    //cEMGdata.at(0), cEMGdata.at(1), cEMGdata.at(2), cEMGdata.at(3),
+    //cEMGdata.at(4), cEMGdata.at(5), cEMGdata.at(6), cEMGdata.at(7));
 }
 #endif
 

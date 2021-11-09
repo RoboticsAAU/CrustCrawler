@@ -24,10 +24,14 @@ void Filtering::UpdateSamples(){
 	samples.push_back(sample);
 }	
 
-double Filtering::MoveAvg(){
+int Filtering::MoveAvg(){
 	//The moving average is calculated for the 8-channel sample averages contained in the vector "samples"
 	UpdateSamples();
 	int sum = std::accumulate(samples.begin(), samples.end(), 0);
 
-	return sum / m_sampleSize;
+	return (int)(sum / m_sampleSize);
+}
+void Filtering::print(){
+	printf("MovAvg: %3d ", MoveAvg());
+	//std::cout << "Moving average: [" << Filter.MoveAvg() << "]" << std::flush;
 }

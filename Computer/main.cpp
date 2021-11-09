@@ -3,7 +3,6 @@
 #include "SerialLink.h"
 
 #include "iostream"
-#include <string>
 
 int main() {
 	// We create a myoband object first
@@ -13,7 +12,7 @@ int main() {
 	Filtering Filter(100, MyoBand);
 
 	// Then we need to specify the desired com port
-	char* comPort = (char*)"\\\\.\\COM6";
+	char* comPort = (char*)"\\\\.\\COM13";
 	// And the baud rate. They prefix with CBR_. So e.x. CBR_9600, CBR_56000, CBR_115200, etc...
 	DWORD baudRate = CBR_9600;
 	// From this we can now create our serial link
@@ -22,12 +21,13 @@ int main() {
 	while (true)
 	{   
 		#ifdef _DEBUG //Is true when we select "Debug Mode" in VS
-		//std::string test = "Hello";
+		printf("\r");
 		MyoBand.print();
-		std::cout << "Moving average: [" << Filter.MoveAvg() << "]" << std::flush;
+		Filter.print();
+		SerialPort.print();
+		fflush(stdout);
 		#endif
-
-		//SerialPort.sendData();
+		SerialPort.sendData();
 	}
 
 	return 0;
