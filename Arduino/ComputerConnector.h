@@ -31,10 +31,10 @@ public:
 
 
 	//Getters for use in controller
-	bool getEmergencyStop() { return this->emergencyStop; };
-	unsigned int getControlMode() { return this->controlMode; };
-	bool getDirection() { return this->direction; };
-	double getSpeed() { return this->speed; };
+	bool getEmergencyStop() { return emergencyStop; };
+	unsigned int getControlMode() { return controlMode; };
+	bool getDirection() { return direction; };
+	double getSpeed() { return speed; };
 
 
 
