@@ -120,6 +120,7 @@
     <ClInclude Include="ComputerConnector.h" />
     <ClInclude Include="Controller.h" />
     <ClInclude Include="ControlSystem.h" />
+    <ClInclude Include="CrustCrawlerData.h" />
     <ClInclude Include="DataStructures.h" />
     <ClInclude Include="Dynamics.h" />
     <ClInclude Include="DynamixelConnector.h" />
@@ -130,6 +131,7 @@
     <ClCompile Include="ComputerConnector.cpp" />
     <ClCompile Include="Controller.cpp" />
     <ClCompile Include="ControlSystem.cpp" />
+    <ClCompile Include="CrustCrawlerData.cpp" />
     <ClCompile Include="Dynamics.cpp" />
     <ClCompile Include="DynamixelConnector.cpp" />
     <ClCompile Include="Kinematics.cpp" />
