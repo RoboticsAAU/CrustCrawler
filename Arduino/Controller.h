@@ -35,7 +35,7 @@ private:
 
 
 
-	//---------------- This is old, neew review---------------------//
+	//---------------- This is old, need review---------------------//
 	void _ComputerOutputToVelocity(bool emergencyStop, unsigned int controlMode, bool sign, unsigned int speed);
 
 	//Updates everything
@@ -65,14 +65,11 @@ private:
 	eePosition m_eePosition;
 
 
-//Defining PID controller variables
+	//Defining PID controller variables
 	double _PID(double desiredValue, double currentValue);
 	double m_proportional{ 0.0 }, m_integral{ 0.0 }, m_derivative{ 0.0 }, m_lastError{ 100.0 }, samplingTime = 1.0/200.0; //Sampling time should be changed
 
 	//Defining constants for PWM equation and torque to PWM function. 
 	void _UpdatePWMConstants();
 	double _TorqueToPWM();
-
-private:
-	double m_currentTime;
 };
