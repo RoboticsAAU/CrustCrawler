@@ -4,7 +4,6 @@
 #include <BasicLinearAlgebra.h>
 #include <math.h>
 
-
 // Custom headers
 #include "DataStructures.h"
 #include "Kinematics.h"
@@ -24,6 +23,7 @@ public:
 
 	void main();
 	void debugPrint();
+	void Print();
 
 
 private:
@@ -45,7 +45,8 @@ private:
 	void _SpaceConverter(SpaceType desiredSpace);
 
 	//Functions to go between motion states 
-	double _CalculusOperator(OperationType operationType, double currentValue, double& previousValue);
+	double _DifferentiationOperator(double currentValue, double previousValue);
+	double _IntegrationOperator(double currentValue, double& inputIntegrationVal);
 	double m_lastValue{ 0 };
 
 	void emergancystop();
@@ -55,14 +56,21 @@ private:
 	// Needs to return torque
 	void _InverseDynamics();
 
+	Dynamixel2Arduino* p_dynamixel = NULL;
+
 	JointAngles inputAngles;
 	Velocities inputVelocities;
 	eePosition m_eePosition;
 
-	//Defining PID controller variables
+
+//Defining PID controller variables
 	double _PID(double desiredValue, double currentValue);
-	double m_proportional{ 0 }, m_integral{ 0 }, m_derivative{ 0 }, m_lastError{ 0 }, samplingTime = 1/200; //Sampling time should be changed
+	double m_proportional{ 0.0 }, m_integral{ 0.0 }, m_derivative{ 0.0 }, m_lastError{ 100.0 }, samplingTime = 1.0/200.0; //Sampling time should be changed
 
+	//Defining constants for PWM equation and torque to PWM function. 
+	void _UpdatePWMConstants();
+	double _TorqueToPWM();
 
+private:
+	double m_currentTime;
 };
-
