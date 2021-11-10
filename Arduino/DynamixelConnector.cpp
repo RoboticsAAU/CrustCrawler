@@ -1,5 +1,4 @@
 //Include header files.
-//Include header files.
 #include "DynamixelConnector.h"
 
 
