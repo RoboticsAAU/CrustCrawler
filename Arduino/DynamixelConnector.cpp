@@ -1,6 +1,6 @@
+
 //Include header files.
 #include "DynamixelConnector.h"
-
 
 #define DYNAMIXEL_SERIAL Serial
 const uint8_t DIRECTION_PIN = 2; // DYNAMIXEL Shield DIR PIN
@@ -32,7 +32,7 @@ DynamixelConnector::~DynamixelConnector() {
 void DynamixelConnector::setPWM(uint8_t id,uint16_t pwmData){
 
 	if (pwmData > joints[id - 1].m_PWMlimit) {
-		throw "The pwm signal is above the PWM limit!";
+		//throw "The pwm signal is above the PWM limit!";
 		return;
 	}
 	p_dynamixel->setGoalPWM(id, pwmData);

@@ -21,8 +21,8 @@ struct Joint {
 	unsigned int m_id;
 	unsigned int m_mass; 
 	unsigned int m_length;
-	int16_t m_minTheta, m_maxTheta;
-	uint16_t m_PWMlimit;
+	int m_minTheta, m_maxTheta;
+	int m_PWMlimit;
 	ServoType m_servoType;
 	//InertiaTensor inertiaTensor;
 
@@ -30,7 +30,7 @@ struct Joint {
 
 	Joint() {};
 
-	Joint(unsigned int id, unsigned int mass, unsigned int length, int16_t minTheta, int16_t maxTheta, uint16_t PWMlimit, ServoType servoType) {
+	Joint(unsigned int id, unsigned int mass, unsigned int length, int minTheta, int maxTheta, int PWMlimit, ServoType servoType) {
 		m_id = id;
 		m_mass = mass;
 		m_length = length;

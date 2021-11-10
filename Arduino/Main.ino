@@ -11,12 +11,12 @@ void setup() {
 
 void loop() {
 	
-	controller.main();
+	//controller.main();
 
 
 	//computerConnector->debugPrint("This is the value: ");
 	//computerConnector->debugPrintLine(20);
-	computerConnector->updateComputerData();
+	//computerConnector->updateComputerData();
 
 }
 
