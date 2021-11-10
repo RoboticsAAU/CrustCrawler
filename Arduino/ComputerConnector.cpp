@@ -15,20 +15,25 @@ ComputerConnector::~ComputerConnector() {
 void ComputerConnector::updateComputerData() {
 	if (DATA_SERIAL.available()) {
 
-		_newData = DATA_SERIAL.readStringUntil('\n');
-		if (_newData == _currentData && _newData != "00000") {
-			return;
+		_incommingData = (int)DATA_SERIAL.read();
+		if (_incommingData == 255) {
+			DATA_SERIAL.readBytes(_dataBuffer, 4);
 		}
-		_currentData = _newData;
 
-		String tmpSpeedString = _newData.substring(3);
-		int arraySize = _newData.length();
+		//_newData = DATA_SERIAL.readStringUntil('\n');
+		//if (_newData == _currentData && _newData != "00000") {
+		//	return;
+		//}
+		//_currentData = _newData;
+
+		//String tmpSpeedString = _newData.substring(3);
+		//int arraySize = _newData.length();
 
 		
-		emergencyStop = _currentData[0] - '0';
-		controlMode = _currentData[1] - '0';
-		direction = _currentData[2] - '0';
-		speed = tmpSpeedString.toDouble();
+		_emergencyStop = (bool)_dataBuffer[0];
+		_controlMode = (uint8_t)_dataBuffer[1];
+		_direction = (bool)_dataBuffer[2];
+		_speed = (uint8_t)_dataBuffer[3];
 
 	}
 

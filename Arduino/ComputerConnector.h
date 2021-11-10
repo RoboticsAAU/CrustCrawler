@@ -29,10 +29,10 @@ public:
 
 
 	//Getters for use in controller
-	bool getEmergencyStop() { return emergencyStop; };
-	unsigned int getControlMode() { return controlMode; };
-	bool getDirection() { return direction; };
-	double getSpeed() { return speed; };
+	bool getEmergencyStop() { return _emergencyStop; };
+	unsigned int getControlMode() { return _controlMode; };
+	bool getDirection() { return _direction; };
+	double getSpeed() { return _speed; };
 
 
 
@@ -40,14 +40,16 @@ public:
 
 private:
 	//Variables received from computer 
-	bool emergencyStop;
-	unsigned int controlMode;
+	bool _emergencyStop;
+	uint8_t _controlMode;
 	//bool positiveDirection;
-	bool direction;
-	unsigned int speed;
-	String _newData;
-	String _currentData;
+	bool _direction;
+	uint8_t _speed;
+	//String _newData;
+	//String _currentData;
 
+	char _dataBuffer[4];
+	int _incommingData;
 
 
 };
