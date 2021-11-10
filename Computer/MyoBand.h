@@ -1,14 +1,9 @@
 #ifndef MYOBAND
 #define MYOBAND
 
-#define _USE_MATH_DEFINES
-#include <cmath>
 #include <iostream>
-#include <sstream>
-#include <iomanip>
 #include <stdexcept>
 #include <string>
-#include <algorithm>
 #include <vector>
 
 #include <myo/myo.hpp>
@@ -49,7 +44,7 @@ private:
 
     // This is set by onArmSync() and onArmUnsync().
     bool onArm;
-    myo::Arm whichArm;
+    //myo::Arm whichArm;
 
     // This is set by onUnlocked() and onLocked().
     bool isUnlocked;

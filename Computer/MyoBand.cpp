@@ -32,7 +32,7 @@ MyoBand::~MyoBand() {
 
 myo::Pose MyoBand::getPose() {
     // We call for events
-    pHub->runOnce(20);
+    pHub->runOnce(200);
     
     // If we read a pose and we haven't registred that the MyoBand is on the arm, we set onArm to be true
     if ( currentPose != myo::Pose::unknown && !onArm ) {
@@ -53,7 +53,7 @@ std::vector<int8_t> MyoBand::getEMGdata() {
         return empty;
     }
 
-    pHub->runOnce(20);
+    pHub->runOnce(200);
     return emgSamples;
 }
 
@@ -80,7 +80,7 @@ void MyoBand::onLock(myo::Myo* myo, uint64_t timestamp) {
 
 void MyoBand::onArmSync(myo::Myo* myo, uint64_t timestamp, myo::Arm arm, myo::XDirection xDirection, float rotation, myo::WarmupState warmupState) {
     onArm = true;
-    whichArm = arm;
+    //whichArm = arm;
 }
 
 void MyoBand::onArmUnsync(myo::Myo* myo, uint64_t timestamp) {

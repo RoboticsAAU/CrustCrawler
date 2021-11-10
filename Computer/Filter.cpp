@@ -11,7 +11,7 @@ Filtering::Filtering(int sampleSize, MyoBand &MyoBand) : pMyoBand(&MyoBand), sam
 double Filtering::averageEMG(std::vector<int8_t> &emgSample){
 	int sum = 0;
 	for(int i = 0; i < 8; i++){
-		sum += abs(emgSample.at(0));
+		sum += abs(emgSample.at(i));
 	}
 	return (sum / (double)emgSample.size());
 }
@@ -31,7 +31,10 @@ int Filtering::MoveAvg(){
 
 	return (int)(sum / m_sampleSize);
 }
+
+#ifdef _DEBUG
 void Filtering::print(){
 	printf("MovAvg: %3d ", MoveAvg());
 	//std::cout << "Moving average: [" << Filter.MoveAvg() << "]" << std::flush;
 }
+#endif
