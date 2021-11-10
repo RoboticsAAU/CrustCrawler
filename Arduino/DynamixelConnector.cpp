@@ -32,7 +32,7 @@ DynamixelConnector::~DynamixelConnector() {
 /// <param name="pwmData"> The pwm value to set the servo</param>
 void DynamixelConnector::setPWM(uint8_t id,uint16_t pwmData){
 
-	if (pwmData > _joints[id - 1].m_PWMlimit) {
+	if (pwmData > joints[id - 1].m_PWMlimit) {
 		throw "The pwm signal is above the PWM limit!";
 		return;
 	}
@@ -127,12 +127,12 @@ void DynamixelConnector::_SetupDynamixelServos() {
 
 	for (uint8_t i = 0; i < 5; i++)
 	{	
-		p_dynamixel->torqueOff(_joints[i].m_id);
-		p_dynamixel->writeControlTableItem(ControlTableItem::OPERATING_MODE, _joints[i].m_id, OperatingMode::OP_PWM);
-		p_dynamixel->writeControlTableItem(ControlTableItem::MAX_POSITION_LIMIT, _joints[i].m_id, _joints[i].m_maxTheta); 
-		p_dynamixel->writeControlTableItem(ControlTableItem::MIN_POSITION_LIMIT, _joints[i].m_id, _joints[i].m_maxTheta);
-		p_dynamixel->writeControlTableItem(ControlTableItem::PWM_LIMIT, _joints[i].m_id, _joints[i].m_PWMlimit);
-		p_dynamixel->torqueOn(_joints[i].m_id);
+		p_dynamixel->torqueOff(joints[i].m_id);
+		p_dynamixel->writeControlTableItem(ControlTableItem::OPERATING_MODE, joints[i].m_id, OperatingMode::OP_PWM);
+		p_dynamixel->writeControlTableItem(ControlTableItem::MAX_POSITION_LIMIT, joints[i].m_id, joints[i].m_maxTheta); 
+		p_dynamixel->writeControlTableItem(ControlTableItem::MIN_POSITION_LIMIT, joints[i].m_id, joints[i].m_maxTheta);
+		p_dynamixel->writeControlTableItem(ControlTableItem::PWM_LIMIT, joints[i].m_id, joints[i].m_PWMlimit);
+		p_dynamixel->torqueOn(joints[i].m_id);
 	}
 
 }
