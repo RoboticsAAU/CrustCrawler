@@ -28,10 +28,10 @@ public:
 
 private:
 
-	ComputerConnector* CC;
-	DynamixelConnector* DC;
-	Kinematics* Kin;
-	Dynamics* Dyn;
+	ComputerConnector* computerConnector;
+	DynamixelConnector* dynamixelConnector;
+	Kinematics* kinematics;
+	Dynamics* dynamics;
 
 
 
@@ -46,7 +46,7 @@ private:
 
 	//Functions to go between motion states 
 	double _DifferentiationOperator(double currentValue, double previousValue);
-	double _IntegrationOperator(double currentValue, double& inputIntegrationVal);
+	double _IntegrationOperator(double currentValue, double inputIntegrationVal);
 	double m_lastValue{ 0 };
 
 	void emergancystop();
@@ -59,7 +59,9 @@ private:
 	Dynamixel2Arduino* p_dynamixel = NULL;
 
 	JointAngles inputAngles;
-	Velocities inputVelocities;
+	Motion inputMotion;
+	double prevVel1{ 0 },prevVel2{ 0 }, prevVel3{ 0 };
+
 	eePosition m_eePosition;
 
 

@@ -1,5 +1,6 @@
 #pragma once
 #include "DataStructures.h"
+#include "CrustCrawlerData.h"
 
 //Include dynamixel libraries
 #include "Dynamixel2Arduino.h"
@@ -37,8 +38,7 @@ private:
 	//Raw dynamixel angles read directly from the servos.
 	JointAngles internalJointAngles;
 
-	Joint _Joint1, _Joint2, _Joint3, _Joint4, _Joint5;
-	Joint _joints[5] = { _Joint1, _Joint2, _Joint3, _Joint4, _Joint5 };
+	Joint joints[5] = { Joint1, Joint2, Joint3, Joint4, Joint5 };
 
 	// Custom Private methods
 	void _UpdateDynamixelAngles();

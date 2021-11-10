@@ -23,6 +23,7 @@ struct Joint {
 	unsigned int m_length;
 	int16_t m_minTheta, m_maxTheta;
 	uint16_t m_PWMlimit;
+	ServoType m_servoType;
 	//InertiaTensor inertiaTensor;
 
 	double m_costantC1{ 0 }, m_constantC2{ 0 };
@@ -40,6 +41,20 @@ struct Joint {
 	};
 
 	double m_torque{ 0 };
+};
+
+struct CrustCrawlerData
+{
+	Joint _Joint1;
+	Joint _Joint2;
+	Joint _Joint3;
+	Joint _Joint4;
+	Joint _Joint5;
+
+	
+	CrustCrawlerData() {
+		//Joint Data
+	}
 };
 
 struct JointAngles {
@@ -71,3 +86,4 @@ struct Motion {
 struct eePosition {
 	double x{ 0 }, y{ 0 }, z{ 0 };
 };
+

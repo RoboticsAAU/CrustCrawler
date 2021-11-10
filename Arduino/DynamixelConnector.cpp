@@ -1,4 +1,5 @@
 //Include header files.
+//Include header files.
 #include "DynamixelConnector.h"
 
 
@@ -13,12 +14,6 @@ DynamixelConnector::DynamixelConnector() {
 	p_dynamixel = new Dynamixel2Arduino(DYNAMIXEL_SERIAL,DIRECTION_PIN);
 	p_dynamixel->begin(DYNAMIXEL_BAUDRATE);
 
-	//Joint data
-	_Joint1 = Joint(1, 10, 6.6, -180, 180, 10);
-    _Joint2 = Joint(2, 10, 22.0, 10, 10, 10);
-    _Joint3 = Joint(3, 10, 14.7, 10, 10, 10);
-    _Joint4 = Joint(4, 10, 10, 10, 10, 10);
-    _Joint5 = Joint(5, 10, 10, 10, 10, 10);
 }
 
 /// <summary>
