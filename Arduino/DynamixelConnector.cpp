@@ -31,11 +31,38 @@ DynamixelConnector::~DynamixelConnector() {
 /// <param name="pwmData"> The pwm value to set the servo</param>
 void DynamixelConnector::setPWM(uint8_t id,uint16_t pwmData){
 
-	if (pwmData > joints[id - 1].m_PWMlimit) {
+	if (pwmData > _joints[id - 1].m_PWMlimit) {
 		//throw "The pwm signal is above the PWM limit!";
 		return;
 	}
 	p_dynamixel->setGoalPWM(id, pwmData);
+}
+
+/// <summary>
+/// Returns the pwm of the specified servo
+/// </summary>
+/// <param name="id"> ID of the servo </param>
+/// <returns> PWM in the range of: -PWM_limit ~ PWM_limit </returns>
+float DynamixelConnector::getCurrentPWM(uint8_t id) {
+	return p_dynamixel->getPresentPWM(id);
+}
+
+/// <summary>
+/// Gets the present veloctiy of the servo.
+/// </summary>
+/// <param name="id"> ID of the servo </param>
+/// <returns> Velocity in the range of: -VEL_limit ~ VEL_limit </returns>
+float DynamixelConnector::getVelocity(uint8_t id) {
+	return p_dynamixel->getPresentVelocity(id);
+}
+
+/// <summary>
+/// Whether the joint is in angular motion or not. Uses the Moving threshold.
+/// </summary>
+/// <param name="id"> ID of the servo </param>
+/// <returns> True if moving, False if not </returns>
+bool DynamixelConnector::isJointMoving(uint8_t id) {
+	return p_dynamixel->readControlTableItem(ControlTableItem::MOVING, id);
 }
 
 /// <summary>
@@ -46,9 +73,9 @@ void DynamixelConnector::setPWM(uint8_t id,uint16_t pwmData){
 JointAngles DynamixelConnector::getJointAngles(UnitType unitType) {
 	_UpdateDynamixelAngles();
 
-	AngleConverter(internalJointAngles,unitType);
+	AngleConverter(_internalJointAngles,unitType);
 
-	return internalJointAngles;
+	return _internalJointAngles;
 }
 
 /// <summary>
@@ -110,13 +137,13 @@ void DynamixelConnector::AngleConverter(JointAngles &inputAngles, UnitType desir
 /// Directly read the servos raw position value. 
 /// </summary>
 void DynamixelConnector::_UpdateDynamixelAngles() {
-	internalJointAngles.m_Theta1 = p_dynamixel->getPresentPosition(1, UNIT_RAW);
-	internalJointAngles.m_Theta2 = p_dynamixel->getPresentPosition(2, UNIT_RAW);
-	internalJointAngles.m_Theta3 = p_dynamixel->getPresentPosition(3, UNIT_RAW);
-	internalJointAngles.m_Theta4 = p_dynamixel->getPresentPosition(4, UNIT_RAW);
-	internalJointAngles.m_Theta5 = p_dynamixel->getPresentPosition(5, UNIT_RAW);
+	_internalJointAngles.m_Theta1 = p_dynamixel->getPresentPosition(1, UNIT_RAW);
+	_internalJointAngles.m_Theta2 = p_dynamixel->getPresentPosition(2, UNIT_RAW);
+	_internalJointAngles.m_Theta3 = p_dynamixel->getPresentPosition(3, UNIT_RAW);
+	_internalJointAngles.m_Theta4 = p_dynamixel->getPresentPosition(4, UNIT_RAW);
+	_internalJointAngles.m_Theta5 = p_dynamixel->getPresentPosition(5, UNIT_RAW);
 
-	internalJointAngles.currentUnitType = Raw;
+	_internalJointAngles.currentUnitType = Raw;
 }
 
 /// <summary>
@@ -126,12 +153,13 @@ void DynamixelConnector::_SetupDynamixelServos() {
 
 	for (uint8_t i = 0; i < 5; i++)
 	{	
-		p_dynamixel->torqueOff(joints[i].m_id);
-		p_dynamixel->writeControlTableItem(ControlTableItem::OPERATING_MODE, joints[i].m_id, OperatingMode::OP_PWM);
-		p_dynamixel->writeControlTableItem(ControlTableItem::MAX_POSITION_LIMIT, joints[i].m_id, joints[i].m_maxTheta); 
-		p_dynamixel->writeControlTableItem(ControlTableItem::MIN_POSITION_LIMIT, joints[i].m_id, joints[i].m_maxTheta);
-		p_dynamixel->writeControlTableItem(ControlTableItem::PWM_LIMIT, joints[i].m_id, joints[i].m_PWMlimit);
-		p_dynamixel->torqueOn(joints[i].m_id);
+		p_dynamixel->torqueOff(_joints[i].m_id);
+		p_dynamixel->writeControlTableItem(ControlTableItem::OPERATING_MODE, _joints[i].m_id, OperatingMode::OP_PWM);
+		p_dynamixel->writeControlTableItem(ControlTableItem::MAX_POSITION_LIMIT, _joints[i].m_id, _joints[i].m_maxTheta); 
+		p_dynamixel->writeControlTableItem(ControlTableItem::MIN_POSITION_LIMIT, _joints[i].m_id, _joints[i].m_maxTheta);
+		p_dynamixel->writeControlTableItem(ControlTableItem::PWM_LIMIT, _joints[i].m_id, _joints[i].m_PWMlimit);
+		p_dynamixel->writeControlTableItem(ControlTableItem::MOVING_THRESHOLD, _joints[i].m_id, _MovingThreshold);
+		p_dynamixel->torqueOn(_joints[i].m_id);
 	}
 
 }

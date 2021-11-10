@@ -21,9 +21,16 @@ public:
 	void EmergencyStop();
 
 
-	//Getters and setters
+	// ------ Getters and setters
+
+	// PWM
+	float getCurrentPWM(uint8_t id);
 	void setPWM(uint8_t id, uint16_t pwmData);
-	uint16_t getCurrentPWM(uint8_t id);
+
+	// Velocity
+	float getVelocity(uint8_t id);
+	bool isJointMoving(uint8_t id);
+
 	JointAngles getJointAngles(UnitType unitType);
 
 
@@ -36,9 +43,13 @@ private:
 	Dynamixel2Arduino* p_dynamixel;
 
 	//Raw dynamixel angles read directly from the servos.
-	JointAngles internalJointAngles;
+	JointAngles _internalJointAngles;
 
-	Joint joints[5] = { Joint1, Joint2, Joint3, Joint4, Joint5 };
+	//Array of joints, in order to simplify the setup function.
+	Joint _joints[5] = { Joint1, Joint2, Joint3, Joint4, Joint5 };
+
+	//Threshold to determine wether the servo is moving. Data is RPM.
+	const static int _MovingThreshold = 5;
 
 	// Custom Private methods
 	void _UpdateDynamixelAngles();
