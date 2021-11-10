@@ -23,11 +23,19 @@ public:
 	~Controller();
 
 	void main();
-
 	void debugPrint();
 
 
 private:
+
+	ComputerConnector* CC;
+	DynamixelConnector* DC;
+	Kinematics* Kin;
+	Dynamics* Dyn;
+
+
+
+	//---------------- This is old, neew review---------------------//
 	void _ComputerOutputToVelocity(bool emergencyStop, unsigned int controlMode, bool sign, unsigned int speed);
 
 	//Updates everything
@@ -42,7 +50,6 @@ private:
 
 	void emergancystop();
 
-
 	void _ForwardKinematics();
 
 	// Needs to return torque
@@ -52,12 +59,7 @@ private:
 	Velocities inputVelocities;
 	eePosition m_eePosition;
 
-
-
-	ComputerConnector* CC;
-
-
-//Defining PID controller variables
+	//Defining PID controller variables
 	double _PID(double desiredValue, double currentValue);
 	double m_proportional{ 0 }, m_integral{ 0 }, m_derivative{ 0 }, m_lastError{ 0 }, samplingTime = 1/200; //Sampling time should be changed
 

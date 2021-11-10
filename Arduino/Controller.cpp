@@ -1,17 +1,15 @@
 #include "Controller.h"
 #include "ComputerConnector.h"
-
+#include "Dynamics.h"
+#include "Kinematics.h"
 #include "DynamixelConnector.h"
 
 Controller::Controller(){
 
 	ComputerConnector* CC = new ComputerConnector();
-	
-
-	
-
-
-
+	Dynamics* Dyn = new Dynamics();
+	Kinematics* Kin = new Kinematics();
+	DynamixelConnector* DC = new DynamixelConnector();
 
 
 
@@ -36,9 +34,6 @@ Controller::~Controller(){
 
 void Controller::main(){
 	
-
-	
-
 	CC->updateComputerData();
 
 
