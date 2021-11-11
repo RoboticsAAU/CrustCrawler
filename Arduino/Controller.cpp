@@ -1,11 +1,4 @@
 #include "Controller.h"
-#include "ComputerConnector.h"
-#include "Dynamics.h"
-#include "Kinematics.h"
-#include "DynamixelConnector.h"
-
-#include "CrustCrawlerData.h"
-
 
 Controller::Controller(){
 
