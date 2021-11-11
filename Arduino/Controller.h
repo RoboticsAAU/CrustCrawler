@@ -12,6 +12,11 @@
 #include "ComputerConnector.h"
 #include "DynamixelConnector.h"
 
+#include "CrustCrawlerData.h"
+#include "SystemData.h"
+
+
+
 #define DYNAMIXEL_SERIAL Serial
 const uint8_t DIRECTION_PIN = 2; // DYNAMIXEL Shield DIR PIN
 

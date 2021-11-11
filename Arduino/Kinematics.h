@@ -1,5 +1,20 @@
 #pragma once
-class Kinematics
-{
+
+#include "SystemData.h"
+#include "CrustCrawlerData.h"
+
+
+class Kinematics{
+
+public:
+	Kinematics();
+	~Kinematics();
+
+	void UpdateForwardkinematics();
+
+private:
+
+
+
 };
 
