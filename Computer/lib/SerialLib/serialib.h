@@ -129,7 +129,7 @@ public:
 
 
     // Write a char
-    char    writeChar   (char);
+    char    writeChar   (unsigned char);
 
     // Read a char (with timeout)
     char    readChar    (char *pByte,const unsigned int timeOut_ms=0);

@@ -8,6 +8,7 @@
 #include <iostream>
 #include <chrono>
 
+
 class SerialLink {
 public:
     SerialLink(char* comPort, DWORD baudRate, Filtering& FilterObject);
@@ -19,22 +20,26 @@ public:
 	#endif
 
 private:
+	// Package functions
 	void packageConstructor();
-	void getEmergencyStop(char& outStop);
-	void getSpeed(char& outSpeed);
-	void getDirection(char& outDirection);
-	void getMode(char& outMode);
-
-	std::string package;
+	void getEmergencyStop(unsigned char& outStop);
+	void getSpeed(unsigned char& outSpeed);
+	void getDirection(unsigned char& outDirection);
+	void getMode(unsigned char& outMode);
 	
-	char HeaderByte = 255;
-	char EmergencyStop = 0;
-	char Mode = 0;
-	char Direction = 0;
-	char Speed = 0;
+	// Package variables
+	std::vector<unsigned char> package;
+	//std::string package;
+	unsigned char HeaderByte = 255;
+	unsigned char EmergencyStop = 0;
+	unsigned char Mode = 0;
+	unsigned char Direction = 0;
+	unsigned char Speed = 0;
+
+	// Logic
 	myo::Pose previousPose;
 
-	enum eMode {
+	enum ControlMode {
 		Grasp,
 		LeftRight,
 		UpDown,
@@ -48,7 +53,7 @@ private:
 		Precision
 	};
 
-	eMode currentMode = Grasp;
+	ControlMode controlMode = Grasp;
 	SpeedMode speedMode = Linear;
 	
 
@@ -61,13 +66,14 @@ private:
 	serialib* Serial;
 	int isSent;
 
+	double waveInMaxSpeed = 1;
+	double waveOutMaxSpeed = 1;
+	double waveInThreshold = 0;
+	double waveOutThreshold = 0;
 
+	double threshold = 4;
+	double speedCap = 150;
 
-	int currentMaxSpeed = 0;
-	int threshold = 0;
-	int speedCap = 150;
-
-	int speedMap(int& variable);
-
-	void gain(int& variable);
+	double speedMap(double& variable);
+	void configure();
 };

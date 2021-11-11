@@ -104,7 +104,7 @@ void MyoBand::print()
 
     std::vector<int8_t> cEMGdata = getEMGdata();
 
-    printf("Pose: %12s ", (char*)poseString.data());
+    printf("Pose: %13s ", (char*)poseString.data());
     //printf("EMG data: [%4d][%4d][%4d][%4d][%4d][%4d][%4d][%4d] ", 
     //cEMGdata.at(0), cEMGdata.at(1), cEMGdata.at(2), cEMGdata.at(3),
     //cEMGdata.at(4), cEMGdata.at(5), cEMGdata.at(6), cEMGdata.at(7));

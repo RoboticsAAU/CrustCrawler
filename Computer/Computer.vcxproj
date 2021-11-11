@@ -165,7 +165,6 @@
   <ItemGroup>
     <ClInclude Include="Filter.h" />
     <ClInclude Include="lib\SerialLib\serialib.h" />
-    <ClInclude Include="lib\SimpleSerial\include\SimpleSerial.h" />
     <ClInclude Include="MyoBand.h" />
     <ClInclude Include="resource.h" />
     <ClInclude Include="SerialLink.h" />
@@ -173,7 +172,6 @@
   <ItemGroup>
     <ClCompile Include="Filter.cpp" />
     <ClCompile Include="lib\SerialLib\serialib.cpp" />
-    <ClCompile Include="lib\SimpleSerial\include\SimpleSerial.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="MyoBand.cpp" />
     <ClCompile Include="SerialLink.cpp" />
@@ -185,7 +183,6 @@
     <None Include=".gitignore" />
   </ItemGroup>
   <ItemGroup>
-    <Text Include="lib\SimpleSerial\include\syntax_config.txt" />
     <Text Include="lib\simple_serial_port\include\syntax_config.txt" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

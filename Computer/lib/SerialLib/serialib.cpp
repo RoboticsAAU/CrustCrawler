@@ -324,7 +324,7 @@ void serialib::closeDevice()
      \return 1 success
      \return -1 error while writting data
   */
-char serialib::writeChar(const char Byte)
+char serialib::writeChar(const unsigned char Byte)
 {
 #if defined (_WIN32) || defined( _WIN64)
     // Number of bytes written

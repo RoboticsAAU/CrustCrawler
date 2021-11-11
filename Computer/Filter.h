@@ -13,7 +13,7 @@ public:
 	Filtering(int sample_size, MyoBand& MyoBand);
 	
 	// Calculates a moving average and return our signal magnitude
-	int MoveAvg();
+	double MoveAvg();
 
 	// Used by SerialLink to get the same MyoBand pointer as the filter object
 	MyoBand* getMyoBandPointer() { return pMyoBand; }

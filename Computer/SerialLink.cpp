@@ -14,41 +14,14 @@ SerialLink::SerialLink(char* comPort, DWORD baudRate, Filtering& FilterObject)
 
     // We know that our package is 6 byte long, so we reverse that
     package.assign(6, 0);
-
-    std::chrono::time_point<std::chrono::high_resolution_clock> startTime = std::chrono::high_resolution_clock::now();
-
-    std::chrono::time_point<std::chrono::high_resolution_clock> currentTime;
-
-    #ifdef _DEBUG
-    printf("Please use your max strength for 5 seconds");
-    do{
-        int speed = pFilterObject->MoveAvg();
-        if ( speed > currentMaxSpeed ) {
-            currentMaxSpeed = speed;
-        }
-        currentTime = std::chrono::high_resolution_clock::now();
-    } while (currentTime - startTime < std::chrono::seconds::duration(5));
-
-    startTime = std::chrono::high_resolution_clock::now();
-
-    printf("Please rest your arm for 10 seconds");
-    do {
-        int speed = pFilterObject->MoveAvg();
-        myo::Pose pose = pMyoBand->getPose();
-
-        if ( pose == myo::Pose::rest && speed > threshold) {
-            threshold = speed;
-        }
-        currentTime = std::chrono::high_resolution_clock::now();
-
-    } while (currentTime - startTime < std::chrono::seconds::duration(10));
-    #endif
-
 }
 
 void SerialLink::sendData() {
     // We construct the new package
     packageConstructor();
+
+    // Start timer
+    // while not true loop
 
     // Then we try to send it, and only set isSent to true once the package is actually sent
     for (int i = 0; i < package.size()-1 ; i++)
@@ -59,9 +32,11 @@ void SerialLink::sendData() {
             isSent = Serial->writeChar(package.at(i));
         }
         isSent = false;
-    }
-}
 
+    }
+    // end timer
+    // calculate condition
+}
 
 void SerialLink::packageConstructor() {
     //The current data is fetched
@@ -77,27 +52,42 @@ void SerialLink::packageConstructor() {
     package.at(3) = Direction;
     package.at(4) = Speed;
 }
-void SerialLink::getEmergencyStop(char& outStop){
+
+void SerialLink::getEmergencyStop(unsigned char& outStop){
     if (GetKeyState(VK_SPACE)) {
         outStop = 1;
     }
 }
 
-void SerialLink::getSpeed(char& outSpeed) {
-    int RAWspeed = pFilterObject->MoveAvg();
+void SerialLink::getSpeed(unsigned char& outSpeed) {
+    double RAWspeed = pFilterObject->MoveAvg();
+
+    if (GetKeyState(VK_F1) & 0x8000) { speedMode = SpeedMode::Gross; }
+    if (GetKeyState(VK_F2) & 0x8000) { speedMode = SpeedMode::Linear; }
+    if (GetKeyState(VK_F3) & 0x8000) { speedMode = SpeedMode::Precision; }
 
     if (previousPose == myo::Pose::rest) {
-        outSpeed = (char)0;
+        outSpeed = 0;
         return;
     }
-    int convertedSpeed = RAWspeed - threshold;
-    convertedSpeed = speedMap(convertedSpeed);
-    convertedSpeed = convertedSpeed > speedCap ? speedCap : convertedSpeed;
+    if (previousPose == myo::Pose::waveOut && RAWspeed > waveOutMaxSpeed) {
+        waveOutMaxSpeed = RAWspeed;
+    }
+    if (previousPose == myo::Pose::waveIn && RAWspeed > waveInMaxSpeed) {
+        waveInMaxSpeed = RAWspeed;
+    }
 
-    outSpeed = (char)(convertedSpeed);
+    double convertedSpeed = RAWspeed - threshold;
+    convertedSpeed = speedMap(convertedSpeed);
+    if(convertedSpeed < 0){
+        int debug = 0;
+    }
+    convertedSpeed = convertedSpeed > speedCap ? speedCap : convertedSpeed;
+    
+    outSpeed = convertedSpeed;
 }
 
-void SerialLink::getDirection(char& outDirection){
+void SerialLink::getDirection(unsigned char& outDirection){
     myo::Pose Pose = pMyoBand->getPose();
     if(Pose == myo::Pose::waveIn){
         outDirection = 0;
@@ -107,50 +97,50 @@ void SerialLink::getDirection(char& outDirection){
     }
 }
 
-void SerialLink::getMode(char& outMode) {
+void SerialLink::getMode(unsigned char& outMode) {
     myo::Pose currentPose = pMyoBand->getPose();
 
     if (currentPose == previousPose) {
         return;
     }
 
-    switch (currentMode)
+    switch (controlMode)
     {
-        case eMode::Grasp: {
+        case ControlMode::Grasp: {
             if (currentPose == myo::Pose::fingersSpread) {
-                currentMode = eMode::LeftRight;
+                controlMode = ControlMode::LeftRight;
             }
             else if (currentPose == myo::Pose::fist) {
-                currentMode = eMode::InOut;
+                controlMode = ControlMode::InOut;
             }
             break;
         }
-        case eMode::LeftRight: {
+        case ControlMode::LeftRight: {
             if (currentPose == myo::Pose::fingersSpread) {
-                currentMode = eMode::UpDown;
+                controlMode = ControlMode::UpDown;
             }
             else if (currentPose == myo::Pose::fist) {
-                currentMode = eMode::Grasp;
-            }
-            break;
-        }
-
-        case eMode::UpDown: {
-            if (currentPose == myo::Pose::fingersSpread) {
-                currentMode = eMode::InOut;
-            }
-            else if (currentPose == myo::Pose::fist) {
-                currentMode = eMode::LeftRight;
+                controlMode = ControlMode::Grasp;
             }
             break;
         }
 
-        case eMode::InOut: {
+        case ControlMode::UpDown: {
             if (currentPose == myo::Pose::fingersSpread) {
-                currentMode = eMode::Grasp;
+                controlMode = ControlMode::InOut;
             }
             else if (currentPose == myo::Pose::fist) {
-                currentMode = eMode::UpDown;
+                controlMode = ControlMode::LeftRight;
+            }
+            break;
+        }
+
+        case ControlMode::InOut: {
+            if (currentPose == myo::Pose::fingersSpread) {
+                controlMode = ControlMode::Grasp;
+            }
+            else if (currentPose == myo::Pose::fist) {
+                controlMode = ControlMode::UpDown;
             }
             break;
         }
@@ -160,24 +150,31 @@ void SerialLink::getMode(char& outMode) {
             break;
         }
     }
-    outMode = currentMode;
+    outMode = controlMode;
     previousPose = currentPose;
 }
 
-int SerialLink::speedMap(int& variable) {
-    if (GetKeyState(0x41) & 0x8000) { speedMode = SpeedMode::Gross;  }
-    if (GetKeyState(0x53) & 0x8000) { speedMode = SpeedMode::Linear; }
-    if (GetKeyState(0x44) & 0x8000) { speedMode = SpeedMode::Precision; }
-    
+double SerialLink::speedMap(double& variable) {
+    double mappedVariable{ 0 };
+    if (previousPose == myo::Pose::waveOut) {
+        mappedVariable = (100 / waveOutMaxSpeed) * variable;
+    }
+    else if (previousPose == myo::Pose::waveIn) {
+        mappedVariable = (100 / waveInMaxSpeed) * variable;
+    }
+    else {
+        return 0;
+    }
+
     switch(speedMode){
     case SpeedMode::Gross:{
-        return (int) 74.8*log10(variable + 1);
+        return (74.8*log10(mappedVariable + 1));
     }
     case SpeedMode::Linear:{
-        return (int) 1.5*variable;
+        return (1.5*mappedVariable);
     }
     case SpeedMode::Precision:{
-        return (int) 1.0918*pow(10,-6)*pow(variable, 4.069);
+        return (0.00179091*pow(mappedVariable, 2.4615091));
     }
     default:{
         throw std::runtime_error("Invalid speedMode");
@@ -185,12 +182,63 @@ int SerialLink::speedMap(int& variable) {
     }
 }
 
+void SerialLink::configure() {
+  
+    /*
+    std::chrono::time_point<std::chrono::steady_clock> startTime = std::chrono::steady_clock::now();
+
+    auto currentTime = std::chrono::steady_clock::now();
+
+    //printf("\nPlease use your max strength for 10 seconds. ");
+    int count = 0;
+    do{
+        printf("Max speed count: %3d ", count);
+        int speed = pFilterObject->MoveAvg();
+        if ( speed > currentMaxSpeed ) {
+            currentMaxSpeed = speed;
+        }
+        currentTime = std::chrono::steady_clock::now();
+        std::cout << "System time: " 
+                  << std::chrono::duration_cast<std::chrono::milliseconds>(currentTime - startTime).count() 
+                  << std::flush;
+        printf("\r");
+        count++;
+    } while (currentTime - startTime < std::chrono::seconds::duration(10));
+
+    startTime = std::chrono::steady_clock::now();
+
+    printf("\nPlease rest your arm for 10 seconds. ");
+    count = 0;
+    do {
+        int speed = pFilterObject->MoveAvg();
+        myo::Pose pose = pMyoBand->getPose();
+
+        if ( pose == myo::Pose::rest && speed > threshold) {
+            threshold = speed;
+        }
+        currentTime = std::chrono::steady_clock::now();
+        printf("Threshold count: %3d", count);
+        printf("\r");
+        count++;
+
+    } while (currentTime - startTime < std::chrono::seconds::duration(10));
+
+    if (threshold == 0 || currentMaxSpeed == 0) {
+        printf("\nConfiguration failed, please try again :) ");
+        return;
+    }
+    else {
+        isConfigured = true;
+    }
+    */
+}
+
 #ifdef _DEBUG
 void SerialLink::print(){
     packageConstructor();
     //printf("Mode: %d Sign: %d Speed: %3d EndByte: %d", Mode, Direction, Speed, EndByte);
-    printf("HeaderByte: %d Emergency Stop: %d Mode: %d Direction: %d Speed: %3d ", 
-            package.at(0), package.at(1), package.at(2), package.at(3), package.at(4));
+    printf("HByte: %d EStop: %3d Mode: %d Dir: %3d Speed: %3d CMode: %d SMode: %d", 
+            HeaderByte, EmergencyStop, Mode, Direction, Speed, controlMode, speedMode);
 }                                                        
 #endif
 

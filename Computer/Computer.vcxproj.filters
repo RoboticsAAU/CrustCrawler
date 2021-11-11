@@ -27,9 +27,6 @@
     <ClInclude Include="SerialLink.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="lib\SimpleSerial\include\SimpleSerial.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="lib\SerialLib\serialib.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -47,9 +44,6 @@
     <ClCompile Include="SerialLink.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="lib\SimpleSerial\include\SimpleSerial.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="lib\SerialLib\serialib.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -64,6 +58,5 @@
   </ItemGroup>
   <ItemGroup>
     <Text Include="lib\simple_serial_port\include\syntax_config.txt" />
-    <Text Include="lib\SimpleSerial\include\syntax_config.txt" />
   </ItemGroup>
 </Project>

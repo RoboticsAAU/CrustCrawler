@@ -13,7 +13,7 @@ double Filtering::averageEMG(std::vector<int8_t> &emgSample){
 	for(int i = 0; i < 8; i++){
 		sum += abs(emgSample.at(i));
 	}
-	return (sum / (double)emgSample.size());
+	return (sum / emgSample.size());
 }
 
 void Filtering::UpdateSamples(){
@@ -24,17 +24,17 @@ void Filtering::UpdateSamples(){
 	samples.push_back(sample);
 }	
 
-int Filtering::MoveAvg(){
+double Filtering::MoveAvg(){
 	//The moving average is calculated for the 8-channel sample averages contained in the vector "samples"
 	UpdateSamples();
-	int sum = std::accumulate(samples.begin(), samples.end(), 0);
+	double sum = std::accumulate(samples.begin(), samples.end(), 0);
 
-	return (int)(sum / m_sampleSize);
+	return (sum / m_sampleSize);
 }
 
 #ifdef _DEBUG
 void Filtering::print(){
-	printf("MovAvg: %3d ", MoveAvg());
+	printf("MovAvg: %.3f ", MoveAvg());
 	//std::cout << "Moving average: [" << Filter.MoveAvg() << "]" << std::flush;
 }
 #endif
