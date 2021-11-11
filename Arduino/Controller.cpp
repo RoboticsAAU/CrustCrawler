@@ -38,124 +38,7 @@ unsigned long Controller::_UpdateLoopTime(){
 
 
 
-//void Controller::_ComputerOutputToVelocity(bool emergencyStop, unsigned int controlMode, bool sign, unsigned int speed) {
-//	if (emergencyStop) {
-//		inputMotion.m_Vel1 = 0;
-//		inputMotion.m_Vel2 = 0;
-//		inputMotion.m_Vel3 = 0;
-//		return;
-//	}
-
-//void Controller::_ComputerOutputToVelocity(unsigned int controlMode, bool sign, unsigned int speed) {
-//	Joint1.m_vel = 0;
-//	Joint2.m_vel = 0;
-//	Joint3.m_vel = 0;
-//	Joint4.m_vel = 0;
-//	Joint5.m_vel = 0;
-
-	int direction = sign ? 1 : -1;
-
-
-	//Control mode: 1 = base, 2 = in/out, 3 = up/down
-	switch (controlMode){
-	case 0:{
-		int fingerSpeed = 20; //Remember to change fittingly
-		Joint4.m_vel = -direction*fingerSpeed;
-		Joint5.m_vel = direction *fingerSpeed;
-
-		inputMotion.currentSpaceType = JointSpace;
-		break;
-	}
-	case 1:{
-		Joint1.m_vel = direction*speed;
-
-		inputMotion.currentSpaceType = JointSpace;
-		break;
-	}
-	case 2:{
-		Joint1.m_vel = direction*speed;
-
-		inputMotion.currentSpaceType = CartesianSpace;
-		break;
-	}
-	case 3: {
-		Joint3.m_vel = direction*speed;
-
-		inputMotion.currentSpaceType = CartesianSpace;
-		break;
-	}
-	case 4: {
-		break;
-	}
-}*/
-
-//void Controller::_ComputerOutputToVelocity(bool emergencyStop, unsigned int controlMode, bool sign, unsigned int speed) {
-//	if (emergencyStop) {
-//		Joint1.m_vel = 0;
-//		Joint2.m_vel = 0;
-//		Joint3.m_vel = 0;
-//		return;
-//	}
-//
-//	int direction = sign ? 1 : -1;
-//
-//
-//	//Control mode: 1 = base, 2 = in/out, 3 = up/down
-//	switch (controlMode){
-//	case 1:{
-//		Joint1.m_vel = direction*speed;
-//		Joint2.m_vel = 0;
-//		Joint3.m_vel = 0;
-//
-//		inputMotion.currentSpaceType = JointSpace;
-//		break;
-//	}
-//	case 2:{
-//		Joint1.m_vel = direction*speed;
-//		Joint2.m_vel = 0;
-//		Joint3.m_vel = 0;
-//
-//		inputMotion.currentSpaceType = CartesianSpace;
-//		break;
-//	}
-//	case 3: {
-//		Joint1.m_vel = 0;
-//		Joint2.m_vel = 0;
-//		Joint3.m_vel = direction*speed;
-//
-//		inputMotion.currentSpaceType = CartesianSpace;
-//		break;
-//	}
-//	}
-//}
-
-
-/*void Controller::_UpdateChain(){
-	//_ComputerOutputToVelocity(); //Uncomment when computer output is available
-    _ForwardKinematics();
-    _InverseDynamics();
-} */
-
-/*
-double Controller::_DifferentiationOperator(double currentValue, double previousValue){
-	//double differentiatedValue = 0.0;
-	//differentiatedValue = (currentValue - previousValue) / samplingTime;
-	//return differentiatedValue;
-
-	return (currentValue - previousValue) / samplingTime;
-}
-
-double Controller::_IntegrationOperator(double currentValue, double inputIntegrationVal) {
-	//double integratedValue = inputIntegrationVal;
-	//integratedValue += currentValue * samplingTime;
-	//inputIntegrationVal = integratedValue;
-	//return integratedValue;
-	inputIntegrationVal += currentValue * samplingTime;
-
-	return inputIntegrationVal;
-}
-*/
-
+// ----------------- Everything below this have to be moved -------------------
 void Controller::_SpaceConverter(SpaceType desiredSpace){
 	//_AngleConverter(Radians);
 	
@@ -213,16 +96,9 @@ void Controller::_SpaceConverter(SpaceType desiredSpace){
 	Joint2.m_vel = velocityVector(1,0);
 	Joint3.m_vel = velocityVector(2,0);
 
-	inputMotion.currentSpaceType = desiredSpace;
+	MotionData.currentSpaceType = desiredSpace;
 }
 
-/*
-void Controller::_ForwardKinematics(){
-	//_AngleConverter(Radians);
-	m_eePosition.x = -cos(inputAngles.m_Theta1) * (Joint2.m_length * sin(inputAngles.m_Theta2) + Joint3.m_length * sin(inputAngles.m_Theta2 + inputAngles.m_Theta3));
-	m_eePosition.y = -sin(inputAngles.m_Theta1) * (Joint2.m_length * sin(inputAngles.m_Theta2) + Joint3.m_length * sin(inputAngles.m_Theta2 + inputAngles.m_Theta3));
-	m_eePosition.z = Joint1.m_length + Joint2.m_length * cos(inputAngles.m_Theta2) + Joint3.m_length * cos(inputAngles.m_Theta2 + inputAngles.m_Theta3);
-}*/
 
 double Controller::_PID(double desiredValue, double currentValue){
 	double Kp{ 0.7 }, Ki{ 0.01 }, Kd{ 0.1 };
@@ -240,26 +116,6 @@ double Controller::_PID(double desiredValue, double currentValue){
 	return (m_proportional + m_integral + m_derivative);
 }
 
-/*
-void Controller::_InverseDynamics(){
-	Joint1.m_pos = _IntegrationOperator(Joint1.m_vel, Joint1.m_pos);
-	Joint2.m_pos = _IntegrationOperator(Joint2.m_vel, Joint2.m_pos);
-	Joint3.m_pos = _IntegrationOperator(Joint3.m_vel, Joint3.m_pos);
-
-	Joint1.m_acc = _DifferentiationOperator(Joint1.m_vel, prevVel1);
-	Joint2.m_acc = _DifferentiationOperator(Joint2.m_vel, prevVel2);
-	Joint3.m_acc = _DifferentiationOperator(Joint3.m_vel, prevVel3);
-
-	prevVel1 = Joint1.m_vel;
-	prevVel2 = Joint2.m_vel;
-	prevVel3 = Joint3.m_vel;
-
-
-	Joint1.m_torque = (((0.2e-5 * pow(cos(Joint1.m_pos), 0.2e1) - 0.1121e-1) * pow(cos(Joint3.m_pos), 0.2e1) - 0.1762e-1 * cos(Joint3.m_pos) - 0.1581e-1 + 0.5e-3 * sin(Joint3.m_pos)) * pow(cos(Joint2.m_pos), 0.2e1) + ((0.5e-3 * sin(Joint2.m_pos) + 0.1121e-1 * sin(Joint2.m_pos) * sin(Joint3.m_pos)) * cos(Joint3.m_pos) + 0.1762e-1 * sin(Joint2.m_pos) * sin(Joint3.m_pos)) * cos(Joint2.m_pos) + 0.1762e-1 * cos(Joint3.m_pos) + 0.5606e-2 * pow(cos(Joint3.m_pos), 0.2e1) + 0.2e-3 * sin(Joint3.m_pos) + 0.2162e-1) * Joint1.m_acc + (0.4e-5 * cos(Joint1.m_pos) * sin(Joint2.m_pos) * cos(Joint3.m_pos) * sin(Joint1.m_pos) - 0.2e-5 * cos(Joint1.m_pos) * sin(Joint2.m_pos) * sin(Joint1.m_pos)) * cos(Joint2.m_pos) * Joint2.m_acc + ((0.2e-5 * cos(Joint1.m_pos) * sin(Joint1.m_pos) + 0.4e-5 * cos(Joint1.m_pos) * sin(Joint1.m_pos) * cos(Joint3.m_pos)) * pow(cos(Joint2.m_pos), 0.2e1) + (-0.4e-5 * cos(Joint1.m_pos) * sin(Joint2.m_pos) * sin(Joint1.m_pos) * sin(Joint3.m_pos) + 0.2e-5 * cos(Joint1.m_pos) * sin(Joint2.m_pos) * cos(Joint3.m_pos) * sin(Joint1.m_pos) * sin(Joint3.m_pos)) * cos(Joint2.m_pos) - 0.4e-5 * cos(Joint1.m_pos) * sin(Joint1.m_pos) * cos(Joint3.m_pos) - 0.2e-5 * cos(Joint1.m_pos) * sin(Joint1.m_pos)) * pow(Joint1.m_vel, 0.2e1) + ((((0.2242e-1 * sin(Joint3.m_pos) + 0.2e-4 * pow(cos(Joint1.m_pos), 0.2e1) * sin(Joint3.m_pos) + 0.10e-2) * cos(Joint3.m_pos) + 0.2e-4 * pow(cos(Joint1.m_pos), 0.2e1) * sin(Joint3.m_pos) + 0.3522e-1 * sin(Joint3.m_pos)) * pow(cos(Joint2.m_pos), 0.2e1) + ((0.2242e-1 * sin(Joint2.m_pos) + 0.2e-4 * pow(cos(Joint1.m_pos), 0.2e1) * sin(Joint2.m_pos)) * pow(cos(Joint3.m_pos), 0.2e1) + 0.3524e-1 * sin(Joint2.m_pos) * cos(Joint3.m_pos) - 0.1e-4 * pow(cos(Joint1.m_pos), 0.2e1) * sin(Joint2.m_pos) - 0.10e-2 * sin(Joint2.m_pos) * sin(Joint3.m_pos) + 0.3165e-1 * sin(Joint2.m_pos)) * cos(Joint2.m_pos) + (-0.5e-3 - 0.1e-4 * pow(cos(Joint1.m_pos), 0.2e1) * sin(Joint3.m_pos) - 0.1121e-1 * sin(Joint3.m_pos)) * cos(Joint3.m_pos) - 0.1761e-1 * sin(Joint3.m_pos) - 0.1e-4 * pow(cos(Joint1.m_pos), 0.2e1) * sin(Joint3.m_pos)) * Joint2.m_vel + (((0.2242e-1 * sin(Joint3.m_pos) + 0.2e-4 * pow(cos(Joint1.m_pos), 0.2e1) * sin(Joint3.m_pos) + 0.5e-3) * cos(Joint3.m_pos) + 0.1e-4 * pow(cos(Joint1.m_pos), 0.2e1) * sin(Joint3.m_pos) + 0.1761e-1 * sin(Joint3.m_pos)) * pow(cos(Joint2.m_pos), 0.2e1) + ((0.2242e-1 * sin(Joint2.m_pos) + 0.2e-4 * pow(cos(Joint1.m_pos), 0.2e1) * sin(Joint2.m_pos)) * pow(cos(Joint3.m_pos), 0.2e1) + (0.1761e-1 * sin(Joint2.m_pos) + 0.1e-4 * pow(cos(Joint1.m_pos), 0.2e1) * sin(Joint2.m_pos)) * cos(Joint3.m_pos) - 0.1e-4 * pow(cos(Joint1.m_pos), 0.2e1) * sin(Joint2.m_pos) - 0.5e-3 * sin(Joint2.m_pos) * sin(Joint3.m_pos) - 0.1121e-1 * sin(Joint2.m_pos)) * cos(Joint2.m_pos) + (0.2e-3 - 0.1e-4 * pow(cos(Joint1.m_pos), 0.2e1) * sin(Joint3.m_pos) - 0.1121e-1 * sin(Joint3.m_pos)) * cos(Joint3.m_pos) - 0.1761e-1 * sin(Joint3.m_pos) - 0.1e-4 * pow(cos(Joint1.m_pos), 0.2e1) * sin(Joint3.m_pos)) * Joint3.m_vel) * Joint1.m_vel + (0.8e-5 * cos(Joint1.m_pos) * pow(cos(Joint2.m_pos), 0.2e1) * sin(Joint1.m_pos) * cos(Joint3.m_pos) + (-0.4e-5 * cos(Joint1.m_pos) * sin(Joint2.m_pos) * sin(Joint1.m_pos) * sin(Joint3.m_pos) + 0.2e-5 * cos(Joint1.m_pos) * sin(Joint2.m_pos) * cos(Joint3.m_pos) * sin(Joint1.m_pos) * sin(Joint3.m_pos)) * cos(Joint2.m_pos) - 0.4e-5 * cos(Joint1.m_pos) * sin(Joint1.m_pos) * cos(Joint3.m_pos) + 0.2e-5 * cos(Joint1.m_pos) * sin(Joint1.m_pos)) * pow(Joint2.m_vel, 0.2e1) + ((-0.8e-5 * cos(Joint1.m_pos) * pow(cos(Joint3.m_pos), 0.2e1) * sin(Joint1.m_pos) + 0.6e-5 * cos(Joint1.m_pos) * sin(Joint1.m_pos) * cos(Joint3.m_pos) + 0.4e-5 * cos(Joint1.m_pos) * sin(Joint1.m_pos)) * pow(cos(Joint2.m_pos), 0.2e1) - 0.4e-5 * cos(Joint1.m_pos) * sin(Joint2.m_pos) * sin(Joint1.m_pos) * cos(Joint2.m_pos) * sin(Joint3.m_pos) - 0.2e-5 * cos(Joint1.m_pos) * sin(Joint1.m_pos) - 0.2e-5 * cos(Joint1.m_pos) * sin(Joint1.m_pos) * cos(Joint3.m_pos) + 0.4e-5 * cos(Joint1.m_pos) * pow(cos(Joint3.m_pos), 0.2e1) * sin(Joint1.m_pos)) * Joint3.m_vel * Joint2.m_vel + 0.2e-5 * sin(Joint1.m_pos) * cos(Joint2.m_pos) * pow(Joint3.m_vel, 0.2e1) * cos(Joint3.m_pos) * cos(Joint1.m_pos) * sin(Joint2.m_pos) * sin(Joint3.m_pos);
-	Joint2.m_torque = (((-0.2e-4 * cos(Joint3.m_pos) - 0.1e-4 * pow(cos(Joint3.m_pos), 0.2e1) + 0.3e-4) * pow(cos(Joint1.m_pos), 0.4e1) + (0.2e-4 * cos(Joint3.m_pos) - 0.4e-5 * pow(cos(Joint3.m_pos), 0.2e1) - 0.2e-4) * pow(cos(Joint1.m_pos), 0.2e1) + 0.2e-5 * pow(cos(Joint3.m_pos), 0.2e1)) * pow(cos(Joint2.m_pos), 0.2e1) + (0.2e-4 * pow(cos(Joint1.m_pos), 0.4e1) * sin(Joint2.m_pos) * sin(Joint3.m_pos) - 0.2e-4 * pow(cos(Joint1.m_pos), 0.2e1) * sin(Joint2.m_pos) * sin(Joint3.m_pos)) * cos(Joint2.m_pos) + (-0.2e-4 + 0.2e-4 * cos(Joint3.m_pos)) * pow(cos(Joint1.m_pos), 0.4e1) + (0.20e-4 - 0.2e-4 * cos(Joint3.m_pos)) * pow(cos(Joint1.m_pos), 0.2e1) + 0.2773e-1 + 0.1762e-1 * cos(Joint3.m_pos)) * Joint2.m_acc + ((-0.4e-5 * pow(cos(Joint3.m_pos), 0.2e1) * pow(cos(Joint1.m_pos), 0.2e1) - 0.1e-4 * pow(cos(Joint3.m_pos), 0.2e1) * pow(cos(Joint1.m_pos), 0.4e1) + 0.2e-5 * pow(cos(Joint3.m_pos), 0.2e1)) * pow(cos(Joint2.m_pos), 0.2e1) - 0.4e-5 * cos(Joint2.m_pos) * sin(Joint3.m_pos) * pow(cos(Joint1.m_pos), 0.4e1) * sin(Joint2.m_pos) + 0.8808e-2 * cos(Joint3.m_pos) + 0.6206e-2) * Joint3.m_vel + (0.4e-5 * sin(Joint1.m_pos) * sin(Joint2.m_pos) * cos(Joint3.m_pos) - 0.2e-5 * sin(Joint1.m_pos) * sin(Joint2.m_pos)) * cos(Joint1.m_pos) * cos(Joint2.m_pos) * Joint1.m_acc + ((0.2e-5 * pow(cos(Joint1.m_pos), 0.2e1) * cos(Joint3.m_pos) * sin(Joint3.m_pos) + (-0.1121e-1 * sin(Joint3.m_pos) - 0.5000e-3) * cos(Joint3.m_pos) - 0.1762e-1 * sin(Joint3.m_pos)) * pow(cos(Joint2.m_pos), 0.2e1) + ((0.1e-4 * sin(Joint2.m_pos) * cos(Joint3.m_pos) + 0.2e-5 * pow(cos(Joint3.m_pos), 0.2e1) * sin(Joint2.m_pos)) * pow(cos(Joint1.m_pos), 0.2e1) - 0.1121e-1 * pow(cos(Joint3.m_pos), 0.2e1) * sin(Joint2.m_pos) - 0.1762e-1 * sin(Joint2.m_pos) * cos(Joint3.m_pos) + (0.5000e-3 * sin(Joint3.m_pos) - 0.1581e-1) * sin(Joint2.m_pos)) * cos(Joint2.m_pos) + (0.2500e-3 + 0.5606e-2 * sin(Joint3.m_pos)) * cos(Joint3.m_pos) + 0.8808e-2 * sin(Joint3.m_pos)) * pow(Joint1.m_vel, 0.2e1) + (((0.10e-4 * pow(cos(Joint3.m_pos), 0.2e1) * sin(Joint1.m_pos) + 0.4e-5 * sin(Joint1.m_pos) * cos(Joint3.m_pos) - 0.30e-5 * sin(Joint1.m_pos)) * cos(Joint1.m_pos) * pow(cos(Joint2.m_pos), 0.2e1) + (0.70e-5 * sin(Joint1.m_pos) - 0.4e-5 * sin(Joint1.m_pos) * cos(Joint3.m_pos) - 0.5e-5 * pow(cos(Joint3.m_pos), 0.2e1) * sin(Joint1.m_pos)) * cos(Joint1.m_pos)) * Joint2.m_vel + ((-0.3e-5 * sin(Joint1.m_pos) * cos(Joint3.m_pos) + 0.10e-4 * pow(cos(Joint3.m_pos), 0.2e1) * sin(Joint1.m_pos) - 0.5e-5 * sin(Joint1.m_pos)) * cos(Joint1.m_pos) * pow(cos(Joint2.m_pos), 0.2e1) - 0.3e-5 * cos(Joint1.m_pos) * sin(Joint2.m_pos) * sin(Joint1.m_pos) * cos(Joint2.m_pos) * sin(Joint3.m_pos) + (0.5e-5 * sin(Joint1.m_pos) - 0.5e-5 * pow(cos(Joint3.m_pos), 0.2e1) * sin(Joint1.m_pos)) * cos(Joint1.m_pos)) * Joint3.m_vel) * Joint1.m_vel + (((-0.1e-4 * sin(Joint3.m_pos) - 0.12e-4 * sin(Joint3.m_pos) * cos(Joint3.m_pos)) * pow(cos(Joint1.m_pos), 0.4e1) + (0.24e-4 * sin(Joint3.m_pos) + 0.2e-5 * sin(Joint3.m_pos) * cos(Joint3.m_pos)) * pow(cos(Joint1.m_pos), 0.2e1) + 0.2e-5 * sin(Joint3.m_pos) * cos(Joint3.m_pos) - 0.2e-5 * sin(Joint3.m_pos)) * pow(cos(Joint2.m_pos), 0.2e1) + ((-0.18e-4 * sin(Joint2.m_pos) + 0.2e-4 * sin(Joint2.m_pos) * cos(Joint3.m_pos) - 0.12e-4 * pow(cos(Joint3.m_pos), 0.2e1) * sin(Joint2.m_pos)) * pow(cos(Joint1.m_pos), 0.4e1) + (0.2e-4 * sin(Joint2.m_pos) - 0.2e-4 * sin(Joint2.m_pos) * cos(Joint3.m_pos) + 0.2e-5 * pow(cos(Joint3.m_pos), 0.2e1) * sin(Joint2.m_pos)) * pow(cos(Joint1.m_pos), 0.2e1) + 0.2e-5 * pow(cos(Joint3.m_pos), 0.2e1) * sin(Joint2.m_pos)) * cos(Joint2.m_pos) + (0.2e-5 * sin(Joint3.m_pos) * cos(Joint3.m_pos) + 0.1e-4 * sin(Joint3.m_pos)) * pow(cos(Joint1.m_pos), 0.4e1) - 0.1e-4 * pow(cos(Joint1.m_pos), 0.2e1) * sin(Joint3.m_pos)) * pow(Joint2.m_vel, 0.2e1) - 0.1762e-1 * Joint2.m_vel * Joint3.m_vel * sin(Joint3.m_pos) + ((0.2e-5 * sin(Joint3.m_pos) * cos(Joint3.m_pos) - 0.12e-4 * cos(Joint3.m_pos) * pow(cos(Joint1.m_pos), 0.4e1) * sin(Joint3.m_pos) + 0.2e-5 * pow(cos(Joint1.m_pos), 0.2e1) * cos(Joint3.m_pos) * sin(Joint3.m_pos)) * pow(cos(Joint2.m_pos), 0.2e1) + ((0.2e-5 * sin(Joint2.m_pos) - 0.12e-4 * pow(cos(Joint3.m_pos), 0.2e1) * sin(Joint2.m_pos) - 0.4e-5 * sin(Joint2.m_pos) * cos(Joint3.m_pos)) * pow(cos(Joint1.m_pos), 0.4e1) + 0.2e-5 * pow(cos(Joint1.m_pos), 0.2e1) * sin(Joint2.m_pos) * pow(cos(Joint3.m_pos), 0.2e1) + 0.2e-5 * pow(cos(Joint3.m_pos), 0.2e1) * sin(Joint2.m_pos)) * cos(Joint2.m_pos) - 0.8808e-2 * sin(Joint3.m_pos) + 0.2e-5 * cos(Joint3.m_pos) * pow(cos(Joint1.m_pos), 0.4e1) * sin(Joint3.m_pos)) * pow(Joint3.m_vel, 0.2e1) + 0.9962e0 * sin(Joint2.m_pos) + 0.3930e0 * sin(Joint2.m_pos) * cos(Joint3.m_pos) + 0.3930e0 * cos(Joint2.m_pos) * sin(Joint3.m_pos);
-	Joint3.m_torque = ((0.2e-5 * pow(cos(Joint3.m_pos), 0.2e1) - 0.1e-4 * pow(cos(Joint3.m_pos), 0.2e1) * pow(cos(Joint1.m_pos), 0.4e1)) * pow(cos(Joint2.m_pos), 0.2e1) + 0.8808e-2 * cos(Joint3.m_pos) + 0.6206e-2) * Joint2.m_acc + (0.6206e-2 + (0.2e-5 * pow(cos(Joint3.m_pos), 0.2e1) - 0.1e-4 * pow(cos(Joint3.m_pos), 0.2e1) * pow(cos(Joint1.m_pos), 0.4e1)) * pow(cos(Joint2.m_pos), 0.2e1)) * Joint3.m_acc + ((0.2e-5 * pow(cos(Joint1.m_pos), 0.2e1) * cos(Joint3.m_pos) * sin(Joint3.m_pos) + (-0.1121e-1 * sin(Joint3.m_pos) - 0.2500e-3) * cos(Joint3.m_pos) - 0.8808e-2 * sin(Joint3.m_pos)) * pow(cos(Joint2.m_pos), 0.2e1) + (-0.8808e-2 * sin(Joint2.m_pos) * cos(Joint3.m_pos) + 0.2500e-3 * sin(Joint2.m_pos) * sin(Joint3.m_pos) - 0.1121e-1 * pow(cos(Joint3.m_pos), 0.2e1) * sin(Joint2.m_pos) + 0.2e-5 * pow(cos(Joint1.m_pos), 0.2e1) * sin(Joint2.m_pos) * pow(cos(Joint3.m_pos), 0.2e1) + 0.5606e-2 * sin(Joint2.m_pos)) * cos(Joint2.m_pos) + (-0.1000e-3 + 0.5606e-2 * sin(Joint3.m_pos)) * cos(Joint3.m_pos) + 0.8808e-2 * sin(Joint3.m_pos)) * pow(Joint1.m_vel, 0.2e1) + (((-0.2e-5 * sin(Joint1.m_pos) - 0.2e-5 * sin(Joint1.m_pos) * cos(Joint3.m_pos) + 0.4e-5 * pow(cos(Joint3.m_pos), 0.2e1) * sin(Joint1.m_pos)) * cos(Joint1.m_pos) * pow(cos(Joint2.m_pos), 0.2e1) + (0.4e-5 * sin(Joint2.m_pos) * cos(Joint3.m_pos) * sin(Joint1.m_pos) * sin(Joint3.m_pos) - 0.3e-5 * sin(Joint1.m_pos) * sin(Joint2.m_pos) * sin(Joint3.m_pos)) * cos(Joint1.m_pos) * cos(Joint2.m_pos) + (0.2e-5 * sin(Joint1.m_pos) - 0.2e-5 * pow(cos(Joint3.m_pos), 0.2e1) * sin(Joint1.m_pos)) * cos(Joint1.m_pos)) * Joint2.m_vel + ((0.4e-5 * pow(cos(Joint3.m_pos), 0.2e1) * sin(Joint1.m_pos) - 0.2e-5 * sin(Joint1.m_pos)) * cos(Joint1.m_pos) * pow(cos(Joint2.m_pos), 0.2e1) + 0.4e-5 * cos(Joint1.m_pos) * sin(Joint2.m_pos) * cos(Joint3.m_pos) * sin(Joint1.m_pos) * cos(Joint2.m_pos) * sin(Joint3.m_pos) + (0.2e-5 * sin(Joint1.m_pos) - 0.2e-5 * pow(cos(Joint3.m_pos), 0.2e1) * sin(Joint1.m_pos)) * cos(Joint1.m_pos)) * Joint3.m_vel) * Joint1.m_vel + (0.1e-4 * pow(cos(Joint2.m_pos), 0.2e1) * cos(Joint3.m_pos) * pow(cos(Joint1.m_pos), 0.4e1) * sin(Joint3.m_pos) + ((0.1e-4 * sin(Joint2.m_pos) * cos(Joint3.m_pos) + 0.1e-4 * pow(cos(Joint3.m_pos), 0.2e1) * sin(Joint2.m_pos)) * pow(cos(Joint1.m_pos), 0.4e1) - 0.1e-4 * pow(cos(Joint1.m_pos), 0.2e1) * sin(Joint2.m_pos) * cos(Joint3.m_pos)) * cos(Joint2.m_pos) + 0.8808e-2 * sin(Joint3.m_pos) - 0.4e-5 * pow(cos(Joint1.m_pos), 0.4e1) * sin(Joint3.m_pos) + 0.4e-5 * pow(cos(Joint1.m_pos), 0.2e1) * sin(Joint3.m_pos)) * pow(Joint2.m_vel, 0.2e1) + ((-0.4e-5 * pow(cos(Joint1.m_pos), 0.2e1) * sin(Joint3.m_pos) + 0.4e-5 * pow(cos(Joint1.m_pos), 0.4e1) * sin(Joint3.m_pos)) * pow(cos(Joint2.m_pos), 0.2e1) + (0.4e-5 * pow(cos(Joint1.m_pos), 0.4e1) * sin(Joint2.m_pos) * cos(Joint3.m_pos) - 0.4e-5 * pow(cos(Joint1.m_pos), 0.2e1) * sin(Joint2.m_pos) * cos(Joint3.m_pos)) * cos(Joint2.m_pos) - 0.4e-5 * pow(cos(Joint1.m_pos), 0.4e1) * sin(Joint3.m_pos) + 0.4e-5 * pow(cos(Joint1.m_pos), 0.2e1) * sin(Joint3.m_pos)) * Joint3.m_vel * Joint2.m_vel + (0.1e-4 * cos(Joint2.m_pos) * pow(cos(Joint1.m_pos), 0.4e1) * pow(cos(Joint3.m_pos), 0.2e1) * sin(Joint2.m_pos) + 0.1e-4 * pow(cos(Joint2.m_pos), 0.2e1) * cos(Joint3.m_pos) * pow(cos(Joint1.m_pos), 0.4e1) * sin(Joint3.m_pos)) * pow(Joint3.m_vel, 0.2e1) + 0.3930e0 * sin(Joint2.m_pos) * cos(Joint3.m_pos) + 0.3930e0 * cos(Joint2.m_pos) * sin(Joint3.m_pos);
-}
-*/
 
 
 

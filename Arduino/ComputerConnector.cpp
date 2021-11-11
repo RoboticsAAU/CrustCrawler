@@ -51,45 +51,49 @@ void ComputerConnector::updateComputerData() {
 	int* tmpArray = dataArray;
 	return tmpArray;*/
 
-
-
-
 void ComputerConnector::_ComputerDataToVelocity() {
-	if (_emergencyStop) {
-		MotionData.m_Vel1 = 0;
-		MotionData.m_Vel2 = 0;
-		MotionData.m_Vel3 = 0;
-		return;
-	}
+	Joint1.m_vel = 0;
+	Joint2.m_vel = 0;
+	Joint3.m_vel = 0;
+	Joint4.m_vel = 0;
+	Joint5.m_vel = 0;
 
 	int _direction = _directionSign ? 1 : -1;
 
 
 	//Control mode: 1 = base, 2 = in/out, 3 = up/down
 	switch (_controlMode){
+	case 0:{
+		int fingerSpeed = 20; //Remember to change fittingly
+		Joint4.m_vel = -_direction*fingerSpeed;
+		Joint5.m_vel = _direction *fingerSpeed;
+
+		MotionData.currentSpaceType = JointSpace;
+		break;
+	}
 	case 1:{
-		MotionData.m_Vel1 = _direction*_speed;
-		MotionData.m_Vel2 = 0;
-		MotionData.m_Vel3 = 0;
+		Joint1.m_vel = _direction*_speed;
 
 		MotionData.currentSpaceType = JointSpace;
 		break;
 	}
 	case 2:{
-		MotionData.m_Vel1 = _direction*_speed;
-		MotionData.m_Vel2 = 0;
-		MotionData.m_Vel3 = 0;
+		Joint1.m_vel = _direction*_speed;
 
 		MotionData.currentSpaceType = CartesianSpace;
 		break;
 	}
 	case 3: {
-		MotionData.m_Vel1 = 0;
-		MotionData.m_Vel2 = 0;
-		MotionData.m_Vel3 = _direction*_speed;
+		Joint3.m_vel = _direction*_speed;
 
 		MotionData.currentSpaceType = CartesianSpace;
 		break;
 	}
+	case 4: {
+		break;
 	}
 }
+
+
+
+
