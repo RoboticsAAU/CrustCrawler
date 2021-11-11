@@ -39,65 +39,65 @@ unsigned long Controller::_UpdateLoopTime(){
 
 
 // ----------------- Everything below this have to be moved ------------------- \\ 
-void Controller::_SpaceConverter(SpaceType desiredSpace){
-	//_AngleConverter(Radians);
-	
-	if(desiredSpace == inputMotion.currentSpaceType){
-		return;
-	}
-	
-	//Forward Jacobian:
-	BLA::Matrix<3, 3> jacobian;
-	jacobian(0,0) = sin(inputAngles.m_Theta1) * (Joint2.m_length * sin(inputAngles.m_Theta2) + Joint3.m_length * sin(inputAngles.m_Theta2 + inputAngles.m_Theta3));
-	jacobian(0,1) = -cos(inputAngles.m_Theta1) * (Joint2.m_length * cos(inputAngles.m_Theta2) + Joint3.m_length * cos(inputAngles.m_Theta2 + inputAngles.m_Theta3));
-	jacobian(0,2) = -cos(inputAngles.m_Theta1) * Joint3.m_length * cos(inputAngles.m_Theta2 + inputAngles.m_Theta3);
-	jacobian(1,0) = -cos(inputAngles.m_Theta1) * (Joint2.m_length * sin(inputAngles.m_Theta2) + Joint3.m_length * sin(inputAngles.m_Theta2 + inputAngles.m_Theta3));
-	jacobian(1,1) = -sin(inputAngles.m_Theta1) * (Joint2.m_length * cos(inputAngles.m_Theta2) + Joint3.m_length * cos(inputAngles.m_Theta2 + inputAngles.m_Theta3));
-	jacobian(1,2) = -sin(inputAngles.m_Theta1) * Joint3.m_length * cos(inputAngles.m_Theta2 + inputAngles.m_Theta3);
-	jacobian(2,0) = 0;
-	jacobian(2,1) = -Joint2.m_length * sin(inputAngles.m_Theta2) - Joint3.m_length * sin(inputAngles.m_Theta2 + inputAngles.m_Theta3);
-	jacobian(2,2) = -Joint3.m_length * sin(inputAngles.m_Theta2 + inputAngles.m_Theta3);
-
-	//Inverse Jacobian:
-	BLA::Matrix<3, 3> jacobianInverse = jacobian;
-	bool is_nonsingular = Invert(jacobianInverse);
-
-	//for (int i = 0; i < 3; i++) {
-	//	for (int j = 0; j < 3; j++) {
-	//		Serial.print(jacobianInverse(i, j));
-	//		Serial.print(" ");
-	//	}
-	//	Serial.println(" ");
-	//}
-	//Serial.println(" ");
-
-
-	//If the jacobian is singular. Wait implementation until further understanding.
-	/*if(!is_nonsingular)
-	{
-		
-	}*/
-
-	BLA::Matrix<3,1> velocityVector;
-	velocityVector(0, 0) = Joint1.m_vel;
-	velocityVector(1, 0) = Joint2.m_vel;
-	velocityVector(2, 0) = Joint3.m_vel;
-
-	switch (desiredSpace){
-	case JointSpace: {
-		velocityVector = jacobianInverse * velocityVector;
-	}
-	case CartesianSpace: {
-		velocityVector = jacobian * velocityVector;
-	}
-	}
-
-	Joint1.m_vel = velocityVector(0,0);
-	Joint2.m_vel = velocityVector(1,0);
-	Joint3.m_vel = velocityVector(2,0);
-
-	MotionData.currentSpaceType = desiredSpace;
-}
+//void Controller::_SpaceConverter(SpaceType desiredSpace){
+//	//_AngleConverter(Radians);
+//	
+//	if(desiredSpace == inputMotion.currentSpaceType){
+//		return;
+//	}
+//	
+//	//Forward Jacobian:
+//	BLA::Matrix<3, 3> jacobian;
+//	jacobian(0,0) = sin(inputAngles.m_Theta1) * (Joint2.m_length * sin(inputAngles.m_Theta2) + Joint3.m_length * sin(inputAngles.m_Theta2 + inputAngles.m_Theta3));
+//	jacobian(0,1) = -cos(inputAngles.m_Theta1) * (Joint2.m_length * cos(inputAngles.m_Theta2) + Joint3.m_length * cos(inputAngles.m_Theta2 + inputAngles.m_Theta3));
+//	jacobian(0,2) = -cos(inputAngles.m_Theta1) * Joint3.m_length * cos(inputAngles.m_Theta2 + inputAngles.m_Theta3);
+//	jacobian(1,0) = -cos(inputAngles.m_Theta1) * (Joint2.m_length * sin(inputAngles.m_Theta2) + Joint3.m_length * sin(inputAngles.m_Theta2 + inputAngles.m_Theta3));
+//	jacobian(1,1) = -sin(inputAngles.m_Theta1) * (Joint2.m_length * cos(inputAngles.m_Theta2) + Joint3.m_length * cos(inputAngles.m_Theta2 + inputAngles.m_Theta3));
+//	jacobian(1,2) = -sin(inputAngles.m_Theta1) * Joint3.m_length * cos(inputAngles.m_Theta2 + inputAngles.m_Theta3);
+//	jacobian(2,0) = 0;
+//	jacobian(2,1) = -Joint2.m_length * sin(inputAngles.m_Theta2) - Joint3.m_length * sin(inputAngles.m_Theta2 + inputAngles.m_Theta3);
+//	jacobian(2,2) = -Joint3.m_length * sin(inputAngles.m_Theta2 + inputAngles.m_Theta3);
+//
+//	//Inverse Jacobian:
+//	BLA::Matrix<3, 3> jacobianInverse = jacobian;
+//	bool is_nonsingular = Invert(jacobianInverse);
+//
+//	//for (int i = 0; i < 3; i++) {
+//	//	for (int j = 0; j < 3; j++) {
+//	//		Serial.print(jacobianInverse(i, j));
+//	//		Serial.print(" ");
+//	//	}
+//	//	Serial.println(" ");
+//	//}
+//	//Serial.println(" ");
+//
+//
+//	//If the jacobian is singular. Wait implementation until further understanding.
+//	/*if(!is_nonsingular)
+//	{
+//		
+//	}*/
+//
+//	BLA::Matrix<3,1> velocityVector;
+//	velocityVector(0, 0) = Joint1.m_vel;
+//	velocityVector(1, 0) = Joint2.m_vel;
+//	velocityVector(2, 0) = Joint3.m_vel;
+//
+//	switch (desiredSpace){
+//	case JointSpace: {
+//		velocityVector = jacobianInverse * velocityVector;
+//	}
+//	case CartesianSpace: {
+//		velocityVector = jacobian * velocityVector;
+//	}
+//	}
+//
+//	Joint1.m_vel = velocityVector(0,0);
+//	Joint2.m_vel = velocityVector(1,0);
+//	Joint3.m_vel = velocityVector(2,0);
+//
+//	MotionData.currentSpaceType = desiredSpace;
+//}
 
 
 double Controller::_PID(double desiredValue, double currentValue){
@@ -105,8 +105,8 @@ double Controller::_PID(double desiredValue, double currentValue){
 	double error = desiredValue - currentValue;
 	
 	m_proportional = Kp * error;
-	m_integral = Ki * _IntegrationOperator(error, m_integral);
-	m_derivative = Kd * _DifferentiationOperator(error, m_lastError);
+	m_integral = Ki * IntegrationOperator(error, m_integral, Looptime);
+	m_derivative = Kd * DifferentiationOperator(error, m_lastError, Looptime);
 	
 	//m_integral += Ki * (error * samplingTime);
 	//m_derivative = Kd * ((error - m_lastError) / samplingTime);
@@ -120,7 +120,7 @@ double Controller::_PID(double desiredValue, double currentValue){
 
 
 void Controller::_GetJointPWMConstants(Joint& inputJoint) {
-	_SpaceConverter(JointSpace);
+	SpaceConverter(JointSpace);
 
 
 	int torque_sign = inputJoint.m_torque;
@@ -165,7 +165,7 @@ void Controller::_GetJointPWMConstants(Joint& inputJoint) {
 
 
 void Controller::_TorqueToPWM(Joint& inputJoint) {
-	_SpaceConverter(JointSpace);
+	SpaceConverter(JointSpace);
 
 	// Getting the joint constants for each joint
 	_GetJointPWMConstants(inputJoint);
