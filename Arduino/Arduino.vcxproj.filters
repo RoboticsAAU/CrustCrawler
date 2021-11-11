@@ -48,9 +48,6 @@
     <ClInclude Include="CrustCrawlerData.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="SystemData.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="ComputerConnector.cpp">

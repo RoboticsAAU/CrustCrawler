@@ -12,6 +12,7 @@ const uint16_t DYNAMIXEL_BAUDRATE = 57600;
 DynamixelConnector::DynamixelConnector() {
 	p_dynamixel = new Dynamixel2Arduino(DYNAMIXEL_SERIAL,DIRECTION_PIN);
 	p_dynamixel->begin(DYNAMIXEL_BAUDRATE);
+	_SetupDynamixelServos();
 
 }
 
@@ -69,13 +70,11 @@ bool DynamixelConnector::isJointMoving(uint8_t id) {
 /// Gets the current joint angles in the specified unit.
 /// </summary>
 /// <param name="unitType"> The desired unit in which the angles will be returned </param>
+/// <param name="JointAngles&> Reference to the joint angles object which the angles are passed into </param>
 /// <returns> Joint angles in desired unit </returns>
-JointAngles DynamixelConnector::getJointAngles(UnitType unitType) {
+void DynamixelConnector::getJointAngles(UnitType unitType, JointAngles& jointAnglesObject){
 	_UpdateDynamixelAngles();
-
-	AngleConverter(_internalJointAngles,unitType);
-
-	return _internalJointAngles;
+	AngleConverter(jointAnglesObject,unitType);
 }
 
 /// <summary>

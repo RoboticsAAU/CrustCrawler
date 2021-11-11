@@ -13,9 +13,6 @@
 #include "DynamixelConnector.h"
 
 #include "CrustCrawlerData.h"
-#include "SystemData.h"
-
-
 
 #define DYNAMIXEL_SERIAL Serial
 const uint8_t DIRECTION_PIN = 2; // DYNAMIXEL Shield DIR PIN
@@ -30,6 +27,8 @@ public:
 	void debugPrint();
 	void Print();
 
+	double Looptime;
+
 
 private:
 
@@ -39,6 +38,10 @@ private:
 	Dynamics* dynamics;
 
 
+	unsigned long _PrevTime = millis(); 
+	unsigned long _NewTime;
+
+	unsigned long _UpdateLoopTime();
 
 	//---------------- This is old, need review---------------------//
 	void _ComputerOutputToVelocity(bool emergencyStop, unsigned int controlMode, bool sign, unsigned int speed);

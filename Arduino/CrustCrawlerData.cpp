@@ -6,3 +6,9 @@ Joint Joint2 = { 2, 10, 22.0, 10, 10, 10, MX106R};
 Joint Joint3 = {3, 10, 14.7, 10, 10, 10, MX64R};
 Joint Joint4 = {4, 10, 10, 10, 10, 10, MX28R};
 Joint Joint5 = {5, 10, 10, 10, 10, 10, MX28R};
+
+Motion MotionData;
+JointAngles AngleData;
+eePosition eePositionData;
+
+double timeData;

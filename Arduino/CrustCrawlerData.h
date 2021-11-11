@@ -7,3 +7,8 @@ extern Joint Joint2;
 extern Joint Joint3;
 extern Joint Joint4;
 extern Joint Joint5;
+
+extern Motion MotionData;
+extern JointAngles AngleData;
+extern eePosition eePositionData;
+

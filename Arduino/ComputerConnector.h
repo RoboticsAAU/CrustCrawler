@@ -2,6 +2,8 @@
 #include "String.h"
 #include "HardwareSerial.h"
 
+#include "CrustCrawlerData.h"
+
 #define DEBUG_SERIAL Serial1
 #define DATA_SERIAL Serial2
 
@@ -27,12 +29,12 @@ public:
 	//Get the data from the computer
 	void updateComputerData();
 
-
-	//Getters for use in controller
+	/*Getters for use in controller
 	bool getEmergencyStop() { return _emergencyStop; };
 	unsigned int getControlMode() { return _controlMode; };
-	bool getDirection() { return _direction; };
+	bool getDirection() { return _directionSign; };
 	double getSpeed() { return _speed; };
+	*/
 
 
 
@@ -42,15 +44,14 @@ private:
 	//Variables received from computer 
 	bool _emergencyStop;
 	uint8_t _controlMode;
-	//bool positiveDirection;
-	bool _direction;
+	bool _directionSign;
 	uint8_t _speed;
-	//String _newData;
-	//String _currentData;
+
 
 	char _dataBuffer[4];
 	int _incommingData;
 
+	void _ComputerDataToVelocity();
 
 };
 

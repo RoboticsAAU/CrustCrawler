@@ -1,7 +1,8 @@
 #pragma once
 
-#include "SystemData.h"
 #include "CrustCrawlerData.h"
+
+#include "math.h"
 
 
 class Kinematics{

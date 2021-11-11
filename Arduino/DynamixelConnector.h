@@ -31,7 +31,7 @@ public:
 	float getVelocity(uint8_t id);
 	bool isJointMoving(uint8_t id);
 
-	JointAngles getJointAngles(UnitType unitType);
+	void getJointAngles(UnitType unitType, JointAngles &jointAnglesObject);
 
 
 

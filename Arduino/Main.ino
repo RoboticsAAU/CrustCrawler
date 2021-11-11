@@ -1,22 +1,13 @@
 #include "Controller.h"
 
-#include "Dynamixel2Arduino.h"
-#include "DynamixelShield.h"
+Controller* controller;
 
 void setup() {
-
-	Controller controller;
-
+	Controller* controller = new Controller();
 }
 
 void loop() {
-	
-	//controller.main();
-
-
-	//computerConnector->debugPrint("This is the value: ");
-	//computerConnector->debugPrintLine(20);
-	//computerConnector->updateComputerData();
-
+	controller->main();
 }
+
 

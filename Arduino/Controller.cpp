@@ -6,6 +6,7 @@ Controller::Controller(){
 	Dynamics* dynamics = new Dynamics();
 	Kinematics* kinematics = new Kinematics();
 	DynamixelConnector* dynamixelConnector = new DynamixelConnector();
+
 }
 
 
@@ -14,10 +15,30 @@ Controller::~Controller(){
 
 
 void Controller::main(){
+
+	Looptime = _UpdateLoopTime();
 	computerConnector->updateComputerData();
+	dynamixelConnector->getJointAngles(Degree,AngleData);
+	kinematics->UpdateForwardkinematics();
+	dynamics->UpdateDynamics(Looptime);
 
 }
 
+unsigned long Controller::_UpdateLoopTime(){
+
+	_NewTime = millis();
+	unsigned long TimeStamp = (_NewTime - _PrevTime)/1000;
+	_PrevTime = _NewTime;
+
+	return TimeStamp;
+
+
+}
+
+
+
+
+/*
 void Controller::_ComputerOutputToVelocity(bool emergencyStop, unsigned int controlMode, bool sign, unsigned int speed) {
 	if (emergencyStop) {
 		inputMotion.m_Vel1 = 0;
@@ -56,7 +77,7 @@ void Controller::_ComputerOutputToVelocity(bool emergencyStop, unsigned int cont
 		break;
 	}
 	}
-}
+}*/
 
 
 /*void Controller::_UpdateChain(){
@@ -65,7 +86,7 @@ void Controller::_ComputerOutputToVelocity(bool emergencyStop, unsigned int cont
     _InverseDynamics();
 } */
 
-
+/*
 double Controller::_DifferentiationOperator(double currentValue, double previousValue){
 	//double differentiatedValue = 0.0;
 	//differentiatedValue = (currentValue - previousValue) / samplingTime;
@@ -83,6 +104,7 @@ double Controller::_IntegrationOperator(double currentValue, double inputIntegra
 
 	return inputIntegrationVal;
 }
+*/
 
 void Controller::_SpaceConverter(SpaceType desiredSpace){
 	//_AngleConverter(Radians);
@@ -144,12 +166,13 @@ void Controller::_SpaceConverter(SpaceType desiredSpace){
 	inputMotion.currentSpaceType = desiredSpace;
 }
 
+/*
 void Controller::_ForwardKinematics(){
 	//_AngleConverter(Radians);
 	m_eePosition.x = -cos(inputAngles.m_Theta1) * (Joint2.m_length * sin(inputAngles.m_Theta2) + Joint3.m_length * sin(inputAngles.m_Theta2 + inputAngles.m_Theta3));
 	m_eePosition.y = -sin(inputAngles.m_Theta1) * (Joint2.m_length * sin(inputAngles.m_Theta2) + Joint3.m_length * sin(inputAngles.m_Theta2 + inputAngles.m_Theta3));
 	m_eePosition.z = Joint1.m_length + Joint2.m_length * cos(inputAngles.m_Theta2) + Joint3.m_length * cos(inputAngles.m_Theta2 + inputAngles.m_Theta3);
-}
+}*/
 
 double Controller::_PID(double desiredValue, double currentValue){
 	double Kp{ 0.7 }, Ki{ 0.01 }, Kd{ 0.1 };
@@ -167,7 +190,7 @@ double Controller::_PID(double desiredValue, double currentValue){
 	return (m_proportional + m_integral + m_derivative);
 }
 
-
+/*
 void Controller::_InverseDynamics(){
 	inputMotion.m_Pos1 = _IntegrationOperator(inputMotion.m_Vel1, inputMotion.m_Pos1);
 	inputMotion.m_Pos2 = _IntegrationOperator(inputMotion.m_Vel2, inputMotion.m_Pos2);
@@ -186,6 +209,8 @@ void Controller::_InverseDynamics(){
 	Joint2.m_torque = (((-0.2e-4 * cos(inputMotion.m_Pos3) - 0.1e-4 * pow(cos(inputMotion.m_Pos3), 0.2e1) + 0.3e-4) * pow(cos(inputMotion.m_Pos1), 0.4e1) + (0.2e-4 * cos(inputMotion.m_Pos3) - 0.4e-5 * pow(cos(inputMotion.m_Pos3), 0.2e1) - 0.2e-4) * pow(cos(inputMotion.m_Pos1), 0.2e1) + 0.2e-5 * pow(cos(inputMotion.m_Pos3), 0.2e1)) * pow(cos(inputMotion.m_Pos2), 0.2e1) + (0.2e-4 * pow(cos(inputMotion.m_Pos1), 0.4e1) * sin(inputMotion.m_Pos2) * sin(inputMotion.m_Pos3) - 0.2e-4 * pow(cos(inputMotion.m_Pos1), 0.2e1) * sin(inputMotion.m_Pos2) * sin(inputMotion.m_Pos3)) * cos(inputMotion.m_Pos2) + (-0.2e-4 + 0.2e-4 * cos(inputMotion.m_Pos3)) * pow(cos(inputMotion.m_Pos1), 0.4e1) + (0.20e-4 - 0.2e-4 * cos(inputMotion.m_Pos3)) * pow(cos(inputMotion.m_Pos1), 0.2e1) + 0.2773e-1 + 0.1762e-1 * cos(inputMotion.m_Pos3)) * inputMotion.m_Acc2 + ((-0.4e-5 * pow(cos(inputMotion.m_Pos3), 0.2e1) * pow(cos(inputMotion.m_Pos1), 0.2e1) - 0.1e-4 * pow(cos(inputMotion.m_Pos3), 0.2e1) * pow(cos(inputMotion.m_Pos1), 0.4e1) + 0.2e-5 * pow(cos(inputMotion.m_Pos3), 0.2e1)) * pow(cos(inputMotion.m_Pos2), 0.2e1) - 0.4e-5 * cos(inputMotion.m_Pos2) * sin(inputMotion.m_Pos3) * pow(cos(inputMotion.m_Pos1), 0.4e1) * sin(inputMotion.m_Pos2) + 0.8808e-2 * cos(inputMotion.m_Pos3) + 0.6206e-2) * inputMotion.m_Vel3 + (0.4e-5 * sin(inputMotion.m_Pos1) * sin(inputMotion.m_Pos2) * cos(inputMotion.m_Pos3) - 0.2e-5 * sin(inputMotion.m_Pos1) * sin(inputMotion.m_Pos2)) * cos(inputMotion.m_Pos1) * cos(inputMotion.m_Pos2) * inputMotion.m_Acc1 + ((0.2e-5 * pow(cos(inputMotion.m_Pos1), 0.2e1) * cos(inputMotion.m_Pos3) * sin(inputMotion.m_Pos3) + (-0.1121e-1 * sin(inputMotion.m_Pos3) - 0.5000e-3) * cos(inputMotion.m_Pos3) - 0.1762e-1 * sin(inputMotion.m_Pos3)) * pow(cos(inputMotion.m_Pos2), 0.2e1) + ((0.1e-4 * sin(inputMotion.m_Pos2) * cos(inputMotion.m_Pos3) + 0.2e-5 * pow(cos(inputMotion.m_Pos3), 0.2e1) * sin(inputMotion.m_Pos2)) * pow(cos(inputMotion.m_Pos1), 0.2e1) - 0.1121e-1 * pow(cos(inputMotion.m_Pos3), 0.2e1) * sin(inputMotion.m_Pos2) - 0.1762e-1 * sin(inputMotion.m_Pos2) * cos(inputMotion.m_Pos3) + (0.5000e-3 * sin(inputMotion.m_Pos3) - 0.1581e-1) * sin(inputMotion.m_Pos2)) * cos(inputMotion.m_Pos2) + (0.2500e-3 + 0.5606e-2 * sin(inputMotion.m_Pos3)) * cos(inputMotion.m_Pos3) + 0.8808e-2 * sin(inputMotion.m_Pos3)) * pow(inputMotion.m_Vel1, 0.2e1) + (((0.10e-4 * pow(cos(inputMotion.m_Pos3), 0.2e1) * sin(inputMotion.m_Pos1) + 0.4e-5 * sin(inputMotion.m_Pos1) * cos(inputMotion.m_Pos3) - 0.30e-5 * sin(inputMotion.m_Pos1)) * cos(inputMotion.m_Pos1) * pow(cos(inputMotion.m_Pos2), 0.2e1) + (0.70e-5 * sin(inputMotion.m_Pos1) - 0.4e-5 * sin(inputMotion.m_Pos1) * cos(inputMotion.m_Pos3) - 0.5e-5 * pow(cos(inputMotion.m_Pos3), 0.2e1) * sin(inputMotion.m_Pos1)) * cos(inputMotion.m_Pos1)) * inputMotion.m_Vel2 + ((-0.3e-5 * sin(inputMotion.m_Pos1) * cos(inputMotion.m_Pos3) + 0.10e-4 * pow(cos(inputMotion.m_Pos3), 0.2e1) * sin(inputMotion.m_Pos1) - 0.5e-5 * sin(inputMotion.m_Pos1)) * cos(inputMotion.m_Pos1) * pow(cos(inputMotion.m_Pos2), 0.2e1) - 0.3e-5 * cos(inputMotion.m_Pos1) * sin(inputMotion.m_Pos2) * sin(inputMotion.m_Pos1) * cos(inputMotion.m_Pos2) * sin(inputMotion.m_Pos3) + (0.5e-5 * sin(inputMotion.m_Pos1) - 0.5e-5 * pow(cos(inputMotion.m_Pos3), 0.2e1) * sin(inputMotion.m_Pos1)) * cos(inputMotion.m_Pos1)) * inputMotion.m_Vel3) * inputMotion.m_Vel1 + (((-0.1e-4 * sin(inputMotion.m_Pos3) - 0.12e-4 * sin(inputMotion.m_Pos3) * cos(inputMotion.m_Pos3)) * pow(cos(inputMotion.m_Pos1), 0.4e1) + (0.24e-4 * sin(inputMotion.m_Pos3) + 0.2e-5 * sin(inputMotion.m_Pos3) * cos(inputMotion.m_Pos3)) * pow(cos(inputMotion.m_Pos1), 0.2e1) + 0.2e-5 * sin(inputMotion.m_Pos3) * cos(inputMotion.m_Pos3) - 0.2e-5 * sin(inputMotion.m_Pos3)) * pow(cos(inputMotion.m_Pos2), 0.2e1) + ((-0.18e-4 * sin(inputMotion.m_Pos2) + 0.2e-4 * sin(inputMotion.m_Pos2) * cos(inputMotion.m_Pos3) - 0.12e-4 * pow(cos(inputMotion.m_Pos3), 0.2e1) * sin(inputMotion.m_Pos2)) * pow(cos(inputMotion.m_Pos1), 0.4e1) + (0.2e-4 * sin(inputMotion.m_Pos2) - 0.2e-4 * sin(inputMotion.m_Pos2) * cos(inputMotion.m_Pos3) + 0.2e-5 * pow(cos(inputMotion.m_Pos3), 0.2e1) * sin(inputMotion.m_Pos2)) * pow(cos(inputMotion.m_Pos1), 0.2e1) + 0.2e-5 * pow(cos(inputMotion.m_Pos3), 0.2e1) * sin(inputMotion.m_Pos2)) * cos(inputMotion.m_Pos2) + (0.2e-5 * sin(inputMotion.m_Pos3) * cos(inputMotion.m_Pos3) + 0.1e-4 * sin(inputMotion.m_Pos3)) * pow(cos(inputMotion.m_Pos1), 0.4e1) - 0.1e-4 * pow(cos(inputMotion.m_Pos1), 0.2e1) * sin(inputMotion.m_Pos3)) * pow(inputMotion.m_Vel2, 0.2e1) - 0.1762e-1 * inputMotion.m_Vel2 * inputMotion.m_Vel3 * sin(inputMotion.m_Pos3) + ((0.2e-5 * sin(inputMotion.m_Pos3) * cos(inputMotion.m_Pos3) - 0.12e-4 * cos(inputMotion.m_Pos3) * pow(cos(inputMotion.m_Pos1), 0.4e1) * sin(inputMotion.m_Pos3) + 0.2e-5 * pow(cos(inputMotion.m_Pos1), 0.2e1) * cos(inputMotion.m_Pos3) * sin(inputMotion.m_Pos3)) * pow(cos(inputMotion.m_Pos2), 0.2e1) + ((0.2e-5 * sin(inputMotion.m_Pos2) - 0.12e-4 * pow(cos(inputMotion.m_Pos3), 0.2e1) * sin(inputMotion.m_Pos2) - 0.4e-5 * sin(inputMotion.m_Pos2) * cos(inputMotion.m_Pos3)) * pow(cos(inputMotion.m_Pos1), 0.4e1) + 0.2e-5 * pow(cos(inputMotion.m_Pos1), 0.2e1) * sin(inputMotion.m_Pos2) * pow(cos(inputMotion.m_Pos3), 0.2e1) + 0.2e-5 * pow(cos(inputMotion.m_Pos3), 0.2e1) * sin(inputMotion.m_Pos2)) * cos(inputMotion.m_Pos2) - 0.8808e-2 * sin(inputMotion.m_Pos3) + 0.2e-5 * cos(inputMotion.m_Pos3) * pow(cos(inputMotion.m_Pos1), 0.4e1) * sin(inputMotion.m_Pos3)) * pow(inputMotion.m_Vel3, 0.2e1) + 0.9962e0 * sin(inputMotion.m_Pos2) + 0.3930e0 * sin(inputMotion.m_Pos2) * cos(inputMotion.m_Pos3) + 0.3930e0 * cos(inputMotion.m_Pos2) * sin(inputMotion.m_Pos3);
 	Joint3.m_torque = ((0.2e-5 * pow(cos(inputMotion.m_Pos3), 0.2e1) - 0.1e-4 * pow(cos(inputMotion.m_Pos3), 0.2e1) * pow(cos(inputMotion.m_Pos1), 0.4e1)) * pow(cos(inputMotion.m_Pos2), 0.2e1) + 0.8808e-2 * cos(inputMotion.m_Pos3) + 0.6206e-2) * inputMotion.m_Acc2 + (0.6206e-2 + (0.2e-5 * pow(cos(inputMotion.m_Pos3), 0.2e1) - 0.1e-4 * pow(cos(inputMotion.m_Pos3), 0.2e1) * pow(cos(inputMotion.m_Pos1), 0.4e1)) * pow(cos(inputMotion.m_Pos2), 0.2e1)) * inputMotion.m_Acc3 + ((0.2e-5 * pow(cos(inputMotion.m_Pos1), 0.2e1) * cos(inputMotion.m_Pos3) * sin(inputMotion.m_Pos3) + (-0.1121e-1 * sin(inputMotion.m_Pos3) - 0.2500e-3) * cos(inputMotion.m_Pos3) - 0.8808e-2 * sin(inputMotion.m_Pos3)) * pow(cos(inputMotion.m_Pos2), 0.2e1) + (-0.8808e-2 * sin(inputMotion.m_Pos2) * cos(inputMotion.m_Pos3) + 0.2500e-3 * sin(inputMotion.m_Pos2) * sin(inputMotion.m_Pos3) - 0.1121e-1 * pow(cos(inputMotion.m_Pos3), 0.2e1) * sin(inputMotion.m_Pos2) + 0.2e-5 * pow(cos(inputMotion.m_Pos1), 0.2e1) * sin(inputMotion.m_Pos2) * pow(cos(inputMotion.m_Pos3), 0.2e1) + 0.5606e-2 * sin(inputMotion.m_Pos2)) * cos(inputMotion.m_Pos2) + (-0.1000e-3 + 0.5606e-2 * sin(inputMotion.m_Pos3)) * cos(inputMotion.m_Pos3) + 0.8808e-2 * sin(inputMotion.m_Pos3)) * pow(inputMotion.m_Vel1, 0.2e1) + (((-0.2e-5 * sin(inputMotion.m_Pos1) - 0.2e-5 * sin(inputMotion.m_Pos1) * cos(inputMotion.m_Pos3) + 0.4e-5 * pow(cos(inputMotion.m_Pos3), 0.2e1) * sin(inputMotion.m_Pos1)) * cos(inputMotion.m_Pos1) * pow(cos(inputMotion.m_Pos2), 0.2e1) + (0.4e-5 * sin(inputMotion.m_Pos2) * cos(inputMotion.m_Pos3) * sin(inputMotion.m_Pos1) * sin(inputMotion.m_Pos3) - 0.3e-5 * sin(inputMotion.m_Pos1) * sin(inputMotion.m_Pos2) * sin(inputMotion.m_Pos3)) * cos(inputMotion.m_Pos1) * cos(inputMotion.m_Pos2) + (0.2e-5 * sin(inputMotion.m_Pos1) - 0.2e-5 * pow(cos(inputMotion.m_Pos3), 0.2e1) * sin(inputMotion.m_Pos1)) * cos(inputMotion.m_Pos1)) * inputMotion.m_Vel2 + ((0.4e-5 * pow(cos(inputMotion.m_Pos3), 0.2e1) * sin(inputMotion.m_Pos1) - 0.2e-5 * sin(inputMotion.m_Pos1)) * cos(inputMotion.m_Pos1) * pow(cos(inputMotion.m_Pos2), 0.2e1) + 0.4e-5 * cos(inputMotion.m_Pos1) * sin(inputMotion.m_Pos2) * cos(inputMotion.m_Pos3) * sin(inputMotion.m_Pos1) * cos(inputMotion.m_Pos2) * sin(inputMotion.m_Pos3) + (0.2e-5 * sin(inputMotion.m_Pos1) - 0.2e-5 * pow(cos(inputMotion.m_Pos3), 0.2e1) * sin(inputMotion.m_Pos1)) * cos(inputMotion.m_Pos1)) * inputMotion.m_Vel3) * inputMotion.m_Vel1 + (0.1e-4 * pow(cos(inputMotion.m_Pos2), 0.2e1) * cos(inputMotion.m_Pos3) * pow(cos(inputMotion.m_Pos1), 0.4e1) * sin(inputMotion.m_Pos3) + ((0.1e-4 * sin(inputMotion.m_Pos2) * cos(inputMotion.m_Pos3) + 0.1e-4 * pow(cos(inputMotion.m_Pos3), 0.2e1) * sin(inputMotion.m_Pos2)) * pow(cos(inputMotion.m_Pos1), 0.4e1) - 0.1e-4 * pow(cos(inputMotion.m_Pos1), 0.2e1) * sin(inputMotion.m_Pos2) * cos(inputMotion.m_Pos3)) * cos(inputMotion.m_Pos2) + 0.8808e-2 * sin(inputMotion.m_Pos3) - 0.4e-5 * pow(cos(inputMotion.m_Pos1), 0.4e1) * sin(inputMotion.m_Pos3) + 0.4e-5 * pow(cos(inputMotion.m_Pos1), 0.2e1) * sin(inputMotion.m_Pos3)) * pow(inputMotion.m_Vel2, 0.2e1) + ((-0.4e-5 * pow(cos(inputMotion.m_Pos1), 0.2e1) * sin(inputMotion.m_Pos3) + 0.4e-5 * pow(cos(inputMotion.m_Pos1), 0.4e1) * sin(inputMotion.m_Pos3)) * pow(cos(inputMotion.m_Pos2), 0.2e1) + (0.4e-5 * pow(cos(inputMotion.m_Pos1), 0.4e1) * sin(inputMotion.m_Pos2) * cos(inputMotion.m_Pos3) - 0.4e-5 * pow(cos(inputMotion.m_Pos1), 0.2e1) * sin(inputMotion.m_Pos2) * cos(inputMotion.m_Pos3)) * cos(inputMotion.m_Pos2) - 0.4e-5 * pow(cos(inputMotion.m_Pos1), 0.4e1) * sin(inputMotion.m_Pos3) + 0.4e-5 * pow(cos(inputMotion.m_Pos1), 0.2e1) * sin(inputMotion.m_Pos3)) * inputMotion.m_Vel3 * inputMotion.m_Vel2 + (0.1e-4 * cos(inputMotion.m_Pos2) * pow(cos(inputMotion.m_Pos1), 0.4e1) * pow(cos(inputMotion.m_Pos3), 0.2e1) * sin(inputMotion.m_Pos2) + 0.1e-4 * pow(cos(inputMotion.m_Pos2), 0.2e1) * cos(inputMotion.m_Pos3) * pow(cos(inputMotion.m_Pos1), 0.4e1) * sin(inputMotion.m_Pos3)) * pow(inputMotion.m_Vel3, 0.2e1) + 0.3930e0 * sin(inputMotion.m_Pos2) * cos(inputMotion.m_Pos3) + 0.3930e0 * cos(inputMotion.m_Pos2) * sin(inputMotion.m_Pos3);
 }
+*/
+
 
 void _GetJointPWMConstants(Joint inputJoint) {
 
@@ -211,9 +236,9 @@ void _GetJointPWMConstants(Joint inputJoint) {
 
 double _TorqueToPWM() {
 
-
 }
 
+/*
 void Controller::debugPrint(){
     //_UpdateArmThetas();
     
@@ -238,4 +263,6 @@ void Controller::Print() {
 	Serial.println(inputMotion.m_Vel3);
 	Serial.println(" ");
 
+
 }
+*/
