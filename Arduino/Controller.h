@@ -36,7 +36,7 @@ private:
 	DynamixelConnector* dynamixelConnector;
 	Kinematics* kinematics;
 	Dynamics* dynamics;
-
+	
 
 	unsigned long _PrevTime = millis(); 
 	unsigned long _NewTime;
@@ -44,7 +44,7 @@ private:
 	unsigned long _UpdateLoopTime();
 
 	//---------------- This is old, need review---------------------//
-	void _ComputerOutputToVelocity(bool emergencyStop, unsigned int controlMode, bool sign, unsigned int speed);
+	void _ComputerOutputToVelocity(unsigned int controlMode, bool sign, unsigned int speed);
 
 	//Updates everything
 	void _UpdateChain();
@@ -57,7 +57,7 @@ private:
 	double _IntegrationOperator(double currentValue, double inputIntegrationVal);
 	double m_lastValue{ 0 };
 
-	void emergancystop();
+	void _EmergencyStop();
 
 	void _ForwardKinematics();
 
@@ -72,12 +72,11 @@ private:
 
 	eePosition m_eePosition;
 
-
 	//Defining PID controller variables
 	double _PID(double desiredValue, double currentValue);
 	double m_proportional{ 0.0 }, m_integral{ 0.0 }, m_derivative{ 0.0 }, m_lastError{ 100.0 }, samplingTime = 1.0/200.0; //Sampling time should be changed
 
-	//Defining constants for PWM equation and torque to PWM function. 
-	void _UpdatePWMConstants();
-	double _TorqueToPWM();
+	//Functions for converting the torques to PWM values.
+	void _GetJointPWMConstants(Joint& inputJoint);
+	void _TorqueToPWM(Joint& inputJoint);
 };

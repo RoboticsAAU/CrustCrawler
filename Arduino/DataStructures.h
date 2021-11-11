@@ -24,9 +24,17 @@ struct Joint {
 	int m_minTheta, m_maxTheta;
 	int m_PWMlimit;
 	ServoType m_servoType;
-	//InertiaTensor inertiaTensor;
 
-	double m_costantC1{ 0 }, m_constantC2{ 0 };
+	double m_pos{ 0 };
+	double m_vel{ 0 };
+	double m_acc{ 0 };
+
+	double m_torque{ 0 };
+
+	double m_rotDirection{ 0 };
+	double m_constantC1{ 0 }, m_constantC2{ 0 };
+
+	double m_PWM{ 0 };
 
 	Joint() {};
 
@@ -39,22 +47,6 @@ struct Joint {
 		m_PWMlimit = PWMlimit;
 		m_servoType = servoType;
 	};
-
-	double m_torque{ 0 };
-};
-
-struct CrustCrawlerData
-{
-	Joint _Joint1;
-	Joint _Joint2;
-	Joint _Joint3;
-	Joint _Joint4;
-	Joint _Joint5;
-
-	
-	CrustCrawlerData() {
-		//Joint Data
-	}
 };
 
 struct JointAngles {
@@ -70,11 +62,11 @@ struct JointAngles {
 };
 
 struct Motion {
-	double m_Pos1{ 0 }, m_Pos2{ 0 }, m_Pos3{ 0 };
-	double m_Vel1{ 0 }, m_Vel2{ 0 }, m_Vel3{ 0 };
-	double m_Acc1{ 0 }, m_Acc2{ 0 }, m_Acc3{ 0 };
+	//double m_Pos1{ 0 }, m_Pos2{ 0 }, m_Pos3{ 0 };
+	//double m_Vel1{ 0 }, m_Vel2{ 0 }, m_Vel3{ 0 }, m_Vel4{ 0 }, m_Vel5{ 0 };
+	//double m_Acc1{ 0 }, m_Acc2{ 0 }, m_Acc3{ 0 };
 
-	SpaceType currentSpaceType;
+	static SpaceType currentSpaceType;
 
 	Motion() {};
 
