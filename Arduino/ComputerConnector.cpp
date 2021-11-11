@@ -65,9 +65,8 @@ void ComputerConnector::_ComputerDataToVelocity() {
 	//Control mode: 0 = gripper, 1 = base, 2 = in/out, 3 = up/down, 4 = stop
 	switch (_controlMode) {
 		case 0: {
-			int fingerSpeed = 20; //Remember to change fittingly
-			Joint4.m_vel = -_direction * fingerSpeed;
-			Joint5.m_vel = _direction * fingerSpeed;
+			Joint4.m_vel = -_direction;
+			Joint5.m_vel = _direction;
 
 			MotionData.currentSpaceType = JointSpace;
 			break;

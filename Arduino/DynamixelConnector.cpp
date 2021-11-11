@@ -37,6 +37,7 @@ void DynamixelConnector::setPWM(uint8_t id,uint16_t pwmData){
 		return;
 	}
 	p_dynamixel->setGoalPWM(id, pwmData);
+
 }
 
 /// <summary>

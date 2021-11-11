@@ -51,6 +51,7 @@ struct Joint {
 
 struct JointAngles {
 	double m_Theta1{ 0 }, m_Theta2{ 0 }, m_Theta3{ 0 }, m_Theta4{ 0 }, m_Theta5{ 0 };
+	double m_currentThetas[5] = { 0, 0, 0, 0, 0 };
 
 	UnitType currentUnitType = Degree;
 
