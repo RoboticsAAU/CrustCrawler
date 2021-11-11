@@ -27,11 +27,11 @@ private:
 
 	std::string package;
 	
+	char HeaderByte = 255;
 	char EmergencyStop = 0;
 	char Mode = 0;
 	char Direction = 0;
 	char Speed = 0;
-	char HeaderByte = 0xFF;
 	myo::Pose previousPose;
 
 	enum eMode {
@@ -42,7 +42,15 @@ private:
 		LockUnlock
 	};
 
+	enum SpeedMode {
+		Gross,
+		Linear,
+		Precision
+	};
+
 	eMode currentMode = Grasp;
+	SpeedMode speedMode = Linear;
+	
 
 	Filtering* pFilterObject;
 	MyoBand* pMyoBand;
@@ -51,11 +59,15 @@ private:
 	DWORD baudRate;
 
 	serialib* Serial;
-
 	int isSent;
-	int threshold = 4;
 
-	bool aboveThreshold(int& variable);
+
+
+	int currentMaxSpeed = 0;
+	int threshold = 0;
+	int speedCap = 150;
+
+	int speedMap(int& variable);
+
 	void gain(int& variable);
-	bool aboveCap(int& variable);
 };

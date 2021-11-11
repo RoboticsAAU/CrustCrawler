@@ -6,7 +6,7 @@ SerialLink::SerialLink(char* comPort, DWORD baudRate, Filtering& FilterObject)
     // We create our link object, that connects our computer to the arduino
     //Serial = new SimpleSerial(comPort, baudRate);
     Serial = new serialib;
-    while (Serial->openDevice(comPort, baudRate) != true) {
+    while (Serial->openDevice(comPort, baudRate) != 1) {
         printf("Serial device could not be found ");
         Sleep(500);
     }
@@ -14,6 +14,36 @@ SerialLink::SerialLink(char* comPort, DWORD baudRate, Filtering& FilterObject)
 
     // We know that our package is 6 byte long, so we reverse that
     package.assign(6, 0);
+
+    std::chrono::time_point<std::chrono::high_resolution_clock> startTime = std::chrono::high_resolution_clock::now();
+
+    std::chrono::time_point<std::chrono::high_resolution_clock> currentTime;
+
+    #ifdef _DEBUG
+    printf("Please use your max strength for 5 seconds");
+    do{
+        int speed = pFilterObject->MoveAvg();
+        if ( speed > currentMaxSpeed ) {
+            currentMaxSpeed = speed;
+        }
+        currentTime = std::chrono::high_resolution_clock::now();
+    } while (currentTime - startTime < std::chrono::seconds::duration(5));
+
+    startTime = std::chrono::high_resolution_clock::now();
+
+    printf("Please rest your arm for 10 seconds");
+    do {
+        int speed = pFilterObject->MoveAvg();
+        myo::Pose pose = pMyoBand->getPose();
+
+        if ( pose == myo::Pose::rest && speed > threshold) {
+            threshold = speed;
+        }
+        currentTime = std::chrono::high_resolution_clock::now();
+
+    } while (currentTime - startTime < std::chrono::seconds::duration(10));
+    #endif
+
 }
 
 void SerialLink::sendData() {
@@ -56,11 +86,15 @@ void SerialLink::getEmergencyStop(char& outStop){
 void SerialLink::getSpeed(char& outSpeed) {
     int RAWspeed = pFilterObject->MoveAvg();
 
-    // TODO
-    //if (RAWspeed > currentMaxSpeed) { remapProfile(RAWspeed); }
-    //int mappedSpeed = speedMap(RAWspeed);
+    if (previousPose == myo::Pose::rest) {
+        outSpeed = (char)0;
+        return;
+    }
+    int convertedSpeed = RAWspeed - threshold;
+    convertedSpeed = speedMap(convertedSpeed);
+    convertedSpeed = convertedSpeed > speedCap ? speedCap : convertedSpeed;
 
-    outSpeed = (char)(mappedSpeed);
+    outSpeed = (char)(convertedSpeed);
 }
 
 void SerialLink::getDirection(char& outDirection){
@@ -128,19 +162,27 @@ void SerialLink::getMode(char& outMode) {
     }
     outMode = currentMode;
     previousPose = currentPose;
-
 }
 
-
-
-
-
-bool SerialLink::aboveThreshold(int& variable) {
-    return variable > threshold ? true : false;
-}
-
-void SerialLink::gain(int& variable) {
-
+int SerialLink::speedMap(int& variable) {
+    if (GetKeyState(0x41) & 0x8000) { speedMode = SpeedMode::Gross;  }
+    if (GetKeyState(0x53) & 0x8000) { speedMode = SpeedMode::Linear; }
+    if (GetKeyState(0x44) & 0x8000) { speedMode = SpeedMode::Precision; }
+    
+    switch(speedMode){
+    case SpeedMode::Gross:{
+        return (int) 74.8*log10(variable + 1);
+    }
+    case SpeedMode::Linear:{
+        return (int) 1.5*variable;
+    }
+    case SpeedMode::Precision:{
+        return (int) 1.0918*pow(10,-6)*pow(variable, 4.069);
+    }
+    default:{
+        throw std::runtime_error("Invalid speedMode");
+    }
+    }
 }
 
 #ifdef _DEBUG
