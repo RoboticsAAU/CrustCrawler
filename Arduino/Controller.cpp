@@ -38,7 +38,7 @@ unsigned long Controller::_UpdateLoopTime(){
 
 
 
-// ----------------- Everything below this have to be moved -------------------
+// ----------------- Everything below this have to be moved ------------------- \\ 
 void Controller::_SpaceConverter(SpaceType desiredSpace){
 	//_AngleConverter(Radians);
 	

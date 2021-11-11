@@ -45,7 +45,7 @@ private:
 	bool _emergencyStop;
 	uint8_t _controlMode;
 	bool _directionSign;
-	uint8_t _speed;
+	uint8_t _speed_mm_s;
 
 
 	char _dataBuffer[4];

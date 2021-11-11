@@ -66,7 +66,7 @@ struct Motion {
 	//double m_Vel1{ 0 }, m_Vel2{ 0 }, m_Vel3{ 0 }, m_Vel4{ 0 }, m_Vel5{ 0 };
 	//double m_Acc1{ 0 }, m_Acc2{ 0 }, m_Acc3{ 0 };
 
-	static SpaceType currentSpaceType;
+	SpaceType currentSpaceType;
 
 	Motion() {};
 

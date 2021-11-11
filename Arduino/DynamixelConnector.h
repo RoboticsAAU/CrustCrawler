@@ -42,9 +42,6 @@ private:
 	//Dynamixel connector object pointer (Declared on the HEAP)
 	Dynamixel2Arduino* p_dynamixel;
 
-	//Raw dynamixel angles read directly from the servos.
-	JointAngles _internalJointAngles;
-
 	//Array of joints, in order to simplify the setup function.
 	Joint _joints[5] = { Joint1, Joint2, Joint3, Joint4, Joint5 };
 
@@ -52,7 +49,7 @@ private:
 	const static int _MovingThreshold = 5;
 
 	// Custom Private methods
-	void _UpdateDynamixelAngles();
+	void _UpdateDynamixelAngles(JointAngles& JointAnglesObject);
 
 	void _SetupDynamixelServos();
 };

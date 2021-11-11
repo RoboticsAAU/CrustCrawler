@@ -6,9 +6,6 @@
 class Dynamics
 {
 public:
-	Dynamics();
-	~Dynamics();
-
 	void UpdateDynamics(double& Looptime);
 
 private:

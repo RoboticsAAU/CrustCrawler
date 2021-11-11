@@ -73,7 +73,7 @@ bool DynamixelConnector::isJointMoving(uint8_t id) {
 /// <param name="JointAngles&> Reference to the joint angles object which the angles are passed into </param>
 /// <returns> Joint angles in desired unit </returns>
 void DynamixelConnector::getJointAngles(UnitType unitType, JointAngles& jointAnglesObject){
-	_UpdateDynamixelAngles();
+	_UpdateDynamixelAngles(jointAnglesObject);
 	AngleConverter(jointAnglesObject,unitType);
 }
 
@@ -135,14 +135,15 @@ void DynamixelConnector::AngleConverter(JointAngles &inputAngles, UnitType desir
 /// <summary>
 /// Directly read the servos raw position value. 
 /// </summary>
-void DynamixelConnector::_UpdateDynamixelAngles() {
-	_internalJointAngles.m_Theta1 = p_dynamixel->getPresentPosition(1, UNIT_RAW);
-	_internalJointAngles.m_Theta2 = p_dynamixel->getPresentPosition(2, UNIT_RAW);
-	_internalJointAngles.m_Theta3 = p_dynamixel->getPresentPosition(3, UNIT_RAW);
-	_internalJointAngles.m_Theta4 = p_dynamixel->getPresentPosition(4, UNIT_RAW);
-	_internalJointAngles.m_Theta5 = p_dynamixel->getPresentPosition(5, UNIT_RAW);
+void DynamixelConnector::_UpdateDynamixelAngles(JointAngles& JointAnglesObject) {
+	float tmp_Theta1 = p_dynamixel->getPresentPosition(1, UNIT_RAW);
+	JointAnglesObject.m_Theta1 = p_dynamixel->getPresentPosition(1, UNIT_RAW);
+	JointAnglesObject.m_Theta2 = p_dynamixel->getPresentPosition(2, UNIT_RAW);
+	JointAnglesObject.m_Theta3 = p_dynamixel->getPresentPosition(3, UNIT_RAW);
+	JointAnglesObject.m_Theta4 = p_dynamixel->getPresentPosition(4, UNIT_RAW);
+	JointAnglesObject.m_Theta5 = p_dynamixel->getPresentPosition(5, UNIT_RAW);
 
-	_internalJointAngles.currentUnitType = Raw;
+	JointAnglesObject.currentUnitType = Raw;
 }
 
 /// <summary>

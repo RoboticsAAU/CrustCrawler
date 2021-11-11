@@ -32,7 +32,7 @@ void ComputerConnector::updateComputerData() {
 		_emergencyStop = (bool)_dataBuffer[0];
 		_controlMode = (uint8_t)_dataBuffer[1];
 		_directionSign = (bool)_dataBuffer[2];
-		_speed = (uint8_t)_dataBuffer[3];
+		_speed_mm_s = (uint8_t)_dataBuffer[3];
 
 		_ComputerDataToVelocity();
 
@@ -62,36 +62,38 @@ void ComputerConnector::_ComputerDataToVelocity() {
 
 
 	//Control mode: 1 = base, 2 = in/out, 3 = up/down
-	switch (_controlMode){
-	case 0:{
-		int fingerSpeed = 20; //Remember to change fittingly
-		Joint4.m_vel = -_direction*fingerSpeed;
-		Joint5.m_vel = _direction *fingerSpeed;
+	switch (_controlMode) {
+		case 0: {
+			int fingerSpeed = 20; //Remember to change fittingly
+			Joint4.m_vel = -_direction * fingerSpeed;
+			Joint5.m_vel = _direction * fingerSpeed;
 
-		MotionData.currentSpaceType = JointSpace;
-		break;
-	}
-	case 1:{
-		Joint1.m_vel = _direction*_speed;
+			MotionData.currentSpaceType = JointSpace;
+			break;
+		}
+		case 1: {
+			Joint1.m_vel = _direction * _speed_mm_s;
 
-		MotionData.currentSpaceType = JointSpace;
-		break;
-	}
-	case 2:{
-		Joint1.m_vel = _direction*_speed;
+			MotionData.currentSpaceType = JointSpace;
+			break;
+		}
+		case 2: {
+			Joint1.m_vel = _direction * _speed_mm_s;
 
-		MotionData.currentSpaceType = CartesianSpace;
-		break;
-	}
-	case 3: {
-		Joint3.m_vel = _direction*_speed;
+			MotionData.currentSpaceType = CartesianSpace;
+			break;
+		}
+		case 3: {
+			Joint3.m_vel = _direction * _speed_mm_s;
 
-		MotionData.currentSpaceType = CartesianSpace;
-		break;
+			MotionData.currentSpaceType = CartesianSpace;
+			break;
+		}
+		case 4: {
+			break;
+		}
 	}
-	case 4: {
-		break;
-	}
+
 }
 
 
