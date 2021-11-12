@@ -44,6 +44,9 @@ private:
 
 	unsigned long _UpdateLoopTime();
 
+
+	const int _constantGripperPWM = 150;
+
 	//---------------- This is old, need review---------------------//
 	//void _ComputerOutputToVelocity(unsigned int controlMode, bool sign, unsigned int speed);
 
@@ -79,5 +82,6 @@ private:
 
 	//Functions for converting the torques to PWM values.
 	void _GetJointPWMConstants(Joint& inputJoint);
+	bool _IsWithinAngleBoundaries(Joint inputJoint, double inputAngle);
 	void _TorqueToPWM(Joint& inputJoint);
 };

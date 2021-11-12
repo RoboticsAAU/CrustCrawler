@@ -60,31 +60,33 @@ void ComputerConnector::_ComputerDataToVelocity() {
 
 	int _direction = _directionSign ? 1 : -1;
 
+	double _speed_m_s = (double)_speed_mm_s / 1000.0;
 
-	//Control mode: 1 = base, 2 = in/out, 3 = up/down
+	//Control mode: 0 = gripper, 1 = base, 2 = in/out, 3 = up/down, 4 = stop
 	switch (_controlMode) {
 		case 0: {
-			int fingerSpeed = 20; //Remember to change fittingly
-			Joint4.m_vel = -_direction * fingerSpeed;
-			Joint5.m_vel = _direction * fingerSpeed;
+			Joint4.m_vel = -_direction;
+			Joint5.m_vel = _direction;
 
 			MotionData.currentSpaceType = JointSpace;
 			break;
 		}
 		case 1: {
-			Joint1.m_vel = _direction * _speed_mm_s;
+			double _speed_rad_s = _speed_m_s * _ratioLinToAng;
+
+			Joint1.m_vel = _direction * _speed_rad_s;
 
 			MotionData.currentSpaceType = JointSpace;
 			break;
 		}
 		case 2: {
-			Joint1.m_vel = _direction * _speed_mm_s;
+			Joint1.m_vel = _direction * _speed_m_s;
 
 			MotionData.currentSpaceType = CartesianSpace;
 			break;
 		}
 		case 3: {
-			Joint3.m_vel = _direction * _speed_mm_s;
+			Joint3.m_vel = _direction * _speed_m_s;
 
 			MotionData.currentSpaceType = CartesianSpace;
 			break;
@@ -95,7 +97,4 @@ void ComputerConnector::_ComputerDataToVelocity() {
 	}
 
 }
-
-
-
 

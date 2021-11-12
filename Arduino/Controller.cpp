@@ -163,17 +163,32 @@ void Controller::_GetJointPWMConstants(Joint& inputJoint) {
 	}
 }
 
+bool Controller::_IsWithinAngleBoundaries(Joint inputJoint, double inputAngle) {
+	return inputAngle >= inputJoint.m_minTheta && inputAngle <= inputJoint.m_maxTheta;
+}
 
 void Controller::_TorqueToPWM(Joint& inputJoint) {
 	SpaceConverter(JointSpace);
 
-	// Getting the joint constants for each joint
-	_GetJointPWMConstants(inputJoint);
+	if (!_IsWithinAngleBoundaries(inputJoint, AngleData.m_currentThetas[inputJoint.m_id])) {		
+		double _boundaryMidPoint = (inputJoint.m_maxTheta + inputJoint.m_minTheta) / 2;
+		double _outputTheta = AngleData.m_currentThetas[inputJoint.m_id] > _boundaryMidPoint ? inputJoint.m_maxTheta : inputJoint.m_minTheta;
 
+		inputJoint.m_PWM = _PID(_outputTheta, AngleData.m_currentThetas[inputJoint.m_id]);
+		return;
+	}
 
-	inputJoint.m_PWM = inputJoint.m_torque * inputJoint.m_constantC1 + inputJoint.m_vel * inputJoint.m_constantC2;
+	if (inputJoint.m_servoType == MX28R) { //If the joint is a gripper servo
+		inputJoint.m_PWM = _constantGripperPWM * inputJoint.m_vel; //In reality the velocity is just a sign (positive or negative 1, or 0 if not in gripper mode)
+	}
+	else {
+		// Getting the joint constants for the joint
+		_GetJointPWMConstants(inputJoint);
 
+		inputJoint.m_PWM = inputJoint.m_torque * inputJoint.m_constantC1 + inputJoint.m_vel * inputJoint.m_constantC2;
+	}
 }
+
 
 /*
 void Controller::debugPrint(){
