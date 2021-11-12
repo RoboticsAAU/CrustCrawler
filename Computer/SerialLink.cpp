@@ -84,7 +84,7 @@ void SerialLink::getSpeed(unsigned char& outSpeed) {
     else if (GetKeyState(VK_F3) & 0x8000) { speedMode = SpeedMode::Precision; }
 
     //Check whether the received pose is either waveOut and waveIn. If neither one is recognized, the speed is set to zero. 
-    if (previousPose != myo::Pose::waveOut || previousPose != myo::Pose::waveIn) {
+    if (previousPose != myo::Pose::waveOut && previousPose != myo::Pose::waveIn) {
         outSpeed = 0;
         return;
     }
