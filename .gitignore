@@ -363,5 +363,5 @@ MigrationBackup/
 FodyWeavers.xsd
 /Arduino/__vm/.Arduino.vsarduino.h
 /Arduino/__vm/.Arduino.vcxproj
-/Arduino/Arduino.vcxproj
-/Arduino/Arduino.vcxproj.filters
+# /Arduino/Arduino.vcxproj
+# /Arduino/Arduino.vcxproj.filters
