@@ -15,9 +15,6 @@
 #include "CrustCrawlerData.h"
 #include "Methods.h"
 
-#define DYNAMIXEL_SERIAL Serial
-const uint8_t DIRECTION_PIN = 2; // DYNAMIXEL Shield DIR PIN
-
 class Controller
 {
 public:

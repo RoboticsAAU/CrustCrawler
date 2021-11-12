@@ -1,14 +1,20 @@
 #pragma once
 #include "DataStructures.h"
 
-//Implying that these objects will be initialized in another translation unit. (CrustCrawlerData.cpp)
-extern Joint Joint1; 
-extern Joint Joint2;
-extern Joint Joint3;
-extern Joint Joint4;
-extern Joint Joint5;
+struct CrustCrawler
+{
+	//Implying that these objects will be initialized in another translation unit. (CrustCrawlerData.cpp)
+	static Joint Joint1; 
+	static Joint Joint2;
+	static Joint Joint3;
+	static Joint Joint4;
+	static Joint Joint5;
 
-extern Motion MotionData;
-extern JointAngles AngleData;
-extern eePosition eePositionData;
+	static Motion MotionData;
+	static JointAngles AngleData;
+	static eePosition eePositionData;
+
+	static double timeData;
+};
+
 

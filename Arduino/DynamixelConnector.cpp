@@ -2,15 +2,11 @@
 //Include header files.
 #include "DynamixelConnector.h"
 
-#define DYNAMIXEL_SERIAL Serial
-const uint8_t DIRECTION_PIN = 2; // DYNAMIXEL Shield DIR PIN
-const uint16_t DYNAMIXEL_BAUDRATE = 57600;
 
 /// <summary>
 /// Connect to the dynamixel servos on the crust crawler arm. 
 /// </summary>
 DynamixelConnector::DynamixelConnector() {
-	p_dynamixel = new Dynamixel2Arduino(DYNAMIXEL_SERIAL,DIRECTION_PIN);
 	p_dynamixel->begin(DYNAMIXEL_BAUDRATE);
 	_SetupDynamixelServos();
 
@@ -137,7 +133,6 @@ void DynamixelConnector::AngleConverter(JointAngles &inputAngles, UnitType desir
 /// Directly read the servos raw position value. 
 /// </summary>
 void DynamixelConnector::_UpdateDynamixelAngles(JointAngles& JointAnglesObject) {
-	float tmp_Theta1 = p_dynamixel->getPresentPosition(1, UNIT_RAW);
 	JointAnglesObject.m_Theta1 = p_dynamixel->getPresentPosition(1, UNIT_RAW);
 	JointAnglesObject.m_Theta2 = p_dynamixel->getPresentPosition(2, UNIT_RAW);
 	JointAnglesObject.m_Theta3 = p_dynamixel->getPresentPosition(3, UNIT_RAW);
@@ -154,13 +149,21 @@ void DynamixelConnector::_SetupDynamixelServos() {
 
 	for (uint8_t i = 0; i < 5; i++)
 	{	
-		p_dynamixel->torqueOff(_joints[i].m_id);
+		if (p_dynamixel->getTorqueEnableStat(i))
+		{
+			p_dynamixel->torqueOff(_joints[i].m_id);
+		}
+
 		p_dynamixel->writeControlTableItem(ControlTableItem::OPERATING_MODE, _joints[i].m_id, OperatingMode::OP_PWM);
 		p_dynamixel->writeControlTableItem(ControlTableItem::MAX_POSITION_LIMIT, _joints[i].m_id, _joints[i].m_maxTheta); 
 		p_dynamixel->writeControlTableItem(ControlTableItem::MIN_POSITION_LIMIT, _joints[i].m_id, _joints[i].m_maxTheta);
 		p_dynamixel->writeControlTableItem(ControlTableItem::PWM_LIMIT, _joints[i].m_id, _joints[i].m_PWMlimit);
 		p_dynamixel->writeControlTableItem(ControlTableItem::MOVING_THRESHOLD, _joints[i].m_id, _MovingThreshold);
-		p_dynamixel->torqueOn(_joints[i].m_id);
+
+		if (!p_dynamixel->getTorqueEnableStat(i))
+		{
+			p_dynamixel->torqueOn(_joints[i].m_id);
+		}
 	}
 
 }

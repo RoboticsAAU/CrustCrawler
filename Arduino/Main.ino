@@ -1,9 +1,10 @@
 #include "Controller.h"
+#include "Dynamixel2Arduino.h"
 
 Controller* controller;
 
 void setup() {
-	Controller* controller = new Controller();
+	controller = new Controller();
 }
 
 void loop() {

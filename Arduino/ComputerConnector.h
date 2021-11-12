@@ -48,7 +48,7 @@ private:
 	uint8_t _speed_mm_s;
 
 	//Variables for conversion from max linear speed to max angular speed
-	const double _maxJointLength = Joint2.m_length + Joint3.m_length + Joint4.m_length;
+	const double _maxJointLength = CrustCrawler::Joint2.m_length + CrustCrawler::Joint3.m_length + CrustCrawler::Joint4.m_length;
 	const double _maxLinVelocity = 0.15;
 	const double _maxAngVelocity = _maxJointLength / _maxLinVelocity;
 	const double _ratioLinToAng = _maxAngVelocity / _maxLinVelocity;

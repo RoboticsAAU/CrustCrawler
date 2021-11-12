@@ -2,10 +2,10 @@
 
 Controller::Controller(){
 
-	ComputerConnector* computerConnector = new ComputerConnector();
-	Dynamics* dynamics = new Dynamics();
-	Kinematics* kinematics = new Kinematics();
-	DynamixelConnector* dynamixelConnector = new DynamixelConnector();
+	computerConnector = new ComputerConnector();
+	dynamics = new Dynamics();
+	kinematics = new Kinematics();
+	dynamixelConnector = new DynamixelConnector();
 
 }
 
@@ -14,11 +14,11 @@ Controller::~Controller(){
 
 void Controller::main(){
 
-	Looptime = _UpdateLoopTime();
-	computerConnector->updateComputerData();
-	dynamixelConnector->getJointAngles(Degree,AngleData);
-	kinematics->UpdateForwardkinematics();
-	dynamics->UpdateDynamics(Looptime);
+	//Looptime = _UpdateLoopTime();
+	//computerConnector->updateComputerData();
+	dynamixelConnector->getJointAngles(Degree,CrustCrawler::AngleData);
+	//kinematics->UpdateForwardkinematics();
+	//dynamics->UpdateDynamics(Looptime);
 
 }
 
@@ -163,11 +163,11 @@ bool Controller::_IsWithinAngleBoundaries(Joint inputJoint, double inputAngle) {
 void Controller::_TorqueToPWM(Joint& inputJoint) {
 	SpaceConverter(JointSpace);
 
-	if (!_IsWithinAngleBoundaries(inputJoint, AngleData.m_currentThetas[inputJoint.m_id])) {		
+	if (!_IsWithinAngleBoundaries(inputJoint, CrustCrawler::AngleData.m_currentThetas[inputJoint.m_id])) {		
 		double _boundaryMidPoint = (inputJoint.m_maxTheta + inputJoint.m_minTheta) / 2;
-		double _outputTheta = AngleData.m_currentThetas[inputJoint.m_id] > _boundaryMidPoint ? inputJoint.m_maxTheta : inputJoint.m_minTheta;
+		double _outputTheta = CrustCrawler::AngleData.m_currentThetas[inputJoint.m_id] > _boundaryMidPoint ? inputJoint.m_maxTheta : inputJoint.m_minTheta;
 
-		inputJoint.m_PWM = _PID(_outputTheta, AngleData.m_currentThetas[inputJoint.m_id]);
+		inputJoint.m_PWM = _PID(_outputTheta, CrustCrawler::AngleData.m_currentThetas[inputJoint.m_id]);
 		return;
 	}
 

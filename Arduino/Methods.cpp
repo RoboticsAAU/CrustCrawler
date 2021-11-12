@@ -12,21 +12,21 @@ double DifferentiationOperator(double currentValue, double previousValue, double
 void SpaceConverter(SpaceType desiredSpace) {
 	//_AngleConverter(Radians);
 
-	if (desiredSpace == MotionData.currentSpaceType) {
+	if (desiredSpace == CrustCrawler::MotionData.currentSpaceType) {
 		return;
 	}
 
 	//Forward Jacobian:
 	BLA::Matrix<3, 3> jacobian;
-	jacobian(0, 0) = sin(AngleData.m_Theta1) * (Joint2.m_length * sin(AngleData.m_Theta2) + Joint3.m_length * sin(AngleData.m_Theta2 + AngleData.m_Theta3));
-	jacobian(0, 1) = -cos(AngleData.m_Theta1) * (Joint2.m_length * cos(AngleData.m_Theta2) + Joint3.m_length * cos(AngleData.m_Theta2 + AngleData.m_Theta3));
-	jacobian(0, 2) = -cos(AngleData.m_Theta1) * Joint3.m_length * cos(AngleData.m_Theta2 + AngleData.m_Theta3);
-	jacobian(1, 0) = -cos(AngleData.m_Theta1) * (Joint2.m_length * sin(AngleData.m_Theta2) + Joint3.m_length * sin(AngleData.m_Theta2 + AngleData.m_Theta3));
-	jacobian(1, 1) = -sin(AngleData.m_Theta1) * (Joint2.m_length * cos(AngleData.m_Theta2) + Joint3.m_length * cos(AngleData.m_Theta2 + AngleData.m_Theta3));
-	jacobian(1, 2) = -sin(AngleData.m_Theta1) * Joint3.m_length * cos(AngleData.m_Theta2 + AngleData.m_Theta3);
+	jacobian(0, 0) = sin(CrustCrawler::AngleData.m_Theta1) * (CrustCrawler::Joint2.m_length * sin(CrustCrawler::AngleData.m_Theta2) + CrustCrawler::Joint3.m_length * sin(CrustCrawler::AngleData.m_Theta2 + CrustCrawler::AngleData.m_Theta3));
+	jacobian(0, 1) = -cos(CrustCrawler::AngleData.m_Theta1) * (CrustCrawler::Joint2.m_length * cos(CrustCrawler::AngleData.m_Theta2) + CrustCrawler::Joint3.m_length * cos(CrustCrawler::AngleData.m_Theta2 + CrustCrawler::AngleData.m_Theta3));
+	jacobian(0, 2) = -cos(CrustCrawler::AngleData.m_Theta1) * CrustCrawler::Joint3.m_length * cos(CrustCrawler::AngleData.m_Theta2 + CrustCrawler::AngleData.m_Theta3);
+	jacobian(1, 0) = -cos(CrustCrawler::AngleData.m_Theta1) * (CrustCrawler::Joint2.m_length * sin(CrustCrawler::AngleData.m_Theta2) + CrustCrawler::Joint3.m_length * sin(CrustCrawler::AngleData.m_Theta2 + CrustCrawler::AngleData.m_Theta3));
+	jacobian(1, 1) = -sin(CrustCrawler::AngleData.m_Theta1) * (CrustCrawler::Joint2.m_length * cos(CrustCrawler::AngleData.m_Theta2) + CrustCrawler::Joint3.m_length * cos(CrustCrawler::AngleData.m_Theta2 + CrustCrawler::AngleData.m_Theta3));
+	jacobian(1, 2) = -sin(CrustCrawler::AngleData.m_Theta1) * CrustCrawler::Joint3.m_length * cos(CrustCrawler::AngleData.m_Theta2 + CrustCrawler::AngleData.m_Theta3);
 	jacobian(2, 0) = 0;
-	jacobian(2, 1) = -Joint2.m_length * sin(AngleData.m_Theta2) - Joint3.m_length * sin(AngleData.m_Theta2 + AngleData.m_Theta3);
-	jacobian(2, 2) = -Joint3.m_length * sin(AngleData.m_Theta2 + AngleData.m_Theta3);
+	jacobian(2, 1) = -CrustCrawler::Joint2.m_length * sin(CrustCrawler::AngleData.m_Theta2) - CrustCrawler::Joint3.m_length * sin(CrustCrawler::AngleData.m_Theta2 + CrustCrawler::AngleData.m_Theta3);
+	jacobian(2, 2) = -CrustCrawler::Joint3.m_length * sin(CrustCrawler::AngleData.m_Theta2 + CrustCrawler::AngleData.m_Theta3);
 
 	//Inverse Jacobian:
 	BLA::Matrix<3, 3> jacobianInverse = jacobian;
@@ -49,9 +49,9 @@ void SpaceConverter(SpaceType desiredSpace) {
 	}*/
 
 	BLA::Matrix<3, 1> velocityVector;
-	velocityVector(0, 0) = Joint1.m_vel;
-	velocityVector(1, 0) = Joint2.m_vel;
-	velocityVector(2, 0) = Joint3.m_vel;
+	velocityVector(0, 0) = CrustCrawler::Joint1.m_vel;
+	velocityVector(1, 0) = CrustCrawler::Joint2.m_vel;
+	velocityVector(2, 0) = CrustCrawler::Joint3.m_vel;
 
 	switch (desiredSpace) {
 	case JointSpace: {
@@ -62,9 +62,9 @@ void SpaceConverter(SpaceType desiredSpace) {
 	}
 	}
 
-	Joint1.m_vel = velocityVector(0, 0);
-	Joint2.m_vel = velocityVector(1, 0);
-	Joint3.m_vel = velocityVector(2, 0);
+	CrustCrawler::Joint1.m_vel = velocityVector(0, 0);
+	CrustCrawler::Joint2.m_vel = velocityVector(1, 0);
+	CrustCrawler::Joint3.m_vel = velocityVector(2, 0);
 
-	MotionData.currentSpaceType = desiredSpace;
+	CrustCrawler::MotionData.currentSpaceType = desiredSpace;
 }
