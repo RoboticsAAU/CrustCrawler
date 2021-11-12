@@ -1,6 +1,6 @@
 #include "Dynamics.h"
 
-void Dynamics::UpdateDynamics(double& Looptime){
+void Dynamics::UpdateDynamics(unsigned long& Looptime){
 	CrustCrawler::Joint1.m_pos = IntegrationOperator(CrustCrawler::Joint1.m_vel, CrustCrawler::Joint1.m_pos, Looptime);
 	CrustCrawler::Joint2.m_pos = IntegrationOperator(CrustCrawler::Joint2.m_vel, CrustCrawler::Joint2.m_pos, Looptime);
 	CrustCrawler::Joint3.m_pos = IntegrationOperator(CrustCrawler::Joint3.m_vel, CrustCrawler::Joint3.m_pos, Looptime);

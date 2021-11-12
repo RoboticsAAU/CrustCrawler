@@ -29,8 +29,10 @@ unsigned long Controller::_UpdateLoopTime(){
 	_PrevTime = _NewTime;
 
 	return TimeStamp;
+}
 
-
+void Initialize() {
+	return;
 }
 
 
@@ -96,91 +98,91 @@ unsigned long Controller::_UpdateLoopTime(){
 //}
 
 
-double Controller::_PID(double desiredValue, double currentValue){
-	double Kp{ 0.7 }, Ki{ 0.01 }, Kd{ 0.1 };
-	double error = desiredValue - currentValue;
-	
-	m_proportional = Kp * error;
-	m_integral = Ki * IntegrationOperator(error, m_integral, Looptime);
-	m_derivative = Kd * DifferentiationOperator(error, m_lastError, Looptime);
-	
-	//m_integral += Ki * (error * samplingTime);
-	//m_derivative = Kd * ((error - m_lastError) / samplingTime);
-	
-	m_lastError = error;
-
-	return (m_proportional + m_integral + m_derivative);
-}
-
-void Controller::_GetJointPWMConstants(Joint& inputJoint) {
-	SpaceConverter(JointSpace);
-
-
-	int torque_sign = inputJoint.m_torque;
-	int vel_sign = inputJoint.m_vel;
-
-	int constantPicker = torque_sign * vel_sign;
-
-	// if(constantPicker > 0) a
-	// else if (constantPicker < 0) c
-	// else b
-
-	switch(inputJoint.m_servoType) {
-	case MX28R: {
-		
-		if (constantPicker < 0) { inputJoint.m_constantC1 = 211.7; }
-		else if (constantPicker = 0) { inputJoint.m_constantC1 = 427.4; }
-		else if (constantPicker > 0) { inputJoint.m_constantC1 = 642.0; }
-
-		inputJoint.m_constantC2 = 115.3;
-
-	}
-	case MX64R: {
-
-		if (constantPicker < 0) { inputJoint.m_constantC1 = 80.9; }
-		else if (constantPicker = 0) { inputJoint.m_constantC1 = 152.7; }
-		else if (constantPicker > 0) { inputJoint.m_constantC1 = 224.5; }
-		
-		inputJoint.m_constantC2 = 105.3;
-
-	}
-	case MX106R: {
-		
-		if (constantPicker < 0) { inputJoint.m_constantC1 = 40.4; }
-		else if (constantPicker = 0) { inputJoint.m_constantC1 = 83.9; }
-		else if (constantPicker > 0) { inputJoint.m_constantC1 = 127.5; }
-		
-		inputJoint.m_constantC2 = 160.6;
-
-	}
-	}
-}
-
-bool Controller::_IsWithinAngleBoundaries(Joint inputJoint, double inputAngle) {
-	return inputAngle >= inputJoint.m_minTheta && inputAngle <= inputJoint.m_maxTheta;
-}
-
-void Controller::_TorqueToPWM(Joint& inputJoint) {
-	SpaceConverter(JointSpace);
-
-	if (!_IsWithinAngleBoundaries(inputJoint, CrustCrawler::AngleData.m_currentThetas[inputJoint.m_id])) {		
-		double _boundaryMidPoint = (inputJoint.m_maxTheta + inputJoint.m_minTheta) / 2;
-		double _outputTheta = CrustCrawler::AngleData.m_currentThetas[inputJoint.m_id] > _boundaryMidPoint ? inputJoint.m_maxTheta : inputJoint.m_minTheta;
-
-		inputJoint.m_PWM = _PID(_outputTheta, CrustCrawler::AngleData.m_currentThetas[inputJoint.m_id]);
-		return;
-	}
-
-	if (inputJoint.m_servoType == MX28R) { //If the joint is a gripper servo
-		inputJoint.m_PWM = _constantGripperPWM * inputJoint.m_vel; //In reality the velocity is just a sign (positive or negative 1, or 0 if not in gripper mode)
-	}
-	else {
-		// Getting the joint constants for the joint
-		_GetJointPWMConstants(inputJoint);
-
-		inputJoint.m_PWM = inputJoint.m_torque * inputJoint.m_constantC1 + inputJoint.m_vel * inputJoint.m_constantC2;
-	}
-}
+//double Controller::_PID(double desiredValue, double currentValue){
+//	double Kp{ 0.7 }, Ki{ 0.01 }, Kd{ 0.1 };
+//	double error = desiredValue - currentValue;
+//	
+//	m_proportional = Kp * error;
+//	m_integral = Ki * IntegrationOperator(error, m_integral, Looptime);
+//	m_derivative = Kd * DifferentiationOperator(error, m_lastError, Looptime);
+//	
+//	//m_integral += Ki * (error * samplingTime);
+//	//m_derivative = Kd * ((error - m_lastError) / samplingTime);
+//	
+//	m_lastError = error;
+//
+//	return (m_proportional + m_integral + m_derivative);
+//}
+//
+//void Controller::_GetJointPWMConstants(Joint& inputJoint) {
+//	SpaceConverter(JointSpace);
+//
+//
+//	int torque_sign = inputJoint.m_torque;
+//	int vel_sign = inputJoint.m_vel;
+//
+//	int constantPicker = torque_sign * vel_sign;
+//
+//	// if(constantPicker > 0) a
+//	// else if (constantPicker < 0) c
+//	// else b
+//
+//	switch(inputJoint.m_servoType) {
+//	case MX28R: {
+//		
+//		if (constantPicker < 0) { inputJoint.m_constantC1 = 211.7; }
+//		else if (constantPicker = 0) { inputJoint.m_constantC1 = 427.4; }
+//		else if (constantPicker > 0) { inputJoint.m_constantC1 = 642.0; }
+//
+//		inputJoint.m_constantC2 = 115.3;
+//
+//	}
+//	case MX64R: {
+//
+//		if (constantPicker < 0) { inputJoint.m_constantC1 = 80.9; }
+//		else if (constantPicker = 0) { inputJoint.m_constantC1 = 152.7; }
+//		else if (constantPicker > 0) { inputJoint.m_constantC1 = 224.5; }
+//		
+//		inputJoint.m_constantC2 = 105.3;
+//
+//	}
+//	case MX106R: {
+//		
+//		if (constantPicker < 0) { inputJoint.m_constantC1 = 40.4; }
+//		else if (constantPicker = 0) { inputJoint.m_constantC1 = 83.9; }
+//		else if (constantPicker > 0) { inputJoint.m_constantC1 = 127.5; }
+//		
+//		inputJoint.m_constantC2 = 160.6;
+//
+//	}
+//	}
+//}
+//
+//bool Controller::_IsWithinAngleBoundaries(Joint inputJoint, double inputAngle) {
+//	return inputAngle >= inputJoint.m_minTheta && inputAngle <= inputJoint.m_maxTheta;
+//}
+//
+//void Controller::_TorqueToPWM(Joint& inputJoint) {
+//	SpaceConverter(JointSpace);
+//
+//	if (!_IsWithinAngleBoundaries(inputJoint, CrustCrawler::AngleData.m_currentThetas[inputJoint.m_id])) {		
+//		double _boundaryMidPoint = (inputJoint.m_maxTheta + inputJoint.m_minTheta) / 2;
+//		double _outputTheta = CrustCrawler::AngleData.m_currentThetas[inputJoint.m_id] > _boundaryMidPoint ? inputJoint.m_maxTheta : inputJoint.m_minTheta;
+//
+//		inputJoint.m_PWM = _PID(_outputTheta, CrustCrawler::AngleData.m_currentThetas[inputJoint.m_id]);
+//		return;
+//	}
+//
+//	if (inputJoint.m_servoType == MX28R) { //If the joint is a gripper servo
+//		inputJoint.m_PWM = _constantGripperPWM * inputJoint.m_vel; //In reality the velocity is just a sign (positive or negative 1, or 0 if not in gripper mode)
+//	}
+//	else {
+//		// Getting the joint constants for the joint
+//		_GetJointPWMConstants(inputJoint);
+//
+//		inputJoint.m_PWM = inputJoint.m_torque * inputJoint.m_constantC1 + inputJoint.m_vel * inputJoint.m_constantC2;
+//	}
+//}
 
 
 /*

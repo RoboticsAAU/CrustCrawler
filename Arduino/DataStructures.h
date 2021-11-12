@@ -29,6 +29,8 @@ struct Joint {
 	double m_vel{ 0 };
 	double m_acc{ 0 };
 
+	double m_actualVel{ 0 };
+
 	double m_torque{ 0 };
 
 	double m_rotDirection{ 0 };
@@ -46,6 +48,8 @@ struct Joint {
 		m_maxTheta = maxTheta;
 		m_PWMlimit = PWMlimit;
 		m_servoType = servoType;
+
+		m_pos = AngleData.m_currentThetas[m_id - 1];
 	};
 };
 

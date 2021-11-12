@@ -11,7 +11,7 @@ public:
 	Kinematics();
 	~Kinematics();
 
-	void UpdateForwardkinematics();
+	void UpdateForwardKinematics();
 
 private:
 

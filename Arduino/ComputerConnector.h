@@ -36,10 +36,6 @@ public:
 	double getSpeed() { return _speed; };
 	*/
 
-
-
-	
-
 private:
 	//Variables received from computer 
 	bool _emergencyStop;
