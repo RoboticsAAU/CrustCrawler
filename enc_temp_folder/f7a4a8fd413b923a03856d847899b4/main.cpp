@@ -11,9 +11,7 @@ int main() {
 	// We then create our filter object which depends on the myoband link
 	Filtering Filter(100, MyoBand);
 
-	// Then we need to specify the desired com port. We use the syntax "\\.\COMx". for expressing 
-	// serial ports above COM9, so will be the default here to support all users...
-	//Documentation for expression: https://docs.microsoft.com/en-us/windows/win32/api/fileapi/nf-fileapi-createfilea?redirectedfrom=MSDN#communications-resources
+	// Then we need to specify the desired com port
 	char* comPort = (char*)"\\\\.\\COM18";
 	// And the baud rate. They prefix with CBR_. So e.x. CBR_9600, CBR_56000, CBR_115200, etc...
 	DWORD baudRate = CBR_9600;

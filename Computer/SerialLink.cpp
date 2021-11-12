@@ -6,6 +6,7 @@ SerialLink::SerialLink(char* comPort, DWORD baudRate, Filtering& FilterObject)
     // We create our link object, that connects our computer to the arduino
     //Serial = new SimpleSerial(comPort, baudRate);
     Serial = new serialib;
+
     while (Serial->openDevice(comPort, baudRate) != 1) {
         printf("Serial device could not be found ");
         Sleep(500);

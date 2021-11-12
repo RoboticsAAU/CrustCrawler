@@ -102,7 +102,7 @@ void MyoBand::print()
     myo::Pose cPose = getPose();
     std::string poseString = cPose.toString();
 
-    //std::vector<int8_t> cEMGdata = getEMGdata();
+    std::vector<int8_t> cEMGdata = getEMGdata();
 
     printf("Pose: %13s ", (char*)poseString.data());
     //printf("EMG data: [%4d][%4d][%4d][%4d][%4d][%4d][%4d][%4d] ", 
