@@ -82,7 +82,7 @@ void SerialLink::getSpeed(unsigned char& outSpeed) {
     if (GetKeyState(VK_F1) & 0x8000) { speedMode = SpeedMode::Gross; }
     else if (GetKeyState(VK_F2) & 0x8000) { speedMode = SpeedMode::Linear; }
     else if (GetKeyState(VK_F3) & 0x8000) { speedMode = SpeedMode::Precision; }
-
+    
     if (previousPose == myo::Pose::waveOut) {
         if (RAWspeed > waveOutMaxSpeed) {
             waveOutMaxSpeed = RAWspeed;
@@ -106,7 +106,7 @@ void SerialLink::getSpeed(unsigned char& outSpeed) {
     if (previousPose == myo::Pose::waveOut) {
         adjustedSpeed = RAWspeed - waveOutThreshold;
     }
-    else {
+    else if (previousPose == myo::Pose::waveIn) {
         adjustedSpeed = RAWspeed - waveInThreshold;
     }
 
@@ -133,6 +133,7 @@ void SerialLink::getMode(unsigned char& outMode) {
     myo::Pose currentPose = pMyoBand->getPose();
 
     if (currentPose == previousPose || previousPose != myo::Pose::rest) {
+        previousPose = currentPose;
         return;
     }
 
@@ -193,7 +194,7 @@ double SerialLink::speedMap(double& variable) {
     if (previousPose == myo::Pose::waveOut) {
         mappedVariable = (100 / (waveOutMaxSpeed - waveOutThreshold)) * variable;
     }
-    else {
+    else if (previousPose == myo::Pose::waveIn){
         mappedVariable = (100 / (waveInMaxSpeed - waveInThreshold)) * variable;
     }
 
