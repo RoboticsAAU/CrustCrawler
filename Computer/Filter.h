@@ -38,6 +38,8 @@ private:
 
 	// Calls averageEMG and pushes it back into samples, while also removing the first element. Effectively making queue system. 
 	void UpdateSamples(); 
+
+	
 	
 };
 

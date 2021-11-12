@@ -78,16 +78,10 @@ void SerialLink::getEmergencyStop(unsigned char& outStop) {
 void SerialLink::getSpeed(unsigned char& outSpeed) {
     double RAWspeed = pFilterObject->MoveAvg();
 
-    //
+    //Check key state for speed control mode
     if (GetKeyState(VK_F1) & 0x8000) { speedMode = SpeedMode::Gross; }
     else if (GetKeyState(VK_F2) & 0x8000) { speedMode = SpeedMode::Linear; }
     else if (GetKeyState(VK_F3) & 0x8000) { speedMode = SpeedMode::Precision; }
-
-    //Check whether the received pose is either waveOut and waveIn. If neither one is recognized, the speed is set to zero. 
-    if (previousPose != myo::Pose::waveOut && previousPose != myo::Pose::waveIn) {
-        outSpeed = 0;
-        return;
-    }
 
     if (previousPose == myo::Pose::waveOut) {
         if (RAWspeed > waveOutMaxSpeed) {
@@ -138,7 +132,7 @@ void SerialLink::getDirection(unsigned char& outDirection) {
 void SerialLink::getMode(unsigned char& outMode) {
     myo::Pose currentPose = pMyoBand->getPose();
 
-    if (currentPose == previousPose) {
+    if (currentPose == previousPose || previousPose != myo::Pose::rest) {
         return;
     }
 
