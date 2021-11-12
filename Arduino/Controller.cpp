@@ -9,10 +9,8 @@ Controller::Controller(){
 
 }
 
-
 Controller::~Controller(){
 } 
-
 
 void Controller::main(){
 
@@ -34,8 +32,6 @@ unsigned long Controller::_UpdateLoopTime(){
 
 
 }
-
-
 
 
 // ----------------- Everything below this have to be moved ------------------- \\ 
@@ -115,9 +111,6 @@ double Controller::_PID(double desiredValue, double currentValue){
 
 	return (m_proportional + m_integral + m_derivative);
 }
-
-
-
 
 void Controller::_GetJointPWMConstants(Joint& inputJoint) {
 	SpaceConverter(JointSpace);
