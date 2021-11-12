@@ -11,13 +11,13 @@
 
 class SerialLink {
 public:
-    SerialLink(char* comPort, DWORD baudRate, Filtering& FilterObject);
-	
+	SerialLink(char* comPort, DWORD baudRate, Filtering& FilterObject);
+
 	void sendData();
 
-	#ifdef _DEBUG
+#ifdef _DEBUG
 	void print();
-	#endif
+#endif
 
 private:
 	// Package functions
@@ -26,7 +26,7 @@ private:
 	void getSpeed(unsigned char& outSpeed);
 	void getDirection(unsigned char& outDirection);
 	void getMode(unsigned char& outMode);
-	
+
 	// Package variables
 	std::vector<unsigned char> package;
 	//std::string package;
@@ -55,24 +55,29 @@ private:
 
 	ControlMode controlMode = Grasp;
 	SpeedMode speedMode = Linear;
-	
+
 
 	Filtering* pFilterObject;
 	MyoBand* pMyoBand;
-	
+
 	char* comPort;
 	DWORD baudRate;
 
 	serialib* Serial;
 	int isSent;
+	bool calibration = false;
+	bool firstCalibration = true;
 
-	double waveInMaxSpeed = 1;
-	double waveOutMaxSpeed = 1;
-	double waveInThreshold = 0;
-	double waveOutThreshold = 0;
+	std::chrono::time_point<std::chrono::steady_clock> startTime;
 
-	double threshold = 4;
-	double speedCap = 150;
+	//Upper moving average limit for waveOut and waveIn. Initialized with a low value, which shoftly after runtime is overwritten through calibration
+	double waveInMaxSpeed = 0;
+	double waveOutMaxSpeed = 0;
+	//Lower moving average treshhold between rest and waveIn and waveOut pose. Initialized with a high value, which shortly after runtime is overwritten through calibration
+	double waveInThreshold = 150;
+	double waveOutThreshold = 150;
+
+	double maxSpeedCap = 150; //
 
 	double speedMap(double& variable);
 	void configure();
