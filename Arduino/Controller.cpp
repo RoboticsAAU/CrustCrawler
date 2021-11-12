@@ -17,8 +17,8 @@ void Controller::main(){
 	Looptime = _UpdateLoopTime();
 	computerConnector->updateComputerData();
 	dynamixelConnector->getJointAngles(Degree,AngleData);
-	kinematics->UpdateForwardkinematics();
-	dynamics->UpdateDynamics(Looptime);
+	kinematics->UpdateForwardKinematics();
+	dynamics->UpdateInverseDynamics(Looptime);
 
 }
 
@@ -163,8 +163,18 @@ bool Controller::_IsWithinAngleBoundaries(Joint inputJoint, double inputAngle) {
 void Controller::_TorqueToPWM(Joint& inputJoint) {
 	SpaceConverter(JointSpace);
 
+	/*
+	inputJoint.m_actualVel = DynamixelConnector::getVelocity(inputJoint.m_id);
+	
+	// If the joint hits something (actual velocity is less than half the expected velocity), make the joint stop moving. 
+	if(inputJoint.m_actualVel < 0.5*inputJoint.m_vel) {
+		inputJoint.m_actualVel = 0;
+		Dynamics::UpdateInverseDynamics(Looptime);;
+	}
+	*/
+
 	if (!_IsWithinAngleBoundaries(inputJoint, AngleData.m_currentThetas[inputJoint.m_id])) {		
-		double _boundaryMidPoint = (inputJoint.m_maxTheta + inputJoint.m_minTheta) / 2;
+		double _boundaryMidPoint = (inputJoint.m_maxTheta + inputJoint.m_minTheta) / 2.0;
 		double _outputTheta = AngleData.m_currentThetas[inputJoint.m_id] > _boundaryMidPoint ? inputJoint.m_maxTheta : inputJoint.m_minTheta;
 
 		inputJoint.m_PWM = _PID(_outputTheta, AngleData.m_currentThetas[inputJoint.m_id]);
@@ -180,6 +190,7 @@ void Controller::_TorqueToPWM(Joint& inputJoint) {
 
 		inputJoint.m_PWM = inputJoint.m_torque * inputJoint.m_constantC1 + inputJoint.m_vel * inputJoint.m_constantC2;
 	}
+
 }
 
 

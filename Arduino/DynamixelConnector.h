@@ -35,9 +35,6 @@ public:
 
 
 
-
-
-
 private:
 	//Dynamixel connector object pointer (Declared on the HEAP)
 	Dynamixel2Arduino* p_dynamixel;

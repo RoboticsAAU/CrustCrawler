@@ -1,6 +1,6 @@
 #include "Dynamics.h"
 
-void Dynamics::UpdateDynamics(double& Looptime){
+void Dynamics::UpdateInverseDynamics(double& Looptime){
 	Joint1.m_pos = IntegrationOperator(Joint1.m_vel, Joint1.m_pos, Looptime);
 	Joint2.m_pos = IntegrationOperator(Joint2.m_vel, Joint2.m_pos, Looptime);
 	Joint3.m_pos = IntegrationOperator(Joint3.m_vel, Joint3.m_pos, Looptime);
