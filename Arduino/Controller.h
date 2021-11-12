@@ -28,7 +28,7 @@ public:
 	void debugPrint();
 	void Print();
 
-	double Looptime;
+	unsigned long Looptime;
 
 
 private:
@@ -44,10 +44,15 @@ private:
 
 	unsigned long _UpdateLoopTime();
 
+	void Initialize();
 
-	const int _constantGripperPWM = 150;
+	
+
+	
 
 	//---------------- This is old, need review---------------------//
+	
+	// //const int _constantGripperPWM = 150;
 	//void _ComputerOutputToVelocity(unsigned int controlMode, bool sign, unsigned int speed);
 
 	//Updates everything
@@ -59,7 +64,7 @@ private:
 	//Functions to go between motion states 
 	//double _DifferentiationOperator(double currentValue, double previousValue);
 	//double _IntegrationOperator(double currentValue, double inputIntegrationVal);
-	double m_lastValue{ 0 };
+	//double m_lastValue{ 0 };
 
 	//void _EmergencyStop();
 
@@ -77,11 +82,11 @@ private:
 	//eePosition m_eePosition;
 
 	//Defining PID controller variables
-	double _PID(double desiredValue, double currentValue);
-	double m_proportional{ 0.0 }, m_integral{ 0.0 }, m_derivative{ 0.0 }, m_lastError{ 100.0 }, samplingTime = 1.0/200.0; //Sampling time should be changed
+	//double _PID(double desiredValue, double currentValue);
+	//double m_proportional{ 0.0 }, m_integral{ 0.0 }, m_derivative{ 0.0 }, m_lastError{ 100.0 }, samplingTime = 1.0/200.0; //Sampling time should be changed
 
-	//Functions for converting the torques to PWM values.
-	void _GetJointPWMConstants(Joint& inputJoint);
-	bool _IsWithinAngleBoundaries(Joint inputJoint, double inputAngle);
-	void _TorqueToPWM(Joint& inputJoint);
+	////Functions for converting the torques to PWM values.
+	//void _GetJointPWMConstants(Joint& inputJoint);
+	//bool _IsWithinAngleBoundaries(Joint inputJoint, double inputAngle);
+	//void _TorqueToPWM(Joint& inputJoint);
 };

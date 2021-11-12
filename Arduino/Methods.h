@@ -4,6 +4,6 @@
 #include <BasicLinearAlgebra.h>
 #include <math.h>
 
-extern double IntegrationOperator(double currentValue, double inputIntegrationVal, double& looptime);
-extern double DifferentiationOperator(double currentValue, double previousValue, double& looptime);
+extern double IntegrationOperator(double currentValue, double inputIntegrationVal, unsigned long& looptime);
+extern double DifferentiationOperator(double currentValue, double previousValue, unsigned long& looptime);
 extern void SpaceConverter(SpaceType desiredSpace);

@@ -1,11 +1,11 @@
 #include "Methods.h"
 
-double IntegrationOperator(double currentValue, double inputIntegrationVal, double& looptime) {
+double IntegrationOperator(double currentValue, double inputIntegrationVal, unsigned long& looptime) {
 	inputIntegrationVal += currentValue * (1 / looptime);
 	return inputIntegrationVal;
 }
 
-double DifferentiationOperator(double currentValue, double previousValue, double& looptime) {
+double DifferentiationOperator(double currentValue, double previousValue, unsigned long& looptime) {
 	return (currentValue - previousValue) / (1 / looptime);
 }
 

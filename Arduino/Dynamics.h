@@ -7,7 +7,7 @@
 class Dynamics
 {
 public:
-	void UpdateDynamics(double& Looptime);
+	void UpdateDynamics(unsigned long& Looptime);
 
 private:
 	double _prevVel1{0}, _prevVel2{0}, _prevVel3{0};
