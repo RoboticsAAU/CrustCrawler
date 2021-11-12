@@ -156,18 +156,18 @@ void Controller::_GetJointPWMConstants(Joint& inputJoint) {
 	}
 }
 
-bool Controller::_IsWithinAngleBoundaries(Joint inputJoint, double inputAngle) {
+bool Controller::_IsWithinAngleBoundaries(Joint& inputJoint, double inputAngle) {
 	return inputAngle >= inputJoint.m_minTheta && inputAngle <= inputJoint.m_maxTheta;
 }
 
 void Controller::_TorqueToPWM(Joint& inputJoint) {
 	SpaceConverter(JointSpace);
 
-	if (!_IsWithinAngleBoundaries(inputJoint, AngleData.m_currentThetas[inputJoint.m_id])) {		
+	if (!_IsWithinAngleBoundaries(inputJoint, AngleData.m_currentThetas[inputJoint.m_id-1])) {		
 		double _boundaryMidPoint = (inputJoint.m_maxTheta + inputJoint.m_minTheta) / 2;
-		double _outputTheta = AngleData.m_currentThetas[inputJoint.m_id] > _boundaryMidPoint ? inputJoint.m_maxTheta : inputJoint.m_minTheta;
+		double _outputTheta = AngleData.m_currentThetas[inputJoint.m_id-1] > _boundaryMidPoint ? inputJoint.m_maxTheta : inputJoint.m_minTheta;
 
-		inputJoint.m_PWM = _PID(_outputTheta, AngleData.m_currentThetas[inputJoint.m_id]);
+		inputJoint.m_PWM = _PID(_outputTheta, AngleData.m_currentThetas[inputJoint.m_id-1]);
 		return;
 	}
 

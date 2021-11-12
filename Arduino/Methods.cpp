@@ -18,15 +18,15 @@ void SpaceConverter(SpaceType desiredSpace) {
 
 	//Forward Jacobian:
 	BLA::Matrix<3, 3> jacobian;
-	jacobian(0, 0) = sin(AngleData.m_Theta1) * (Joint2.m_length * sin(AngleData.m_Theta2) + Joint3.m_length * sin(AngleData.m_Theta2 + AngleData.m_Theta3));
-	jacobian(0, 1) = -cos(AngleData.m_Theta1) * (Joint2.m_length * cos(AngleData.m_Theta2) + Joint3.m_length * cos(AngleData.m_Theta2 + AngleData.m_Theta3));
-	jacobian(0, 2) = -cos(AngleData.m_Theta1) * Joint3.m_length * cos(AngleData.m_Theta2 + AngleData.m_Theta3);
-	jacobian(1, 0) = -cos(AngleData.m_Theta1) * (Joint2.m_length * sin(AngleData.m_Theta2) + Joint3.m_length * sin(AngleData.m_Theta2 + AngleData.m_Theta3));
-	jacobian(1, 1) = -sin(AngleData.m_Theta1) * (Joint2.m_length * cos(AngleData.m_Theta2) + Joint3.m_length * cos(AngleData.m_Theta2 + AngleData.m_Theta3));
-	jacobian(1, 2) = -sin(AngleData.m_Theta1) * Joint3.m_length * cos(AngleData.m_Theta2 + AngleData.m_Theta3);
+	jacobian(0, 0) = sin(AngleData.m_currentThetas[0]) * (Joint2.m_length * sin(AngleData.m_currentThetas[1]) + Joint3.m_length * sin(AngleData.m_currentThetas[1] + AngleData.m_currentThetas[2]));
+	jacobian(0, 1) = -cos(AngleData.m_currentThetas[0]) * (Joint2.m_length * cos(AngleData.m_currentThetas[1]) + Joint3.m_length * cos(AngleData.m_currentThetas[1] + AngleData.m_currentThetas[2]));
+	jacobian(0, 2) = -cos(AngleData.m_currentThetas[0]) * Joint3.m_length * cos(AngleData.m_currentThetas[1] + AngleData.m_currentThetas[2]);
+	jacobian(1, 0) = -cos(AngleData.m_currentThetas[0]) * (Joint2.m_length * sin(AngleData.m_currentThetas[1]) + Joint3.m_length * sin(AngleData.m_currentThetas[1] + AngleData.m_currentThetas[2]));
+	jacobian(1, 1) = -sin(AngleData.m_currentThetas[0]) * (Joint2.m_length * cos(AngleData.m_currentThetas[1]) + Joint3.m_length * cos(AngleData.m_currentThetas[1] + AngleData.m_currentThetas[2]));
+	jacobian(1, 2) = -sin(AngleData.m_currentThetas[0]) * Joint3.m_length * cos(AngleData.m_currentThetas[1] + AngleData.m_currentThetas[2]);
 	jacobian(2, 0) = 0;
-	jacobian(2, 1) = -Joint2.m_length * sin(AngleData.m_Theta2) - Joint3.m_length * sin(AngleData.m_Theta2 + AngleData.m_Theta3);
-	jacobian(2, 2) = -Joint3.m_length * sin(AngleData.m_Theta2 + AngleData.m_Theta3);
+	jacobian(2, 1) = -Joint2.m_length * sin(AngleData.m_currentThetas[1]) - Joint3.m_length * sin(AngleData.m_currentThetas[1] + AngleData.m_currentThetas[2]);
+	jacobian(2, 2) = -Joint3.m_length * sin(AngleData.m_currentThetas[1] + AngleData.m_currentThetas[2]);
 
 	//Inverse Jacobian:
 	BLA::Matrix<3, 3> jacobianInverse = jacobian;
