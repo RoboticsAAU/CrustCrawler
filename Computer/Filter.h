@@ -11,6 +11,7 @@ class Filtering
 public:
 	// The constructor fills the samples vector with EMG data
 	Filtering(int sample_size, MyoBand& MyoBand);
+	void resetMoveAvg();
 	
 	// Calculates a moving average and return our signal magnitude
 	double MoveAvg();

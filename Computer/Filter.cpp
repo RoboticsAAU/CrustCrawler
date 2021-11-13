@@ -8,6 +8,13 @@ Filtering::Filtering(int sampleSize, MyoBand &MyoBand) : pMyoBand(&MyoBand), sam
 	}
 }
 
+void Filtering::resetMoveAvg() {
+	//memset(samples.data(), 0, samples.size());
+	for (int i = 0; i < samples.size(); i++) {
+		samples.at(i) = 0;
+	}
+}
+
 double Filtering::averageEMG(std::vector<int8_t> &emgSample){
 	int sum = 0;
 	for(int i = 0; i < 8; i++){

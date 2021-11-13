@@ -37,7 +37,8 @@ private:
 	unsigned char Speed = 0;
 
 	// Logic
-	myo::Pose previousPose;
+	myo::Pose previousPose = myo::Pose::unknown;
+	myo::Pose lastControlPose = myo::Pose::unknown;
 
 	enum ControlMode {
 		Grasp,
@@ -76,9 +77,10 @@ private:
 	//Lower moving average treshhold between rest and waveIn and waveOut pose. Initialized with a high value, which shortly after runtime is overwritten through calibration
 	double waveInThreshold = 150;
 	double waveOutThreshold = 150;
-
+	
+	double prevSpeed = 0;
 	double maxSpeedCap = 150; //
 
 	double speedMap(double& variable);
-	void configure();
+
 };

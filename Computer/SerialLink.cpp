@@ -8,10 +8,10 @@ SerialLink::SerialLink(char* comPort, DWORD baudRate, Filtering& FilterObject)
     Serial = new serialib;
 
     while (Serial->openDevice(comPort, baudRate) != 1) {
-        printf("Serial device could not be found ");
+        printf("Serial device could not be found\n");
         Sleep(500);
     }
-    std::cout << "Serial device opened" << std::endl;
+    std::cout << "Serial device opened\n" << std::endl;
 
     //We know that our package is 6 byte long, so we reverse that
     package.assign(6, 0);
@@ -23,17 +23,16 @@ void SerialLink::sendData() {
 
     //Current time is assigned to the time_stamp used for calibration
     if (calibration == false) {
-        if (firstCalibration == true) {
+        if (firstCalibration) {
             startTime = std::chrono::steady_clock::now();
+            firstCalibration = false;
         }
 
         //The user is requested to perform gestures for calibration
-        if ((std::chrono::steady_clock::now() - startTime) < std::chrono::seconds::duration(10)) {
-            printf("\nSlowly flex your hand right and left for 10 seconds.");
-            return;
-        }
-        else if ((std::chrono::steady_clock::now() - startTime) < std::chrono::seconds::duration(20)) {
-            printf("\nNow rest your hand for 10 seconds.");
+        if ((std::chrono::steady_clock::now() - startTime) < std::chrono::seconds::duration(15)) {
+            printf("\r");
+            printf("Slowly flex your hand right and left for 15 seconds.");
+            fflush(stdout);
             return;
         }
         else {
@@ -77,6 +76,12 @@ void SerialLink::getEmergencyStop(unsigned char& outStop) {
 }
 
 void SerialLink::getSpeed(unsigned char& outSpeed) {
+    
+    if ((previousPose == myo::Pose::waveOut || previousPose == myo::Pose::waveIn) && previousPose != lastControlPose) {
+        pFilterObject->resetMoveAvg();
+        lastControlPose = previousPose;
+    }
+
     double RAWspeed = pFilterObject->MoveAvg();
 
     //Check key state for speed control mode
@@ -84,6 +89,7 @@ void SerialLink::getSpeed(unsigned char& outSpeed) {
     else if (GetKeyState(VK_F2) & 0x8000) { speedMode = SpeedMode::Linear; }
     else if (GetKeyState(VK_F3) & 0x8000) { speedMode = SpeedMode::Precision; }
     
+    //We adjust to user's thresholds
     if (previousPose == myo::Pose::waveOut) {
         if (RAWspeed > waveOutMaxSpeed) {
             waveOutMaxSpeed = RAWspeed;
@@ -100,16 +106,22 @@ void SerialLink::getSpeed(unsigned char& outSpeed) {
             waveInThreshold = RAWspeed;
         }
     }
-
+    
     double adjustedSpeed = 0;
 
-    //We adjust to the user's maximum speeds
     if (previousPose == myo::Pose::waveOut) {
         adjustedSpeed = RAWspeed - waveOutThreshold;
     }
     else if (previousPose == myo::Pose::waveIn) {
         adjustedSpeed = RAWspeed - waveInThreshold;
     }
+    else {
+        double increment = prevSpeed - 0.25;
+        adjustedSpeed = (increment > 0.0) ? increment : 0;
+    }
+    
+    prevSpeed = adjustedSpeed;
+
 
     double convertedSpeed = speedMap(adjustedSpeed);
 
@@ -133,7 +145,7 @@ void SerialLink::getDirection(unsigned char& outDirection) {
 void SerialLink::getMode(unsigned char& outMode) {
     myo::Pose currentPose = pMyoBand->getPose();
 
-    if (currentPose == previousPose || previousPose != myo::Pose::rest) {
+    if (currentPose == previousPose || currentPose == myo::Pose::rest || currentPose == myo::Pose::unknown) {
         previousPose = currentPose;
         return;
     }
@@ -189,15 +201,17 @@ void SerialLink::getMode(unsigned char& outMode) {
 }
 
 double SerialLink::speedMap(double& variable) {
-    double mappedVariable{ 0 };
+    double mappedVariable = variable;
 
     //The maximum moving average is mapped to a "power" ranging from 0 - 100%
-    if (previousPose == myo::Pose::waveOut) {
+    if (previousPose == myo::Pose::waveOut || lastControlPose == myo::Pose::waveOut) {
         mappedVariable = (100 / (waveOutMaxSpeed - waveOutThreshold)) * variable;
     }
-    else if (previousPose == myo::Pose::waveIn){
+    else if (previousPose == myo::Pose::waveIn || lastControlPose == myo::Pose::waveIn){
         mappedVariable = (100 / (waveInMaxSpeed - waveInThreshold)) * variable;
     }
+
+    
 
     //The power (mappedVariable) is once again mapped to the corresponding cartesian speed in mm/s, according to the selected mode. 
     switch (speedMode) {
@@ -216,56 +230,6 @@ double SerialLink::speedMap(double& variable) {
     }
 }
 
-void SerialLink::configure() {
-
-    /*
-    std::chrono::time_point<std::chrono::steady_clock> startTime = std::chrono::steady_clock::now();
-
-    auto currentTime = std::chrono::steady_clock::now();
-
-    //printf("\nPlease use your max strength for 10 seconds. ");
-    int count = 0;
-    do{
-        printf("Max speed count: %3d ", count);
-        int speed = pFilterObject->MoveAvg();
-        if ( speed > currentMaxSpeed ) {
-            currentMaxSpeed = speed;
-        }
-        currentTime = std::chrono::steady_clock::now();
-        std::cout << "System time: "
-                  << std::chrono::duration_cast<std::chrono::milliseconds>(currentTime - startTime).count()
-                  << std::flush;
-        printf("\r");
-        count++;
-    } while (currentTime - startTime < std::chrono::seconds::duration(10));
-
-    startTime = std::chrono::steady_clock::now();
-
-    printf("\nPlease rest your arm for 10 seconds. ");
-    count = 0;
-    do {
-        int speed = pFilterObject->MoveAvg();
-        myo::Pose pose = pMyoBand->getPose();
-
-        if ( pose == myo::Pose::rest && speed > threshold) {
-            threshold = speed;
-        }
-        currentTime = std::chrono::steady_clock::now();
-        printf("Threshold count: %3d", count);
-        printf("\r");
-        count++;
-
-    } while (currentTime - startTime < std::chrono::seconds::duration(10));
-
-    if (threshold == 0 || currentMaxSpeed == 0) {
-        printf("\nConfiguration failed, please try again :) ");
-        return;
-    }
-    else {
-        isConfigured = true;
-    }
-    */
-}
 
 #ifdef _DEBUG
 void SerialLink::print() {
