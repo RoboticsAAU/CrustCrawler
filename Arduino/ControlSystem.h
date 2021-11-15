@@ -1,5 +1,11 @@
 #pragma once
 
+// Arduino includes
+
+// Library includes
+
+// Custom includes
+#include "CommonData.h"
 #include "Methods.h"
 
 

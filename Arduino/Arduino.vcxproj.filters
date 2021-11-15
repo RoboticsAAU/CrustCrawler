@@ -45,9 +45,6 @@
     <ClInclude Include="ControlSystem.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="CrustCrawlerData.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="Methods.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -71,10 +68,13 @@
     <ClCompile Include="ControlSystem.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="CrustCrawlerData.cpp">
+    <ClCompile Include="Methods.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="Methods.cpp">
+    <ClCompile Include="CommonData.h">
+      <Filter>Header Files</Filter>
+    </ClCompile>
+    <ClCompile Include="CommonData.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

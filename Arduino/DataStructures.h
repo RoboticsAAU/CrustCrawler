@@ -17,7 +17,12 @@ enum ServoType {
 	MX106R
 };
 
+// ID | MASS | LENGTH | MINTHETA | MAXTHETA | PWMLIMIT | SERVOTYPE
 struct Joint { 
+	Joint(unsigned int id, unsigned int mass, unsigned int length, int minTheta, int maxTheta, int PWMlimit, ServoType servoType) 
+		: m_id(id), m_mass(mass), m_length(length), m_minTheta(minTheta), m_maxTheta(maxTheta), m_PWMlimit(PWMlimit), m_servoType(servoType)
+	{};
+
 	unsigned int m_id;
 	unsigned int m_mass; 
 	unsigned int m_length;
@@ -37,20 +42,6 @@ struct Joint {
 	double m_constantC1{ 0 }, m_constantC2{ 0 };
 
 	double m_PWM{ 0 };
-
-	Joint() {};
-
-	Joint(unsigned int id, unsigned int mass, unsigned int length, int minTheta, int maxTheta, int PWMlimit, ServoType servoType) {
-		m_id = id;
-		m_mass = mass;
-		m_length = length;
-		m_minTheta = minTheta;
-		m_maxTheta = maxTheta;
-		m_PWMlimit = PWMlimit;
-		m_servoType = servoType;
-
-		m_pos = AngleData.m_currentThetas[m_id - 1];
-	};
 };
 
 struct JointAngles {
@@ -60,10 +51,6 @@ struct JointAngles {
 	UnitType currentUnitType = Degree;
 
 	JointAngles() {};
-
-	JointAngles(UnitType inputUnitType) {
-		currentUnitType = inputUnitType;
-	};
 };
 
 struct Motion {
@@ -73,11 +60,7 @@ struct Motion {
 
 	SpaceType currentSpaceType;
 
-	Motion() {};
-
-	Motion(SpaceType inputSpaceType) {
-		currentSpaceType = inputSpaceType;
-	};
+	Motion() { };
 };
 
 struct eePosition {

@@ -1,18 +1,17 @@
 #pragma once
-
-// For mathematics
-#include <BasicLinearAlgebra.h>
+// General includes
 #include <math.h>
 
-// Custom headers
+// Library includes
+#include <BasicLinearAlgebra.h>
+
+// Custom includes
 #include "DataStructures.h"
 #include "Kinematics.h"
 #include "Dynamics.h"
-#include "Controlsystem.h"
+#include "ControlSystem.h"
 #include "ComputerConnector.h"
 #include "DynamixelConnector.h"
-
-#include "CrustCrawlerData.h"
 #include "Methods.h"
 
 class Controller
@@ -23,67 +22,19 @@ public:
 
 	void main();
 	void debugPrint();
-	void Print();
+	void print();
 
-	unsigned long Looptime;
-
+	unsigned long deltaTime;
 
 private:
-
 	ComputerConnector* computerConnector;
 	DynamixelConnector* dynamixelConnector;
 	Kinematics* kinematics;
 	Dynamics* dynamics;
 	
+	void _initialize();
 
-	unsigned long _PrevTime = millis(); 
-	unsigned long _NewTime;
+	unsigned long _prevTime; 
+	unsigned long _newTime;
+	void _updateDeltaTime();
 
-	unsigned long _UpdateLoopTime();
-
-	void Initialize();
-
-	
-
-	
-
-	//---------------- This is old, need review---------------------//
-	
-	// //const int _constantGripperPWM = 150;
-	//void _ComputerOutputToVelocity(unsigned int controlMode, bool sign, unsigned int speed);
-
-	//Updates everything
-	//void _UpdateChain();
-	//void _UpdateAngles();
-
-	//void _SpaceConverter(SpaceType desiredSpace);
-
-	//Functions to go between motion states 
-	//double _DifferentiationOperator(double currentValue, double previousValue);
-	//double _IntegrationOperator(double currentValue, double inputIntegrationVal);
-	//double m_lastValue{ 0 };
-
-	//void _EmergencyStop();
-
-	//void _ForwardKinematics();
-
-	// Needs to return torque
-	//void _InverseDynamics();
-
-	//Dynamixel2Arduino* p_dynamixel = NULL;
-
-	//JointAngles inputAngles;
-	//Motion inputMotion;
-	//double prevVel1{ 0 },prevVel2{ 0 }, prevVel3{ 0 };
-
-	//eePosition m_eePosition;
-
-	//Defining PID controller variables
-	//double _PID(double desiredValue, double currentValue);
-	//double m_proportional{ 0.0 }, m_integral{ 0.0 }, m_derivative{ 0.0 }, m_lastError{ 100.0 }, samplingTime = 1.0/200.0; //Sampling time should be changed
-
-	////Functions for converting the torques to PWM values.
-	//void _GetJointPWMConstants(Joint& inputJoint);
-	//bool _IsWithinAngleBoundaries(Joint inputJoint, double inputAngle);
-	//void _TorqueToPWM(Joint& inputJoint);
-};

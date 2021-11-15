@@ -5,8 +5,8 @@ Kinematics::Kinematics() {}
 
 Kinematics::~Kinematics() {}
 
-void Kinematics::UpdateForwardkinematics() {
-	CrustCrawler::eePositionData.x = -cos(CrustCrawler::AngleData.m_currentThetas[0]) * (CrustCrawler::Joint2.m_length * sin(CrustCrawler::AngleData.m_currentThetas[1]) + CrustCrawler::Joint3.m_length * sin(CrustCrawler::AngleData.m_currentThetas[1] + CrustCrawler::AngleData.m_currentThetas[2]));
-	CrustCrawler::eePositionData.y = -sin(CrustCrawler::AngleData.m_currentThetas[0]) * (CrustCrawler::Joint2.m_length * sin(CrustCrawler::AngleData.m_currentThetas[1]) + CrustCrawler::Joint3.m_length * sin(CrustCrawler::AngleData.m_currentThetas[1] + CrustCrawler::AngleData.m_currentThetas[2]));
-	CrustCrawler::eePositionData.z = CrustCrawler::Joint1.m_length + CrustCrawler::Joint2.m_length * cos(CrustCrawler::AngleData.m_currentThetas[1]) + CrustCrawler::Joint3.m_length * cos(CrustCrawler::AngleData.m_currentThetas[1] + CrustCrawler::AngleData.m_currentThetas[2]);
+void Kinematics::UpdateForwardKinematics() {
+	eePositionData.x = -cos(AngleData.m_currentThetas[0]) * (Joints[2]->m_length * sin(AngleData.m_currentThetas[1]) + Joints[3]->m_length * sin(AngleData.m_currentThetas[1] + AngleData.m_currentThetas[2]));
+	eePositionData.y = -sin(AngleData.m_currentThetas[0]) * (Joints[2]->m_length * sin(AngleData.m_currentThetas[1]) + Joints[3]->m_length * sin(AngleData.m_currentThetas[1] + AngleData.m_currentThetas[2]));
+	eePositionData.z = Joints[1]->m_length + Joints[2]->m_length * cos(AngleData.m_currentThetas[1]) + Joints[3]->m_length * cos(AngleData.m_currentThetas[1] + AngleData.m_currentThetas[2]);
 }
