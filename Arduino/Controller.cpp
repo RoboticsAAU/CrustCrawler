@@ -1,5 +1,8 @@
 #include "Controller.h"
 
+
+// constructor for the Controller class. Here obejcts of the smaller classes used for
+// comunication, calculations ect. will be initialized. 
 Controller::Controller(){
 
 	computerConnector = new ComputerConnector();
@@ -9,6 +12,8 @@ Controller::Controller(){
 
 }
 
+
+// Destructor for the Controller class
 Controller::~Controller(){
 } 
 
@@ -22,6 +27,10 @@ void Controller::main(){
 
 }
 
+// Function used in main to log how long time has passed since last itteration.
+// the function uses the arduino function milis() to get the time past since boot
+// in miliseconds. milis() return an unsigned long, therefore the time data will be
+// stored as such.
 unsigned long Controller::_UpdateLoopTime(){
 
 	_NewTime = millis();
@@ -30,6 +39,10 @@ unsigned long Controller::_UpdateLoopTime(){
 
 	return TimeStamp;
 }
+
+// The initialize() fuction is run as par of the setup() code. The main purpose of
+// the function is to update the data of the CrustCrawler, such as it current position,
+// state, etc.
 
 void Initialize() {
 	return;
@@ -98,6 +111,8 @@ void Initialize() {
 //}
 
 
+
+//---------------- code below has been moved and must be deleted ----------//
 //double Controller::_PID(double desiredValue, double currentValue){
 //	double Kp{ 0.7 }, Ki{ 0.01 }, Kd{ 0.1 };
 //	double error = desiredValue - currentValue;
