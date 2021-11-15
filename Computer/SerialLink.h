@@ -37,15 +37,17 @@ private:
 	unsigned char Speed = 0;
 
 	// Logic
+	myo::Pose currentPose = myo::Pose::unknown;
 	myo::Pose previousPose = myo::Pose::unknown;
 	myo::Pose lastControlPose = myo::Pose::unknown;
+	double Threshold(myo::Pose gesture);
 
 	enum ControlMode {
-		Grasp,
-		LeftRight,
-		UpDown,
-		InOut,
-		LockUnlock
+		Grasp,     //0
+		LeftRight, //1
+		UpDown,    //2
+		InOut,	   //3
+		LockUnlock //4
 	};
 
 	enum SpeedMode {

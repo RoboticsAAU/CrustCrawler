@@ -11,10 +11,11 @@ class Filtering
 public:
 	// The constructor fills the samples vector with EMG data
 	Filtering(int sample_size, MyoBand& MyoBand);
-	void resetMoveAvg();
+	
 	
 	// Calculates a moving average and return our signal magnitude
-	double MoveAvg();
+	double MoveAvg(bool updateSamples);
+	void Decelerate(bool input);
 
 	// Used by SerialLink to get the same MyoBand pointer as the filter object
 	MyoBand* getMyoBandPointer() { return pMyoBand; }
@@ -32,6 +33,7 @@ private:
 
 	// Desired sample size for moving average - defined in constructor
 	int m_sampleSize; 
+	bool addZero = false;
 
 	// Private functions
 	// Calculates the average of the 8 channel EMG data and returns a sample size

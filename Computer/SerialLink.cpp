@@ -76,13 +76,8 @@ void SerialLink::getEmergencyStop(unsigned char& outStop) {
 }
 
 void SerialLink::getSpeed(unsigned char& outSpeed) {
-    
-    if ((previousPose == myo::Pose::waveOut || previousPose == myo::Pose::waveIn) && previousPose != lastControlPose) {
-        pFilterObject->resetMoveAvg();
-        lastControlPose = previousPose;
-    }
-
-    double RAWspeed = pFilterObject->MoveAvg();
+   
+    double RAWspeed = pFilterObject->MoveAvg(true);
 
     //Check key state for speed control mode
     if (GetKeyState(0x31) & 0x8000) { speedMode = SpeedMode::Gross; }
@@ -90,7 +85,7 @@ void SerialLink::getSpeed(unsigned char& outSpeed) {
     else if (GetKeyState(0x33) & 0x8000) { speedMode = SpeedMode::Precision; }
     
     //We adjust to user's thresholds
-    if (previousPose == myo::Pose::waveOut) {
+    if (currentPose == myo::Pose::waveOut) {
         if (RAWspeed > waveOutMaxSpeed) {
             waveOutMaxSpeed = RAWspeed;
         }
@@ -98,7 +93,7 @@ void SerialLink::getSpeed(unsigned char& outSpeed) {
             waveOutThreshold = RAWspeed;
         }
     }
-    if (previousPose == myo::Pose::waveIn) {
+    if (currentPose == myo::Pose::waveIn) {
         if (RAWspeed > waveInMaxSpeed) {
             waveInMaxSpeed = RAWspeed;
         }
@@ -106,24 +101,32 @@ void SerialLink::getSpeed(unsigned char& outSpeed) {
             waveInThreshold = RAWspeed;
         }
     }
-    
+
     double adjustedSpeed = 0;
 
-    if (previousPose == myo::Pose::waveOut) {
-        adjustedSpeed = RAWspeed - waveOutThreshold;
-    }
-    else if (previousPose == myo::Pose::waveIn) {
-        adjustedSpeed = RAWspeed - waveInThreshold;
-    }
-    else {
-        //Constant deacceleration when neither waveIn or 
-        double increment = prevSpeed - 0.2;
-        adjustedSpeed = (increment > 0.0) ? increment : 0;
+    if ((currentPose != myo::Pose::waveOut) && (currentPose != myo::Pose::waveIn)) {
+        pFilterObject->Decelerate(true);
+        RAWspeed = pFilterObject->MoveAvg(false);
+        adjustedSpeed = RAWspeed - Threshold(lastControlPose);
     }
     
-    prevSpeed = adjustedSpeed;
+    else if (currentPose == myo::Pose::waveOut || currentPose == myo::Pose::waveIn) {
+        if (currentPose != lastControlPose) {
+            pFilterObject->Decelerate(true);
+            RAWspeed = pFilterObject->MoveAvg(false);
+            adjustedSpeed = RAWspeed - Threshold(lastControlPose);
 
-
+            if (adjustedSpeed < 1e-5) {
+                lastControlPose = currentPose;
+            }
+        }
+        else {
+            pFilterObject->Decelerate(false);
+            RAWspeed = pFilterObject->MoveAvg(false);
+            adjustedSpeed = RAWspeed - Threshold(currentPose);
+        }
+    }
+    
     double convertedSpeed = speedMap(adjustedSpeed);
 
     convertedSpeed = (convertedSpeed > maxSpeedCap) ? maxSpeedCap : convertedSpeed;
@@ -144,7 +147,7 @@ void SerialLink::getDirection(unsigned char& outDirection) {
 }
 
 void SerialLink::getMode(unsigned char& outMode) {
-    myo::Pose currentPose = pMyoBand->getPose();
+    currentPose = pMyoBand->getPose();
 
     if (currentPose == previousPose || currentPose == myo::Pose::rest || currentPose == myo::Pose::unknown) {
         previousPose = currentPose;
@@ -205,14 +208,13 @@ double SerialLink::speedMap(double& variable) {
     double mappedVariable = variable;
 
     //The maximum moving average is mapped to a "power" ranging from 0 - 100%
-    if (previousPose == myo::Pose::waveOut || lastControlPose == myo::Pose::waveOut) {
+    if (currentPose == myo::Pose::waveOut || lastControlPose == myo::Pose::waveOut) {
         mappedVariable = (100 / (waveOutMaxSpeed - waveOutThreshold)) * variable;
     }
-    else if (previousPose == myo::Pose::waveIn || lastControlPose == myo::Pose::waveIn){
+    else if (currentPose == myo::Pose::waveIn || lastControlPose == myo::Pose::waveIn){
         mappedVariable = (100 / (waveInMaxSpeed - waveInThreshold)) * variable;
     }
 
-    
 
     //The power (mappedVariable) is once again mapped to the corresponding cartesian speed in mm/s, according to the selected mode. 
     switch (speedMode) {
@@ -229,6 +231,10 @@ double SerialLink::speedMap(double& variable) {
         throw std::runtime_error("Invalid speedMode");
     }
     }
+}
+
+double SerialLink::Threshold(myo::Pose gesture){
+    return (gesture == myo::Pose::waveOut) ? waveOutThreshold : waveInThreshold;
 }
 
 

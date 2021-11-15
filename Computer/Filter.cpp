@@ -2,16 +2,7 @@
 
 Filtering::Filtering(int sampleSize, MyoBand &MyoBand) : pMyoBand(&MyoBand), samples(sampleSize,0), m_sampleSize(sampleSize){
 	for(int i = 0; i < sampleSize; i++){
-		std::vector<int8_t> rawEMGdata = pMyoBand->getEMGdata();
-		double sample = averageEMG(rawEMGdata);
-		samples.at(i) = sample;
-	}
-}
-
-void Filtering::resetMoveAvg() {
-	//memset(samples.data(), 0, samples.size());
-	for (int i = 0; i < samples.size(); i++) {
-		samples.at(i) = 0;
+		samples.at(i) = 0.0;
 	}
 }
 
@@ -25,7 +16,7 @@ double Filtering::averageEMG(std::vector<int8_t> &emgSample){
 
 void Filtering::UpdateSamples(){
 	
-	if (pMyoBand->getPose() != myo::Pose::waveIn && pMyoBand->getPose() != myo::Pose::waveOut) {
+	if (addZero) {
 		samples.erase(samples.begin());
 		samples.push_back(0.0);
 	}
@@ -38,17 +29,20 @@ void Filtering::UpdateSamples(){
 	}
 }	
 
-double Filtering::MoveAvg(){
+double Filtering::MoveAvg(bool updateSamples){
 	//The moving average is calculated for the 8-channel sample averages contained in the vector "samples"
-	UpdateSamples();
+	if (updateSamples) { UpdateSamples(); }
 	double sum = std::accumulate(samples.begin(), samples.end(), 0);
 	return (sum / m_sampleSize);
-	
+}
+
+void Filtering::Decelerate(bool input){
+	addZero = input;
 }
 
 #ifdef _DEBUG
 void Filtering::print(){
-	printf("MovAvg: %.3f ", MoveAvg());
+	printf("MovAvg: %.3f ", MoveAvg(false));
 	//std::cout << "Moving average: [" << Filter.MoveAvg() << "]" << std::flush;
 }
 #endif
