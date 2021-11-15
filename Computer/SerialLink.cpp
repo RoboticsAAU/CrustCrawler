@@ -85,9 +85,9 @@ void SerialLink::getSpeed(unsigned char& outSpeed) {
     double RAWspeed = pFilterObject->MoveAvg();
 
     //Check key state for speed control mode
-    if (GetKeyState(VK_F1) & 0x8000) { speedMode = SpeedMode::Gross; }
-    else if (GetKeyState(VK_F2) & 0x8000) { speedMode = SpeedMode::Linear; }
-    else if (GetKeyState(VK_F3) & 0x8000) { speedMode = SpeedMode::Precision; }
+    if (GetKeyState(0x31) & 0x8000) { speedMode = SpeedMode::Gross; }
+    else if (GetKeyState(0x32) & 0x8000) { speedMode = SpeedMode::Linear; }
+    else if (GetKeyState(0x33) & 0x8000) { speedMode = SpeedMode::Precision; }
     
     //We adjust to user's thresholds
     if (previousPose == myo::Pose::waveOut) {
@@ -116,7 +116,8 @@ void SerialLink::getSpeed(unsigned char& outSpeed) {
         adjustedSpeed = RAWspeed - waveInThreshold;
     }
     else {
-        double increment = prevSpeed - 0.25;
+        //Constant deacceleration when neither waveIn or 
+        double increment = prevSpeed - 0.2;
         adjustedSpeed = (increment > 0.0) ? increment : 0;
     }
     
