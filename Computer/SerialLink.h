@@ -47,7 +47,7 @@ private:
 		LeftRight, //1
 		UpDown,    //2
 		InOut,	   //3
-		Lock //4
+		Lock	   //4
 	};
 
 	enum SpeedMode {

@@ -105,7 +105,7 @@ void SerialLink::getSpeed() {
 
     double adjustedSpeed = 0;
 
-    if ((currentPose != myo::Pose::waveOut) && (currentPose != myo::Pose::waveIn)) {
+    if ((currentPose != myo::Pose::waveOut) && (currentPose != myo::Pose::waveIn) || controlMode == ControlMode::Lock) {
         pFilterObject->Decelerate(true);
         RAWspeed = pFilterObject->MoveAvg(false);
         adjustedSpeed = RAWspeed - Threshold(lastControlPose);
@@ -244,7 +244,6 @@ double SerialLink::speedMap(double& variable) {
         mappedVariable = (100 / (waveInMaxSpeed - waveInThreshold)) * variable;
     }
 
-
     //The power (mappedVariable) is once again mapped to the corresponding cartesian speed in mm/s, according to the selected mode. 
     switch (speedMode) {
     case SpeedMode::Gross: {
@@ -271,8 +270,8 @@ double SerialLink::Threshold(myo::Pose gesture){
 void SerialLink::print() {
     packageConstructor();
     //printf("Mode: %d Sign: %d Speed: %3d EndByte: %d", Mode, Direction, Speed, EndByte);
-    printf("HByte: %d EStop: %3d Mode: %d Dir: %3d Speed: %3d CMode: %d SMode: %d",
-        HeaderByte, EmergencyStop, Mode, Direction, Speed, controlMode, speedMode);
+    printf("HByte: %d EStop: %3d Mode: %d Dir: %3d Speed: %3d SMode: %d",
+        HeaderByte, EmergencyStop, Mode, Direction, Speed, speedMode);
 }
 #endif
 

@@ -9,7 +9,7 @@ int main() {
 	MyoBand MyoBand;
 
 	// We then create our filter object which depends on the myoband link
-	Filtering Filter(100, MyoBand);
+	Filtering Filter(170, MyoBand);
 
 	// Then we need to specify the desired com port. We use the syntax "\\\\.\\COMx". for expressing 
 	// serial ports above COM9, so will be the default here to support all users...
