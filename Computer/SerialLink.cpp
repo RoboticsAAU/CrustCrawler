@@ -155,19 +155,24 @@ void SerialLink::getDirection(myo::Pose inputPose) {
 
 
 void SerialLink::getMode() {
+    //The current pose is fetched from Myoband
     currentPose = pMyoBand->getPose();
 
+    //If the pose is either the same as the previous pose, is equal to rest or is unknown, there will be no need to update the control mode.
+    //The previousPose is thus assigned to be the current and we exit the function
     if (currentPose == previousPose || currentPose == myo::Pose::rest || currentPose == myo::Pose::unknown) {
         previousPose = currentPose;
         return;
     }
-
-    if (currentPose == myo::Pose::doubleTap && (std::chrono::steady_clock::now() - modeTimeStamp) > std::chrono::milliseconds::duration(500)) {
+   
+    
+    //If the user has made a "doubleTap" pose, then the robot must be either locked or unlocked. 
+    if (currentPose == myo::Pose::doubleTap && previousPose != myo::Pose::doubleTap) {
         if (controlMode != ControlMode::Lock) {
             previousControlMode = controlMode;
             controlMode = ControlMode::Lock;
         }
-        else {
+        else if (controlMode == ControlMode::Lock) {
             controlMode = previousControlMode;
         }
     }
