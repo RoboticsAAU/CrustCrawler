@@ -1056,7 +1056,3 @@ unsigned long int timeOut::elapsedTime_ms()
     // Return the elapsed time in milliseconds
     return sec*1000+usec/1000;
 }
-
-
-
-

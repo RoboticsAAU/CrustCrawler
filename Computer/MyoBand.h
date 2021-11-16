@@ -27,30 +27,29 @@ public:
 #endif
 
 private:
-    // This is updated in onEmgData()
+    //This is updated in onEmgData()
     std::vector<int8_t> emgSamples;
 
-    // This is set by getPose()
+    //This is set by getPose()
     myo::Pose currentPose;
 
-    // The Hub pointer provides access to the Myo instances from Myo connect
+    //The Hub pointer provides access to the Myo instances from Myo connect
     myo::Hub* pHub = NULL;
 
-    // The Myo pointer provides access to the individual Myo instance
+    //The Myo pointer provides access to the individual Myo instance
     myo::Myo* pMyo = NULL;
 
-    // This is set by onPair() and onUnpair()
+    //This is set by onPair() and onUnpair()
     bool isPaired;
 
-    // This is set by onArmSync() and onArmUnsync().
+    //This is set by onArmSync() and onArmUnsync()
     bool onArm;
-    //myo::Arm whichArm;
 
-    // This is set by onUnlocked() and onLocked().
+    //This is set by onUnlocked() and onLocked()
     bool isUnlocked;
 
 public:
-    // DeviceListener Callback functions overrides
+    //DeviceListener Callback function overrides
 
     void onPair(myo::Myo* myo, uint64_t timestamp, myo::FirmwareVersion firmwareVersion) override;
     void onUnpair(myo::Myo* myo, uint64_t timestamp) override;

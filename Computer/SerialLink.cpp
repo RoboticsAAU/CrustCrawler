@@ -4,16 +4,16 @@ SerialLink::SerialLink(char* comPort, DWORD baudRate, Filtering& FilterObject)
     : comPort(comPort), baudRate(baudRate), pFilterObject(&FilterObject), pMyoBand(FilterObject.getMyoBandPointer()), isSent(false)
 {
     // We create our link object, that connects our computer to the arduino
-    //Serial = new SimpleSerial(comPort, baudRate);
     Serial = new serialib;
 
+    //A serial connection with the given COM-port and baudRate is attempted untill 1 is returned, meaning successful connection
     while (Serial->openDevice(comPort, baudRate) != 1) {
         printf("Serial device could not be found\n");
         Sleep(500);
     }
     std::cout << "Serial device opened\n" << std::endl;
 
-    //We know that our package is 6 byte long, so we reverse that
+    //We know that our package is 6 byte long, so we reserve that
     package.assign(6, 0);
 }
 
@@ -21,6 +21,7 @@ void SerialLink::sendData() {
     // We construct the new package
     packageConstructor();
 
+//Include guard that is only defined whenever debug mode is not selected. 
 #ifdef NDEBUG
     //Current time is assigned to the time_stamp used for calibration
     if (calibration == false) {
@@ -43,7 +44,8 @@ void SerialLink::sendData() {
     }
 #endif
 
-    // Then we try to send it, and only set isSent to true once the package is actually sent. Notice that 1 is subtracted from package.size to avoid sending the terminating character
+    // Then we try to send it, and only set isSent to true once the package is actually sent. 
+    //Notice that 1 is subtracted from package.size to avoid sending the terminating character
     for (int i = 0; i < package.size() - 1; i++)
     {
         while (isSent != 1)
@@ -56,13 +58,14 @@ void SerialLink::sendData() {
 
 }
 
+//Function that determines the contents of the package to be sent and assigns it to the package (vector with unsigned char)
 void SerialLink::packageConstructor() {
     //The current data is fetched
     getEmergencyStop();
     getMode();
-    getSpeed();  //getSpeed function also defines the direction by calling getDirection() function    
+    getSpeed();  //getSpeed() also defines the direction by calling getDirection()
 
-    //The individual data characters are assigned to the string indices
+    //The individual data characters (of type unsigned char) are assigned to the string indices
     package.at(0) = HeaderByte;
     package.at(1) = EmergencyStop;
     package.at(2) = Mode;
@@ -70,6 +73,7 @@ void SerialLink::packageConstructor() {
     package.at(4) = Speed;
 }
 
+//If space bar is pressed an emergency stop has been initialised, and the EmergencyStop variable is turned true. 
 void SerialLink::getEmergencyStop() {
     if (GetKeyState(VK_SPACE)) {
         EmergencyStop = 1;
@@ -77,7 +81,7 @@ void SerialLink::getEmergencyStop() {
 }
 
 void SerialLink::getSpeed() {
-   
+    //The moving average of the 8 EMG channels is assigned to the variable RAWspeed
     double RAWspeed = pFilterObject->MoveAvg(true);
 
     //Check key state for speed control mode
@@ -85,7 +89,8 @@ void SerialLink::getSpeed() {
     else if (GetKeyState(0x32) & 0x8000) { speedMode = SpeedMode::Linear; }
     else if (GetKeyState(0x33) & 0x8000) { speedMode = SpeedMode::Precision; }
     
-    //We adjust to user's thresholds
+    //We adjust to user's thresholds. Both upper and lower thresholds for waveOut and waveIn.
+    //Everytime the RAWspeed exceeds the current thresholds (by thresholdTolerance %), they are updated to the current RAWspeed.
     if (currentPose == myo::Pose::waveOut) {
         if (RAWspeed > (1 + thresholdTolerance)*waveOutMaxSpeed) {
             waveOutMaxSpeed = RAWspeed;
@@ -103,8 +108,11 @@ void SerialLink::getSpeed() {
         }
     }
 
+    //Variable for the speed after applying thresholds. Assigned in all the directly following if else statements.
+    //In the statements, we also always find the current moving direction.
     double adjustedSpeed = 0;
 
+    //If we are not in either waveOut or waveIn, or if we have locked the robot, we decelerate (assign 0's to the moving average array).
     if ((currentPose != myo::Pose::waveOut) && (currentPose != myo::Pose::waveIn) || controlMode == ControlMode::Lock) {
         pFilterObject->Decelerate(true);
         RAWspeed = pFilterObject->MoveAvg(false);
@@ -112,8 +120,10 @@ void SerialLink::getSpeed() {
 
         getDirection(lastControlPose);
     }
-    
+    //If we are in waveOut or waveIn.
     else if (currentPose == myo::Pose::waveOut || currentPose == myo::Pose::waveIn) {
+        //We see if the current pose is not the same as the last control pose (e.g. if we have gone from waveOut to waveIn immediately).
+        //If so, we decelerate to 0, and only then update the lastControlPose to whatever current pose we are in.
         if (currentPose != lastControlPose) {
             pFilterObject->Decelerate(true);
             RAWspeed = pFilterObject->MoveAvg(false);
@@ -125,6 +135,7 @@ void SerialLink::getSpeed() {
 
             getDirection(lastControlPose);
         }
+        //We don't decelerate, meaning instead of assigning 0's in the moving average array, we assing the actual average EMG values. 
         else {
             pFilterObject->Decelerate(false);
             RAWspeed = pFilterObject->MoveAvg(false);
@@ -134,16 +145,21 @@ void SerialLink::getSpeed() {
         }
     }
     
+
+    //We convert the adjustedSpeed (thresholded moving average) in speedMap(). Depending on which speed mode we are in, we get a different output.
     double convertedSpeed = speedMap(adjustedSpeed);
 
+    //Since the adjustedSpeed passed into speedMap() can become negative (if RAWspeed is below threshold), and since tolerance allows the adjustedSpeed to
+    //exceed the max permitted speed, we must make sure that the converted speed is within the boundaries (0 - 150). If not, then the max 
+    //or min speed is returned, depending on the value of convertedSpeed. 
+    convertedSpeed = (convertedSpeed < 0) ? 0 : convertedSpeed;
     convertedSpeed = (convertedSpeed > maxSpeedCap) ? maxSpeedCap : convertedSpeed;
 
-    convertedSpeed = (convertedSpeed < 0) ? 0 : convertedSpeed;
-
+    //Finally, the speed is implicitly casted to unsigned char and assigned to the package variable "Speed"
     Speed = convertedSpeed;
 }
 
-
+//Function that assigns the direction, depending on whether the inputPose is waveIn (0) or waveOut (1).
 void SerialLink::getDirection(myo::Pose inputPose) {
     if (inputPose == myo::Pose::waveIn) {
         Direction = 0;
@@ -153,7 +169,7 @@ void SerialLink::getDirection(myo::Pose inputPose) {
     }
 }
 
-
+//Function that assgins the mode that we are in.
 void SerialLink::getMode() {
     //The current pose is fetched from Myoband
     currentPose = pMyoBand->getPose();
@@ -164,18 +180,22 @@ void SerialLink::getMode() {
         previousPose = currentPose;
         return;
     }
-   
     
-    //If the user has made a "doubleTap" pose, then the robot must be either locked or unlocked. 
+    //If the user has made a "doubleTap" pose, we go into this statement only once (the first instance of the "doubleTap"). 
+    //This is ensured by requiring the previousPose to not be doubleTap. 
     if (currentPose == myo::Pose::doubleTap && previousPose != myo::Pose::doubleTap) {
         if (controlMode != ControlMode::Lock) {
+            //PreviousControlMode is a variable that holds the controlMode just before entering lock.
             previousControlMode = controlMode;
             controlMode = ControlMode::Lock;
         }
         else if (controlMode == ControlMode::Lock) {
+            //The controlMode is now assigned to the previous mode used just before locking
             controlMode = previousControlMode;
         }
     }
+    //If no "doubleTap" pose is registered, we enter a switch that changes between modes,
+    //depending on whether fingerspread (increase mode by 1) or fist (decrease mode by 1) is used.
     else {
         switch (controlMode)
         {
@@ -218,6 +238,7 @@ void SerialLink::getMode() {
             break;
         }
 
+        //If we are in lock, we simply stay there. This case is required so that we don't enter default, if the mode is "Lock".
         case ControlMode::Lock: {
             break;
         }
@@ -229,14 +250,18 @@ void SerialLink::getMode() {
         }
     }
    
+    //After updating the controlMode above, we assign the mode to the corresponding package variable
     Mode = controlMode;
+
+    //previousPose is updated
     previousPose = currentPose;
 }
 
 double SerialLink::speedMap(double& variable) {
     double mappedVariable = variable;
 
-    //The maximum moving average is mapped to a "power" ranging from 0 - 100%
+    //The adjusted moving average (function's input parameter) is mapped to a "power percentage" ranging from 0 - 100%, 
+    //which makes it correspond to the individual person.
     if (currentPose == myo::Pose::waveOut || lastControlPose == myo::Pose::waveOut) {
         mappedVariable = (100 / (waveOutMaxSpeed - waveOutThreshold)) * variable;
     }
@@ -244,7 +269,8 @@ double SerialLink::speedMap(double& variable) {
         mappedVariable = (100 / (waveInMaxSpeed - waveInThreshold)) * variable;
     }
 
-    //The power (mappedVariable) is once again mapped to the corresponding cartesian speed in mm/s, according to the selected mode. 
+    //The power percentage (mappedVariable) is once again mapped to the corresponding cartesian speed in mm/s, according to the selected mode. 
+    //The functions for 'Gross' and 'Precision' are found using the software "Graph" (and could be changed if found necessary).
     switch (speedMode) {
     case SpeedMode::Gross: {
         return (74.8 * log10(mappedVariable + 1));
@@ -261,17 +287,17 @@ double SerialLink::speedMap(double& variable) {
     }
 }
 
+//Function used to determine what lower threshold to use, depending on the pose. The only input that should be passed is either waveOut or waveIn!
 double SerialLink::Threshold(myo::Pose gesture){
     return (gesture == myo::Pose::waveOut) ? waveOutThreshold : waveInThreshold;
 }
 
 
+//Function defined with header guards to print values used for debugging whenever in debug-mode
 #ifdef _DEBUG
 void SerialLink::print() {
     packageConstructor();
-    //printf("Mode: %d Sign: %d Speed: %3d EndByte: %d", Mode, Direction, Speed, EndByte);
     printf("HByte: %d EStop: %3d Mode: %d Dir: %3d Speed: %3d SMode: %d",
         HeaderByte, EmergencyStop, Mode, Direction, Speed, speedMode);
 }
 #endif
-
