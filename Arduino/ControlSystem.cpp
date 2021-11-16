@@ -1,6 +1,5 @@
 #include "ControlSystem.h"
 
-
 ControlSystem::ControlSystem() {
 
 }

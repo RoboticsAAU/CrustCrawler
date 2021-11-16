@@ -9,6 +9,7 @@
 DynamixelConnector::DynamixelConnector() {
 	p_dynamixel->begin(DYNAMIXEL_BAUDRATE);
 	_SetupDynamixelServos();
+
 }
 
 /// <summary>
@@ -26,11 +27,13 @@ DynamixelConnector::~DynamixelConnector() {
 /// <param name="id"> The id of the servo</param>
 /// <param name="pwmData"> The pwm value to set the servo</param>
 void DynamixelConnector::setPWM(uint8_t id,uint16_t pwmData){
-	if (pwmData > Joints[id]->m_PWMlimit) {
+
+	if (pwmData > _joints[id - 1].m_PWMlimit) {
 		//throw "The pwm signal is above the PWM limit!";
 		return;
 	}
 	p_dynamixel->setGoalPWM(id, pwmData);
+
 }
 
 /// <summary>
@@ -144,23 +147,24 @@ void DynamixelConnector::_UpdateDynamixelAngles(JointAngles& JointAnglesObject) 
 /// </summary>
 void DynamixelConnector::_SetupDynamixelServos() {
 
-	for (uint8_t i = 1; i < 6; i++)
+	for (uint8_t i = 0; i < 5; i++)
 	{	
 		if (p_dynamixel->getTorqueEnableStat(i))
 		{
-			p_dynamixel->torqueOff(Joints[i]->m_id);
+			p_dynamixel->torqueOff(_joints[i].m_id);
 		}
 
-		p_dynamixel->writeControlTableItem(ControlTableItem::OPERATING_MODE, Joints[i]->m_id, OperatingMode::OP_PWM);
-		p_dynamixel->writeControlTableItem(ControlTableItem::MAX_POSITION_LIMIT, Joints[i]->m_id, Joints[i]->m_maxTheta); 
-		p_dynamixel->writeControlTableItem(ControlTableItem::MIN_POSITION_LIMIT, Joints[i]->m_id, Joints[i]->m_maxTheta);
-		p_dynamixel->writeControlTableItem(ControlTableItem::PWM_LIMIT, Joints[i]->m_id, Joints[i]->m_PWMlimit);
-		p_dynamixel->writeControlTableItem(ControlTableItem::MOVING_THRESHOLD, Joints[i]->m_id, _MovingThreshold);
+		p_dynamixel->writeControlTableItem(ControlTableItem::OPERATING_MODE, _joints[i].m_id, OperatingMode::OP_PWM);
+		p_dynamixel->writeControlTableItem(ControlTableItem::MAX_POSITION_LIMIT, _joints[i].m_id, _joints[i].m_maxTheta); 
+		p_dynamixel->writeControlTableItem(ControlTableItem::MIN_POSITION_LIMIT, _joints[i].m_id, _joints[i].m_maxTheta);
+		p_dynamixel->writeControlTableItem(ControlTableItem::PWM_LIMIT, _joints[i].m_id, _joints[i].m_PWMlimit);
+		p_dynamixel->writeControlTableItem(ControlTableItem::MOVING_THRESHOLD, _joints[i].m_id, _MovingThreshold);
 
 		if (!p_dynamixel->getTorqueEnableStat(i))
 		{
-			p_dynamixel->torqueOn(Joints[i]->m_id);
+			p_dynamixel->torqueOn(_joints[i].m_id);
 		}
 	}
+
 }
 

@@ -1,11 +1,6 @@
 #pragma once
-// Arduino includes
+#include "CrustCrawlerData.h"
 #include "math.h"
-
-// Library includes
-
-// Custom includes
-#include "CommonData.h"
 #include "Methods.h"
 
 

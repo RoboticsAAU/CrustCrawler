@@ -1,6 +1,6 @@
 #include "Controller.h"
+#include "Dynamixel2Arduino.h"
 
-int counter = 0;
 Controller* controller;
 
 void setup() {
@@ -8,7 +8,6 @@ void setup() {
 }
 
 void loop() {
-	counter++;
 	controller->main();
 }
 
