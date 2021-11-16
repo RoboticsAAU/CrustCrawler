@@ -21,15 +21,16 @@ void SerialLink::sendData() {
     // We construct the new package
     packageConstructor();
 
+#ifdef NDEBUG
     //Current time is assigned to the time_stamp used for calibration
     if (calibration == false) {
         if (firstCalibration) {
-            startTime = std::chrono::steady_clock::now();
+            interfaceTimeStamp = std::chrono::steady_clock::now();
             firstCalibration = false;
         }
 
         //The user is requested to perform gestures for calibration
-        if ((std::chrono::steady_clock::now() - startTime) < std::chrono::seconds::duration(15)) {
+        if ((std::chrono::steady_clock::now() - interfaceTimeStamp) < std::chrono::seconds::duration(15)) {
             printf("\r");
             printf("Slowly flex your hand right and left for 15 seconds.");
             fflush(stdout);
@@ -40,6 +41,7 @@ void SerialLink::sendData() {
             return;
         }
     }
+#endif
 
     // Then we try to send it, and only set isSent to true once the package is actually sent. Notice that 1 is subtracted from package.size to avoid sending the terminating character
     for (int i = 0; i < package.size() - 1; i++)
@@ -56,10 +58,9 @@ void SerialLink::sendData() {
 
 void SerialLink::packageConstructor() {
     //The current data is fetched
-    getEmergencyStop(EmergencyStop);
-    getMode(Mode);
-    getDirection(Direction);
-    getSpeed(Speed);
+    getEmergencyStop();
+    getMode();
+    getSpeed();  //getSpeed function also defines the direction by calling getDirection() function    
 
     //The individual data characters are assigned to the string indices
     package.at(0) = HeaderByte;
@@ -69,13 +70,13 @@ void SerialLink::packageConstructor() {
     package.at(4) = Speed;
 }
 
-void SerialLink::getEmergencyStop(unsigned char& outStop) {
+void SerialLink::getEmergencyStop() {
     if (GetKeyState(VK_SPACE)) {
-        outStop = 1;
+        EmergencyStop = 1;
     }
 }
 
-void SerialLink::getSpeed(unsigned char& outSpeed) {
+void SerialLink::getSpeed() {
    
     double RAWspeed = pFilterObject->MoveAvg(true);
 
@@ -86,18 +87,18 @@ void SerialLink::getSpeed(unsigned char& outSpeed) {
     
     //We adjust to user's thresholds
     if (currentPose == myo::Pose::waveOut) {
-        if (RAWspeed > waveOutMaxSpeed) {
+        if (RAWspeed > (1 + thresholdTolerance)*waveOutMaxSpeed) {
             waveOutMaxSpeed = RAWspeed;
         }
-        if (RAWspeed < waveOutThreshold) {
+        if (RAWspeed < (1 - thresholdTolerance)*waveOutThreshold) {
             waveOutThreshold = RAWspeed;
         }
     }
     if (currentPose == myo::Pose::waveIn) {
-        if (RAWspeed > waveInMaxSpeed) {
+        if (RAWspeed > (1 + thresholdTolerance)*waveInMaxSpeed) {
             waveInMaxSpeed = RAWspeed;
         }
-        if (RAWspeed < waveInThreshold) {
+        if (RAWspeed < (1 - thresholdTolerance)*waveInThreshold) {
             waveInThreshold = RAWspeed;
         }
     }
@@ -108,6 +109,8 @@ void SerialLink::getSpeed(unsigned char& outSpeed) {
         pFilterObject->Decelerate(true);
         RAWspeed = pFilterObject->MoveAvg(false);
         adjustedSpeed = RAWspeed - Threshold(lastControlPose);
+
+        getDirection(lastControlPose);
     }
     
     else if (currentPose == myo::Pose::waveOut || currentPose == myo::Pose::waveIn) {
@@ -119,11 +122,15 @@ void SerialLink::getSpeed(unsigned char& outSpeed) {
             if (adjustedSpeed < 1e-5) {
                 lastControlPose = currentPose;
             }
+
+            getDirection(lastControlPose);
         }
         else {
             pFilterObject->Decelerate(false);
             RAWspeed = pFilterObject->MoveAvg(false);
             adjustedSpeed = RAWspeed - Threshold(currentPose);
+
+            getDirection(currentPose);
         }
     }
     
@@ -133,20 +140,21 @@ void SerialLink::getSpeed(unsigned char& outSpeed) {
 
     convertedSpeed = (convertedSpeed < 0) ? 0 : convertedSpeed;
 
-    outSpeed = convertedSpeed;
+    Speed = convertedSpeed;
 }
 
-void SerialLink::getDirection(unsigned char& outDirection) {
-    myo::Pose Pose = pMyoBand->getPose();
-    if (Pose == myo::Pose::waveIn) {
-        outDirection = 0;
+
+void SerialLink::getDirection(myo::Pose inputPose) {
+    if (inputPose == myo::Pose::waveIn) {
+        Direction = 0;
     }
-    if (Pose == myo::Pose::waveOut) {
-        outDirection = 1;
+    if (inputPose == myo::Pose::waveOut) {
+        Direction = 1;
     }
 }
 
-void SerialLink::getMode(unsigned char& outMode) {
+
+void SerialLink::getMode() {
     currentPose = pMyoBand->getPose();
 
     if (currentPose == previousPose || currentPose == myo::Pose::rest || currentPose == myo::Pose::unknown) {
@@ -154,53 +162,69 @@ void SerialLink::getMode(unsigned char& outMode) {
         return;
     }
 
-    switch (controlMode)
-    {
-    case ControlMode::Grasp: {
-        if (currentPose == myo::Pose::fingersSpread) {
-            controlMode = ControlMode::LeftRight;
+    if (currentPose == myo::Pose::doubleTap && (std::chrono::steady_clock::now() - modeTimeStamp) > std::chrono::milliseconds::duration(500)) {
+        if (controlMode != ControlMode::Lock) {
+            previousControlMode = controlMode;
+            controlMode = ControlMode::Lock;
         }
-        else if (currentPose == myo::Pose::fist) {
-            controlMode = ControlMode::InOut;
+        else {
+            controlMode = previousControlMode;
         }
-        break;
     }
-    case ControlMode::LeftRight: {
-        if (currentPose == myo::Pose::fingersSpread) {
-            controlMode = ControlMode::UpDown;
+    else {
+        switch (controlMode)
+        {
+        case ControlMode::Grasp: {
+            if (currentPose == myo::Pose::fingersSpread) {
+                controlMode = ControlMode::LeftRight;
+            }
+            else if (currentPose == myo::Pose::fist) {
+                controlMode = ControlMode::InOut;
+            }
+            break;
         }
-        else if (currentPose == myo::Pose::fist) {
-            controlMode = ControlMode::Grasp;
+        case ControlMode::LeftRight: {
+            if (currentPose == myo::Pose::fingersSpread) {
+                controlMode = ControlMode::UpDown;
+            }
+            else if (currentPose == myo::Pose::fist) {
+                controlMode = ControlMode::Grasp;
+            }
+            break;
         }
-        break;
-    }
 
-    case ControlMode::UpDown: {
-        if (currentPose == myo::Pose::fingersSpread) {
-            controlMode = ControlMode::InOut;
+        case ControlMode::UpDown: {
+            if (currentPose == myo::Pose::fingersSpread) {
+                controlMode = ControlMode::InOut;
+            }
+            else if (currentPose == myo::Pose::fist) {
+                controlMode = ControlMode::LeftRight;
+            }
+            break;
         }
-        else if (currentPose == myo::Pose::fist) {
-            controlMode = ControlMode::LeftRight;
-        }
-        break;
-    }
 
-    case ControlMode::InOut: {
-        if (currentPose == myo::Pose::fingersSpread) {
-            controlMode = ControlMode::Grasp;
+        case ControlMode::InOut: {
+            if (currentPose == myo::Pose::fingersSpread) {
+                controlMode = ControlMode::Grasp;
+            }
+            else if (currentPose == myo::Pose::fist) {
+                controlMode = ControlMode::UpDown;
+            }
+            break;
         }
-        else if (currentPose == myo::Pose::fist) {
-            controlMode = ControlMode::UpDown;
-        }
-        break;
-    }
 
-    default: {
-        throw std::runtime_error("Invalid Mode");
-        break;
+        case ControlMode::Lock: {
+            break;
+        }
+
+        default: {
+            throw std::runtime_error("Invalid Mode");
+            break;
+        }
+        }
     }
-    }
-    outMode = controlMode;
+   
+    Mode = controlMode;
     previousPose = currentPose;
 }
 

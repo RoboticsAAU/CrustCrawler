@@ -22,10 +22,10 @@ public:
 private:
 	// Package functions
 	void packageConstructor();
-	void getEmergencyStop(unsigned char& outStop);
-	void getSpeed(unsigned char& outSpeed);
-	void getDirection(unsigned char& outDirection);
-	void getMode(unsigned char& outMode);
+	void getEmergencyStop();
+	void getSpeed();
+	void getDirection(myo::Pose inputPose);
+	void getMode();
 
 	// Package variables
 	std::vector<unsigned char> package;
@@ -47,7 +47,7 @@ private:
 		LeftRight, //1
 		UpDown,    //2
 		InOut,	   //3
-		LockUnlock //4
+		Lock //4
 	};
 
 	enum SpeedMode {
@@ -57,6 +57,7 @@ private:
 	};
 
 	ControlMode controlMode = Grasp;
+	ControlMode previousControlMode = Grasp;
 	SpeedMode speedMode = Linear;
 
 
@@ -71,7 +72,8 @@ private:
 	bool calibration = false;
 	bool firstCalibration = true;
 
-	std::chrono::time_point<std::chrono::steady_clock> startTime;
+	std::chrono::time_point<std::chrono::steady_clock> interfaceTimeStamp = std::chrono::steady_clock::now();
+	std::chrono::time_point<std::chrono::steady_clock> modeTimeStamp = std::chrono::steady_clock::now();
 
 	//Upper moving average limit for waveOut and waveIn. Initialized with a low value, which shoftly after runtime is overwritten through calibration
 	double waveInMaxSpeed = 0;
@@ -81,7 +83,9 @@ private:
 	double waveOutThreshold = 150;
 	
 	double prevSpeed = 0;
-	double maxSpeedCap = 150; //
+	double maxSpeedCap = 150; 
+
+	double thresholdTolerance = 0.1; //Tolerance (in %) used for updating the upper/lower thresholds
 
 	double speedMap(double& variable);
 
