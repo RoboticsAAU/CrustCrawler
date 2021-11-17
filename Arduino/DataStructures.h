@@ -53,7 +53,6 @@ struct JointAngles
 struct JointTorques
 {
 	double torques[6] = { 0,0,0,0,0,0 };
-	OutputType type;
 };
 
 struct Velocities

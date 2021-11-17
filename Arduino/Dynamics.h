@@ -14,10 +14,9 @@ public:
 private:
 	Velocities _previousVelocities;
 	JointTorques _returnTorques;
-	JointAngles _previousDessiredPos;
-	JointAngles _dessiredPos;
+	JointAngles _previousDesiredPos;
+	JointAngles _desiredPos;
 	Accelerations _angleAccelerations;
-
 
 };
 
