@@ -10,8 +10,14 @@
 class Dynamics : public CalculusOperations
 {
 public:
-	JointTorques InverseDynamics(Velocities& velocities);
+	JointTorques InverseDynamics(Velocities& velocities, unsigned long loopTime);
 private:
+	Velocities _previousVelocities;
+	JointTorques _returnTorques;
+	JointAngles _previousDessiredPos;
+	JointAngles _dessiredPos;
+	Accelerations _angleAccelerations;
+
 
 };
 
