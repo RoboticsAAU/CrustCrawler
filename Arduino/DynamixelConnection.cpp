@@ -40,7 +40,7 @@ Velocities DynamixelConnection::getJointVelocities()
 	Velocities returnJointVelocities;
 	for (size_t i = 1; i < 6; i++)
 	{
-		returnJointVelocities.velocities[i] = dynamixel.getPresentVelocity(Joints[i]->ID);
+		returnJointVelocities.velocities[i] = dynamixel.getPresentVelocity(Joints[i]->ID) * ((2 * M_PI) / 4095);
 	}
 	returnJointVelocities.currentSpaceType = JointSpace;
 	return returnJointVelocities;

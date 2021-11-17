@@ -2,7 +2,7 @@
 
 ComputerConnection::ComputerConnection()
 {
-	DEBUG_SERIAL.begin(57200);
+	DEBUG_SERIAL.begin(115200);
 	DATA_SERIAL.begin(57200);
 }
 
@@ -23,6 +23,10 @@ Package ComputerConnection::getPackage()
 			return returnPackage;
 		}
 	}
-	returnPackage.isUpdated = false;
+	returnPackage.EmergencyStop = false;
+	returnPackage.Mode = Base;
+	returnPackage.Sign = true;
+	returnPackage.Speed = (uint8_t)100;
+	returnPackage.isUpdated = true;
 	return returnPackage;
 }

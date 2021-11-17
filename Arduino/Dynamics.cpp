@@ -1,6 +1,6 @@
 #include "Dynamics.h"  
 
-JointTorques Dynamics::InverseDynamics(Velocities& velocities, unsigned long deltaTime)
+JointTorques Dynamics::InverseDynamics(Velocities& velocities, double& deltaTime)
 {
 	for (int i = 1; i < 6; i++) {
 		_anglePosition.thetas[i] = Integrate(velocities.velocities[i], _anglePosition.thetas[i], deltaTime);

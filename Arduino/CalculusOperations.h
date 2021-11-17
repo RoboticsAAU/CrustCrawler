@@ -2,7 +2,7 @@
 class CalculusOperations
 {
 public:
-	double Integrate(double changeInValue, double currentValue, unsigned long& deltaTime);
-	double Differentiate(double currentValue, double previousValue, unsigned long& deltaTime);
+	double Integrate(double changeInValue, double currentValue, double& deltaTime);
+	double Differentiate(double currentValue, double previousValue, double& deltaTime);
 };
 

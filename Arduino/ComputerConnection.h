@@ -15,5 +15,10 @@ class ComputerConnection
 public:
 	ComputerConnection();
 	Package getPackage();
+
+	template <class dataType>
+	void Print(dataType data) {
+		DEBUG_SERIAL.print(data);
+	}
 };
 

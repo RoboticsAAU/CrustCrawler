@@ -1,12 +1,12 @@
 #include "CalculusOperations.h"
 
-double CalculusOperations::Integrate(double changeInValue, double currentValue, unsigned long& deltaTime)
+double CalculusOperations::Integrate(double changeInValue, double currentValue, double& deltaTime)
 {	
-	currentValue += changeInValue / deltaTime;
+	currentValue += changeInValue * deltaTime;
 	return currentValue;
 }
 
-double CalculusOperations::Differentiate(double currentValue, double previousValue, unsigned long& deltaTime)
+double CalculusOperations::Differentiate(double currentValue, double previousValue, double& deltaTime)
 {
 	return (currentValue - previousValue) / deltaTime;
 }

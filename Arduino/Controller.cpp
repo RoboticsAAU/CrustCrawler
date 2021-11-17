@@ -1,10 +1,10 @@
 #include "Controller.h"
 
-Controller::Controller() {
+Controller::Controller() : conSys(this->conSys) {
 	previousTime = millis(); 
 
 	_maxJointLength = Joints[2]->Length + Joints[3]->Length + Joints[4]->Length;
-	_maxAngularVelocity = _maxJointLength / MaxLinearVelocity;
+	_maxAngularVelocity = MaxLinearVelocity / _maxJointLength;
 	_LinearToAngularRatio = _maxAngularVelocity / MaxLinearVelocity;
 
 	JointAngles startPosition = dynCon.getJointAngles();
@@ -14,6 +14,8 @@ Controller::Controller() {
 void Controller::run()
 {
 	_updateDeltaTime();
+	comCon.Print<char*>("\nDelta time: ");
+	comCon.Print<double>(deltaTime*1000.0);
 
 	// Get package
 	Package currentInstructions = comCon.getPackage();
@@ -26,13 +28,28 @@ void Controller::run()
 		}
 		// We get our current motion from the crustcrawler
 		JointAngles currentJointAngles = dynCon.getJointAngles();
+		currentJointAngles = _angleConverter(currentJointAngles, Radians);
 		Velocities currentJointVelocities = dynCon.getJointVelocities();
 
 		// We convert our instructions to joint velocities
 		Velocities desiredJointVelocities = _toJointVel(currentJointAngles, currentInstructions);
+		comCon.Print<char*>("\nDesired Joint Velocities: ");
+		comCon.Print<double>(desiredJointVelocities.velocities[1]);
+		comCon.Print<char*>(" ");
+		comCon.Print<double>(desiredJointVelocities.velocities[2]);
+		comCon.Print<char*>(" ");
+		comCon.Print<double>(desiredJointVelocities.velocities[3]);
+		comCon.Print<char*>(" ");
 
 		// We take our desired and current joint velocities and calculate a correction velocity
-		Velocities correctionVelocities = conSys.Control(currentJointVelocities, desiredJointVelocities);
+		Velocities correctionVelocities = conSys.Control(currentJointVelocities, desiredJointVelocities, deltaTime);
+		comCon.Print<char*>("\nCorrection velocities: ");
+		comCon.Print<double>(correctionVelocities.velocities[1]);
+		comCon.Print<char*>(" ");
+		comCon.Print<double>(correctionVelocities.velocities[2]);
+		comCon.Print<char*>(" ");
+		comCon.Print<double>(correctionVelocities.velocities[3]);
+		comCon.Print<char*>(" ");
 
 		// Compute torques
 		JointTorques jointTorqueCorrections = dyn.InverseDynamics(correctionVelocities, deltaTime);
@@ -44,8 +61,8 @@ void Controller::run()
 
 void Controller::_updateDeltaTime()
 {
-	static unsigned long currentTime = millis();
-	deltaTime = (currentTime - previousTime)/1000;
+	unsigned long currentTime = millis();
+	deltaTime = (currentTime - previousTime) / 1000.0;
 	previousTime = currentTime;
 }
 
@@ -61,7 +78,7 @@ Velocities Controller::_toVel(Package& instructions)
 	Velocities returnVelocities;
 	
 	int directionSign = instructions.Sign ? -1 : 1;
-	double speedMS = instructions.Speed / 1000;
+	double speedMS = instructions.Speed / 1000.0;
 
 	switch (instructions.Mode)
 	{
@@ -146,14 +163,14 @@ JointAngles Controller::_angleConverter(JointAngles& inputAngles, AngleUnitType 
 
 Velocities Controller::_spaceConverter(JointAngles& jointAngles, Velocities& instructionVelocities, SpaceType desiredSpace)
 {
-	if (instructionVelocities.currentSpaceType = desiredSpace)
+	if (instructionVelocities.currentSpaceType == desiredSpace)
 	{
 		return instructionVelocities;
 	}
 	Velocities returnVelocities;
 	jointAngles = _angleConverter(jointAngles, Radians);
 
-	//Forward Jacobian:
+	// Jacobian:
 	BLA::Matrix<3, 3> jacobian; 
 	jacobian(0,0) = sin(jointAngles.thetas[1]) * (Joints[2]->Length * sin(jointAngles.thetas[2]) + Joints[3]->Length * sin(jointAngles.thetas[2] + jointAngles.thetas[3]));
 	jacobian(0,1) = -cos(jointAngles.thetas[1]) * (Joints[2]->Length * cos(jointAngles.thetas[2]) + Joints[3]->Length * cos(jointAngles.thetas[2] + jointAngles.thetas[3]));

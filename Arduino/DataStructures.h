@@ -68,8 +68,8 @@ struct Accelerations {
 struct Joint
 {
 	unsigned int ID;
-	unsigned int Mass;
-	unsigned int Length;
+	double Mass;
+	double Length;
 	int MinTheta, MaxTheta;
 	int PWMlimit;
 	ServoType ServoType;

@@ -28,12 +28,13 @@ private:
 	ControlSystem conSys;
 
 	void _updateDeltaTime();
-	unsigned long deltaTime;
+	double deltaTime;
 	unsigned long previousTime;
 
 	Velocities _toJointVel(JointAngles& jointAngles, Package& instructions);
 	Velocities _toVel(Package& instructions);
 	JointAngles _angleConverter(JointAngles& inputAngles, AngleUnitType desiredUnit);
+	Velocities _angleConverter(Velocities& inputVelocities, AngleUnitType desiredUnit);
 	Velocities _spaceConverter(JointAngles& jointAngles, Velocities& instructionVelocities, SpaceType desiredSpace);
 	double _maxJointLength;
 	double _maxAngularVelocity;
