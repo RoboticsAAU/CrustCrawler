@@ -1,11 +1,23 @@
 #pragma once
 #include <Arduino.h> // Defines the uint8_t
 
-enum UnitType
+enum AngleUnitType
 {
 	Degree,
 	Radians,
 	Raw
+};
+
+enum OutputType
+{
+	Torque,
+	PWM
+};
+
+enum SpaceType
+{
+	JointSpace,
+	CartesianSpace
 };
 
 enum ServoType {
@@ -14,10 +26,19 @@ enum ServoType {
 	MX106R
 };
 
+enum ControlMode
+{
+	Gripper,
+	Base,
+	InOut,
+	UpDown,
+	Lock
+};
+
 struct Package
 {
 	bool EmergencyStop;
-	uint8_t Mode;
+	ControlMode Mode;
 	bool Sign;
 	uint8_t Speed;
 	bool isUpdated;
@@ -26,7 +47,19 @@ struct Package
 struct JointAngles
 {
 	double thetas[6] = { 0,0,0,0,0,0 };
-	UnitType currentUnitType;
+	AngleUnitType currentUnitType;
+};
+
+struct JointTorques
+{
+	double torques[6] = { 0,0,0,0,0,0 };
+	OutputType type;
+};
+
+struct Velocities
+{
+	double velocities[6] = { 0,0,0,0,0,0 };
+	SpaceType currentSpaceType;
 };
 
 struct Joint

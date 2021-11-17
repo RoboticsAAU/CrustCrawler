@@ -2,6 +2,7 @@
 // Generel includes
 
 // Lib includes
+#include "lib/BasicLinearAlgebra/BasicLinearAlgebra.h"
 
 // Custom includes
 #include "DataStructures.h"
@@ -30,6 +31,12 @@ private:
 	unsigned long deltaTime;
 	unsigned long previousTime;
 
-	Joint Joints[6];
+	Velocities _toJointVel(JointAngles& jointAngles, Package& instructions);
+	Velocities _toVel(Package& instructions);
+	JointAngles _angleConverter(JointAngles& inputAngles, AngleUnitType desiredUnit);
+	Velocities _spaceConverter(JointAngles& jointAngles, Velocities& instructionVelocities, SpaceType desiredSpace);
+	double _maxJointLength;
+	double _maxAngularVelocity;
+	double _LinearToAngularRatio;
 };
 

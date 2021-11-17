@@ -12,10 +12,11 @@ Package ComputerConnection::getPackage()
 	if (DATA_SERIAL.available()) {
 		if (DATA_SERIAL.find(255))
 		{
-			static unsigned char databuffer[4];
-			DATA_SERIAL.readBytes(databuffer, sizeof(databuffer) / sizeof(unsigned char));
+			// Byte is the same as unsigned char
+			static byte databuffer[4];
+			DATA_SERIAL.readBytes(databuffer, sizeof(databuffer) / sizeof(byte));
 			returnPackage.EmergencyStop = (bool)databuffer[0];
-			returnPackage.Mode = (uint8_t)databuffer[1];
+			returnPackage.Mode = (ControlMode)databuffer[1];
 			returnPackage.Sign = (bool)databuffer[2];
 			returnPackage.Speed = (uint8_t)databuffer[3];
 			returnPackage.isUpdated = true;

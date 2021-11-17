@@ -5,11 +5,12 @@
 
 // Custom includes
 #include "CalculusOperations.h"
+#include "DataStructures.h"
 
 class Dynamics : public CalculusOperations
 {
 public:
-	void InverseDynamics();
+	JointTorques InverseDynamics(Velocities& velocities);
 private:
 
 };

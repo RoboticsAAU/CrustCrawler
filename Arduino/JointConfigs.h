@@ -10,3 +10,5 @@ extern Joint Joint5;
 extern Joint* Joints[6];
 
 extern int MovingThreshold;
+
+extern const double MaxLinearVelocity;

@@ -7,8 +7,8 @@
 #include <actuator.h>
 
 // Custom includes
-#include "JointConfigs.h"
 #include "DataStructures.h"
+#include "JointConfigs.h"
 
 #define DYNAMIXEL_SERIAL Serial
 const int DirectionPin{ 2 };
@@ -18,8 +18,18 @@ class DynamixelConnection
 public:
 	DynamixelConnection();
 
+	void EmergencyStop();
+
 	JointAngles getJointAngles();
+	JointVelocities getJointVelocities();
+
+	void setJointPWM(JointTorques& correctionTorques);
 private:
 	Dynamixel2Arduino dynamixel;
+
+	JointTorques currentJointTorques;
+
+	double _typeConverter(double variable, OutputType type);
+
 };
 

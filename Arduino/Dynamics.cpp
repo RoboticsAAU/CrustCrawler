@@ -1,6 +1,11 @@
 #include "Dynamics.h"
 
-void Dynamics::InverseDynamics()
+JointTorques Dynamics::InverseDynamics(Velocities& velocities)
 {
 
+
+
+
+
+    return JointTorques();
 }

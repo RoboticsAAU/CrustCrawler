@@ -15,6 +15,5 @@ class ComputerConnection
 public:
 	ComputerConnection();
 	Package getPackage();
-
 };
 
