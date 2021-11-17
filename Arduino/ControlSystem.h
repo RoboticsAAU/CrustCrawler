@@ -9,6 +9,6 @@
 class ControlSystem
 {
 public:
-	JointVelocities Control(JointVelocities& currentVel, JointVelocities& desiredVel);
+	Velocities Control(Velocities& currentJointVel, Velocities& desiredJointVel);
 };
 

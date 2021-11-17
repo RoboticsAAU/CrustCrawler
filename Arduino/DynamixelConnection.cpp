@@ -31,16 +31,18 @@ JointAngles DynamixelConnection::getJointAngles()
 	{
 		returnJointAngles.thetas[i] = dynamixel.getPresentPosition(Joints[i]->ID);
 	}
+	returnJointAngles.currentUnitType = Raw;
 	return returnJointAngles;
 }
 
-JointVelocities DynamixelConnection::getJointVelocities()
+Velocities DynamixelConnection::getJointVelocities()
 {
-	JointVelocities returnJointVelocities;
+	Velocities returnJointVelocities;
 	for (size_t i = 1; i < 6; i++)
 	{
 		returnJointVelocities.velocities[i] = dynamixel.getPresentVelocity(Joints[i]->ID);
 	}
+	returnJointVelocities.currentSpaceType = JointSpace;
 	return returnJointVelocities;
 }
 
@@ -52,27 +54,55 @@ void DynamixelConnection::EmergencyStop()
 	}
 }
 
-void DynamixelConnection::setJointPWM(JointTorques& correctionTorques)
+void DynamixelConnection::setJointPWM(JointTorques& correctionTorques, Velocities& correctionVelocities)
 {
 	for (size_t i = 1; i < 6; i++)
 	{
 		currentJointTorques.torques[i] += correctionTorques.torques[i];
-		double JointPWM = _typeConverter(currentJointTorques.torques[i], PWM);
+		double JointPWM = _typeConverter(currentJointTorques.torques[i], correctionVelocities.velocities[i],
+										 Joints[i]->ServoType, PWM);
 		dynamixel.setGoalPWM(Joints[i]->ID, JointPWM);
 	}
 }
 
-double DynamixelConnection::_typeConverter(double variable, OutputType type)
+double DynamixelConnection::_typeConverter(double& variable, double& desiredVel, ServoType servoType, OutputType type)
 {
-	double conversionFunction;
 	switch (type)
 	{
 	case Torque:
-		return variable * conversionFunction;
-	case PWM:
-		return variable * conversionFunction;
+		// Doesn't work for now
+		return (variable - desiredVel * velocityConstant) / torqueConstant;
+	case PWM: {
+		_getPWMConstants(variable, desiredVel, servoType);
+		return variable * torqueConstant + desiredVel * velocityConstant;
+	}
 	default:
 		// Error invalid type
 		break;
+	}
+}
+
+void DynamixelConnection::_getPWMConstants(double& desiredTorque, double& desiredVel, ServoType servoType) {
+	int constantPicker = copysign(1, (desiredTorque * desiredVel));
+
+	switch(servoType) {
+	case MX28R: {
+		if (constantPicker < 0) { torqueConstant = 211.7; }
+		else if (constantPicker == 0) { torqueConstant = 427.4; }
+		else if (constantPicker > 0) { torqueConstant = 642.0; }
+		velocityConstant = 115.3;
+	}
+	case MX64R: {
+		if (constantPicker < 0) { torqueConstant = 80.9; }
+		else if (constantPicker == 0) { torqueConstant = 152.7; }
+		else if (constantPicker > 0) { torqueConstant = 224.5; }
+		velocityConstant = 105.3;
+	}
+	case MX106R: {
+		if (constantPicker < 0) { torqueConstant = 40.4; }
+		else if (constantPicker == 0) { torqueConstant = 83.9; }
+		else if (constantPicker > 0) { torqueConstant = 127.5; }
+		velocityConstant = 160.6;
+	}
 	}
 }

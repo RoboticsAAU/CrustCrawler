@@ -35,7 +35,7 @@ void Controller::run()
 		JointTorques jointTorqueCorrections = dyn.InverseDynamics(correctionVelocities);
 
 		// Send torque to joints
-		dynCon.setJointPWM(jointTorqueCorrections);
+		dynCon.setJointPWM(jointTorqueCorrections, correctionVelocities);
 	}
 }
 
@@ -152,25 +152,63 @@ Velocities Controller::_spaceConverter(JointAngles& jointAngles, Velocities& ins
 
 	//Forward Jacobian:
 	BLA::Matrix<3, 3> jacobian; 
-	jacobian(0,0) = sin(inputAngles.m_Theta1) * (m_Joint2.m_length * sin(inputAngles.m_Theta2) + m_Joint3.m_length * sin(inputAngles.m_Theta2 + inputAngles.m_Theta3));
-	jacobian(0,1) = -cos(inputAngles.m_Theta1) * (m_Joint2.m_length * cos(inputAngles.m_Theta2) + m_Joint3.m_length * cos(inputAngles.m_Theta2 + inputAngles.m_Theta3));
-	jacobian(0,2) = -cos(inputAngles.m_Theta1) * m_Joint3.m_length * cos(inputAngles.m_Theta2 + inputAngles.m_Theta3);
-	jacobian(1,0) = -cos(inputAngles.m_Theta1) * (m_Joint2.m_length * sin(inputAngles.m_Theta2) + m_Joint3.m_length * sin(inputAngles.m_Theta2 + inputAngles.m_Theta3));
-	jacobian(1,1) = -sin(inputAngles.m_Theta1) * (m_Joint2.m_length * cos(inputAngles.m_Theta2) + m_Joint3.m_length * cos(inputAngles.m_Theta2 + inputAngles.m_Theta3));
-	jacobian(1,2) = -sin(inputAngles.m_Theta1) * m_Joint3.m_length * cos(inputAngles.m_Theta2 + inputAngles.m_Theta3);
+	jacobian(0,0) = sin(jointAngles.thetas[1]) * (Joints[2]->Length * sin(jointAngles.thetas[2]) + Joints[3]->Length * sin(jointAngles.thetas[2] + jointAngles.thetas[3]));
+	jacobian(0,1) = -cos(jointAngles.thetas[1]) * (Joints[2]->Length * cos(jointAngles.thetas[2]) + Joints[3]->Length * cos(jointAngles.thetas[2] + jointAngles.thetas[3]));
+	jacobian(0,2) = -cos(jointAngles.thetas[1]) * Joints[3]->Length * cos(jointAngles.thetas[2] + jointAngles.thetas[3]);
+	jacobian(1,0) = -cos(jointAngles.thetas[1]) * (Joints[2]->Length * sin(jointAngles.thetas[2]) + Joints[3]->Length * sin(jointAngles.thetas[2] + jointAngles.thetas[3]));
+	jacobian(1,1) = -sin(jointAngles.thetas[1]) * (Joints[2]->Length * cos(jointAngles.thetas[2]) + Joints[3]->Length * cos(jointAngles.thetas[2] + jointAngles.thetas[3]));
+	jacobian(1,2) = -sin(jointAngles.thetas[1]) * Joints[3]->Length * cos(jointAngles.thetas[2] + jointAngles.thetas[3]);
 	jacobian(2,0) = 0;
-	jacobian(2,1) = -m_Joint2.m_length * sin(inputAngles.m_Theta2) - m_Joint3.m_length * sin(inputAngles.m_Theta2 + inputAngles.m_Theta3);
-	jacobian(2,2) = -m_Joint3.m_length * sin(inputAngles.m_Theta2 + inputAngles.m_Theta3);
+	jacobian(2,1) = -Joints[2]->Length * sin(jointAngles.thetas[2]) - Joints[3]->Length * sin(jointAngles.thetas[2] + jointAngles.thetas[3]);
+	jacobian(2,2) = -Joints[3]->Length * sin(jointAngles.thetas[2] + jointAngles.thetas[3]);
 
 	//Inverse Jacobian:
 	BLA::Matrix<3, 3> jacobianInverse = jacobian;
-	bool is_nonsingular = Invert(jacobianInverse);
+	bool isNonSingular = Invert(jacobianInverse);
 
-	//If the jacobian is singular - leave function 
-	if(!is_nonsingular){
-		
+	//If the jacobian is singular
+	if(!isNonSingular){
+		// Some error message
 	}
 
+	BLA::Matrix<3,1> velocityVectorFrame1W;
+	// Should probably be done be reference - for optimisation
+	for (size_t i = 1; i < 4; i++)
+	{
+		velocityVectorFrame1W(i-1, 0) = instructionVelocities.velocities[i];
+	}
 
+	BLA::Matrix<3, 3> rotationMatrixFrame01;
+	rotationMatrixFrame01(0, 0) = cos(jointAngles.thetas[1]);
+	rotationMatrixFrame01(0, 1) = -sin(jointAngles.thetas[1]);
+	rotationMatrixFrame01(0, 2) = 0;
+	rotationMatrixFrame01(1, 0) = sin(jointAngles.thetas[1]);
+	rotationMatrixFrame01(1, 1) = cos(jointAngles.thetas[1]);
+	rotationMatrixFrame01(1, 2) = 0;
+	rotationMatrixFrame01(2, 0) = 0;
+	rotationMatrixFrame01(2, 1) = 0;
+	rotationMatrixFrame01(2, 2) = 1;
+
+	BLA::Matrix<3,1> velocityVectorFrame0W = rotationMatrixFrame01 * velocityVectorFrame1W;
+	switch (desiredSpace)
+	{
+	case JointSpace: {
+		velocityVectorFrame0W = jacobianInverse * velocityVectorFrame0W;
+		break;
+	}
+	case CartesianSpace: {
+		velocityVectorFrame0W = jacobian * velocityVectorFrame0W;
+		break;
+	}
+	default:
+		// Invalid desiredSpace
+		break;
+	}
+
+	for (size_t i = 1; i < 4; i++)
+	{
+		returnVelocities.velocities[i] = velocityVectorFrame1W(i - 1, 0);
+	}
+	returnVelocities.currentSpaceType = desiredSpace;
 	return returnVelocities;
 }
