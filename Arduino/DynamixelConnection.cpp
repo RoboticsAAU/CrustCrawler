@@ -54,18 +54,18 @@ void DynamixelConnection::EmergencyStop()
 	}
 }
 
-void DynamixelConnection::setJointPWM(JointTorques& correctionTorques, Velocities& correctionVelocities)
+void DynamixelConnection::setJointPWM(JointTorques& correctionTorques, Velocities& correctionVelocities, JointAngles& currentJointAngles)
 {
 	for (size_t i = 1; i < 6; i++)
 	{
 		currentJointTorques.torques[i] += correctionTorques.torques[i];
 		double JointPWM = _typeConverter(currentJointTorques.torques[i], correctionVelocities.velocities[i],
-										 Joints[i]->ServoType, PWM);
+										 currentJointAngles.thetas[i], *Joints[i], PWM);
 		dynamixel.setGoalPWM(Joints[i]->ID, JointPWM);
 	}
 }
 
-double DynamixelConnection::_typeConverter(double& variable, double& desiredVel, ServoType servoType, OutputType type)
+double DynamixelConnection::_typeConverter(double& variable, double& desiredVel, double& currentJointAngle, Joint& joint, OutputType type)
 {
 	switch (type)
 	{
@@ -73,7 +73,17 @@ double DynamixelConnection::_typeConverter(double& variable, double& desiredVel,
 		// Doesn't work for now
 		return (variable - desiredVel * velocityConstant) / torqueConstant;
 	case PWM: {
-		_getPWMConstants(variable, desiredVel, servoType);
+		if (!_isWithinAngleBoundaries(joint, currentJointAngle))
+		{
+			double _boundaryMidPoint = (joint.MaxTheta + joint.MinTheta) / 2;
+			return currentJointAngle > _boundaryMidPoint ? -joint.PWMlimit : joint.PWMlimit;
+		}
+
+		// If the joint is a gripper joint, then we set the PWM to a constant
+		if (joint.ID == 4 || joint.ID == 5) { 
+			return desiredVel * joint.PWMlimit; // desiredVel only represents the direction (+ or -)
+		}
+		_getPWMConstants(variable, desiredVel, joint.ServoType);
 		return variable * torqueConstant + desiredVel * velocityConstant;
 	}
 	default:
@@ -105,4 +115,8 @@ void DynamixelConnection::_getPWMConstants(double& desiredTorque, double& desire
 		velocityConstant = 160.6;
 	}
 	}
+}
+
+bool DynamixelConnection::_isWithinAngleBoundaries(Joint& inputJoint, double inputAngle) {
+	return inputAngle >= inputJoint.MinTheta && inputAngle <= inputJoint.MaxTheta;
 }

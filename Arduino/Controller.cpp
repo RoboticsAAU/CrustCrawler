@@ -6,6 +6,9 @@ Controller::Controller() {
 	_maxJointLength = Joints[2]->Length + Joints[3]->Length + Joints[4]->Length;
 	_maxAngularVelocity = _maxJointLength / MaxLinearVelocity;
 	_LinearToAngularRatio = _maxAngularVelocity / MaxLinearVelocity;
+
+	JointAngles startPosition = dynCon.getJointAngles();
+	dyn.SetStartPos(startPosition);
 }
 
 void Controller::run()
@@ -32,10 +35,10 @@ void Controller::run()
 		Velocities correctionVelocities = conSys.Control(currentJointVelocities, desiredJointVelocities);
 
 		// Compute torques
-		JointTorques jointTorqueCorrections = dyn.InverseDynamics(correctionVelocities);
+		JointTorques jointTorqueCorrections = dyn.InverseDynamics(correctionVelocities, deltaTime);
 
 		// Send torque to joints
-		dynCon.setJointPWM(jointTorqueCorrections, correctionVelocities);
+		dynCon.setJointPWM(jointTorqueCorrections, correctionVelocities, currentJointAngles);
 	}
 }
 
@@ -64,8 +67,8 @@ Velocities Controller::_toVel(Package& instructions)
 	{
 	case Gripper: {
 		// Should probably map to the instruction speed
-		returnVelocities.velocities[4] = directionSign * Joints[4]->PWMlimit;
-		returnVelocities.velocities[5] = -directionSign * Joints[5]->PWMlimit;
+		returnVelocities.velocities[4] = directionSign;
+		returnVelocities.velocities[5] = -directionSign;
 		returnVelocities.currentSpaceType = JointSpace;
 		break;
 	}

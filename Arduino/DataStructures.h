@@ -65,7 +65,6 @@ struct Accelerations {
 	double accelerations[6] = { 0,0,0,0,0,0 };
 };
 
-
 struct Joint
 {
 	unsigned int ID;

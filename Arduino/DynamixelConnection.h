@@ -23,15 +23,16 @@ public:
 	JointAngles getJointAngles();
 	Velocities getJointVelocities();
 
-	void setJointPWM(JointTorques& correctionTorques, Velocities& correctionVelocities);
+	void setJointPWM(JointTorques& correctionTorques, Velocities& correctionVelocities, JointAngles& currentJointAngles);
 private:
 	Dynamixel2Arduino dynamixel;
 
 	JointTorques currentJointTorques;
 
-	double _typeConverter(double& variable, double& desiredVel, ServoType servoType, OutputType type);
+	double _typeConverter(double& variable, double& desiredVel, double& currentJointAngle, Joint& joint, OutputType type);
 	void _getPWMConstants(double& desiredTorque, double& desiredVel, ServoType servoType);
 	double torqueConstant, velocityConstant;
+	bool _isWithinAngleBoundaries(Joint& inputJoint, double inputAngle);
 
 };
 
