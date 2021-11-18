@@ -27,14 +27,17 @@ private:
 	Dynamics dyn;
 	ControlSystem conSys;
 
+	JointAngles _getJointAngles(ControlMode controlMode);
+	Velocities _getJointVelocities(ControlMode controlMode);
+
 	void _updateDeltaTime();
 	double deltaTime;
 	unsigned long previousTime;
 
 	Velocities _toJointVel(JointAngles& jointAngles, Package& instructions);
 	Velocities _toVel(Package& instructions);
-	JointAngles _angleConverter(JointAngles& inputAngles, AngleUnitType desiredUnit);
-	Velocities _angleConverter(Velocities& inputVelocities, AngleUnitType desiredUnit);
+	void _typeConverter(JointAngles& inputAngles, AngleUnitType desiredUnit);
+	void _typeConverter(Velocities& inputVelocities, VelocityUnitType desiredUnit);
 	Velocities _spaceConverter(JointAngles& jointAngles, Velocities& instructionVelocities, SpaceType desiredSpace);
 	double _maxJointLength;
 	double _maxAngularVelocity;
