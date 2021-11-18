@@ -1,8 +1,8 @@
 #include "CalculusOperations.h"
 
-double CalculusOperations::Integrate(double changeInValue, double currentValue, double& deltaTime)
+double CalculusOperations::Integrate(double newValue, double currentValue, double& deltaTime)
 {	
-	currentValue += changeInValue * deltaTime;
+	currentValue += newValue * deltaTime;
 	return currentValue;
 }
 
