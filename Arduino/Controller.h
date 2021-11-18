@@ -28,8 +28,8 @@ private:
 	ControlSystem conSys;
 
 	void _updateDeltaTime();
-	double deltaTime;
-	unsigned long previousTime;
+	double deltaTime = 0;
+	unsigned long previousTime = 0;
 
 	Velocities _toJointVel(JointAngles& jointAngles, Package& instructions);
 	Velocities _toVel(Package& instructions);

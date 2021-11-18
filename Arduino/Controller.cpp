@@ -106,6 +106,7 @@ Velocities Controller::_toVel(Package& instructions)
 	}
 	case Lock: {
 		// Return velocities are initialised with 0
+		returnVelocities.currentSpaceType = JointSpace;
 		break;
 	}
 	default:
@@ -192,7 +193,7 @@ Velocities Controller::_spaceConverter(JointAngles& jointAngles, Velocities& ins
 	}
 
 	BLA::Matrix<3,1> velocityVectorFrame1W;
-	// Should probably be done be reference - for optimisation
+	// Should probably be done by reference - for optimisation
 	for (size_t i = 1; i < 4; i++)
 	{
 		velocityVectorFrame1W(i-1, 0) = instructionVelocities.velocities[i];

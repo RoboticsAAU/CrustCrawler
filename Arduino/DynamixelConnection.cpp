@@ -118,5 +118,5 @@ void DynamixelConnection::_getPWMConstants(double& desiredTorque, double& desire
 }
 
 bool DynamixelConnection::_isWithinAngleBoundaries(Joint& inputJoint, double inputAngle) {
-	return inputAngle >= inputJoint.MinTheta && inputAngle <= inputJoint.MaxTheta;
+	return (inputAngle >= inputJoint.MinTheta) && (inputAngle <= inputJoint.MaxTheta);
 }
