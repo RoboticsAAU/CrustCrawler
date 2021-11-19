@@ -1,6 +1,6 @@
 /*
  Name:		Arduino.ino
- Created:	11/15/2021 3:36:53 PM
+ Created:	15/11/2021 15:36:53
  Author:	P-363
 */
 // Generel includes
@@ -14,6 +14,7 @@ Controller* controller;
 
 // the setup function runs once when you press reset or power the board
 void setup() {
+	delay(5000);
 	controller = new Controller();
 }
 

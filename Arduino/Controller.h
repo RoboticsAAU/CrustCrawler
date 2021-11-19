@@ -36,8 +36,6 @@ private:
 
 	Velocities _toJointVel(JointAngles& jointAngles, Package& instructions);
 	Velocities _toVel(Package& instructions);
-	void _typeConverter(JointAngles& inputAngles, AngleUnitType desiredUnit);
-	void _typeConverter(Velocities& inputVelocities, VelocityUnitType desiredUnit);
 	Velocities _spaceConverter(JointAngles& jointAngles, Velocities& instructionVelocities, SpaceType desiredSpace);
 	double _maxJointLength;
 	double _maxAngularVelocity;

@@ -22,17 +22,15 @@ public:
 	void EmergencyStop();
 
 	JointAngles getJointAngles();
-	JointAngles getJointAngle(unsigned int& jointID);
+	double getJointAngle(Joint& joint);
 	Velocities getJointVelocities();
-	Velocities getJointVelocity(unsigned int& jointID);
+	double getJointVelocity(unsigned int& jointID);
 
-	void setJointPWM(JointTorques& correctionTorques, Velocities& correctionVelocities, JointAngles& currentJointAngles);
+	void setJointVelocity(Velocities& goalVelocities);
+	void setJointPWM(JointTorques& updateTorques, Velocities& correctionVelocities, JointAngles& currentJointAngles);
 private:
 	Dynamixel2Arduino dynamixel;
 	ComputerConnection* pComCon;
-
-	JointTorques currentJointTorques;
-	double currentJointPWM[6] = { 0,0,0,0,0,0 };
 
 	double _typeConverter(double& variable, double& desiredVel, Joint& joint, OutputType type);
 	void _getPWMConstants(double& desiredTorque, double& desiredVel, ServoType servoType);

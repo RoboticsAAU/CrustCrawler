@@ -24,29 +24,30 @@ void Controller::run()
 			dynCon.EmergencyStop();
 			return;
 		}
-		// 
+		// We read the data once from the CrustCrawler
 		JointAngles currentJointAngles = _getJointAngles(currentInstructions.Mode);
-		_typeConverter(currentJointAngles, Radians);
 		Velocities currentJointVelocities = _getJointVelocities(currentInstructions.Mode);
 
-		//currentJointVelocities = _typeConverter(currentJointVelocities, RadiansPerSec);
-
-		
 		// We convert our instructions to joint velocities
+		currentJointAngles.CovertTo(Radians);
 		Velocities desiredJointVelocities = _toJointVel(currentJointAngles, currentInstructions);
-		_typeConverter(desiredJointVelocities, RadiansPerSec);
+		desiredJointVelocities.ConvertTo(RawsPerSec);
+
+		dynCon.setJointVelocity(desiredJointVelocities);
 				
 		// We take our desired and current joint velocities and calculate a correction velocity
-		Velocities correctionVelocities = conSys.Control(currentJointVelocities, desiredJointVelocities, deltaTime);
+		//desiredJointVelocities.ConvertTo(RadiansPerSec);
+		//Velocities correctionVelocities = conSys.Control(currentJointVelocities, desiredJointVelocities, deltaTime);
 
-		// Must be the same space type
-		Velocities goalVelocities = correctionVelocities + currentJointVelocities;
+		// Then we calculate our goal velocity - The inputs must be the same space type
+		//Velocities goalVelocities = correctionVelocities + currentJointVelocities;
 
-		// Compute torques
-		JointTorques jointTorqueCorrections = dyn.InverseDynamics(goalVelocities, deltaTime);
+		// We compute our goal torques
+		//goalVelocities.ConvertTo(RadiansPerSec);
+		//JointTorques goalTorques = dyn.InverseDynamics(goalVelocities, deltaTime);
 
 		// Send torque to joints
-		dynCon.setJointPWM(jointTorqueCorrections, correctionVelocities, currentJointAngles);
+		//dynCon.setJointPWM(goalTorques, correctionVelocities, currentJointAngles);
 	}
 }
 
@@ -62,18 +63,22 @@ JointAngles Controller::_getJointAngles(ControlMode controlMode)
 	JointAngles returnJointAngles;
 	switch (controlMode) {
 	case Gripper: {
-		returnJointAngles = dynCon.getJointAngle(Joints[4]->ID) + dynCon.getJointAngle(Joints[5]->ID);
-		break;
-	}
-	case Base: case InOut: case UpDown: {
-		returnJointAngles = dynCon.getJointAngle(Joints[1]->ID) + dynCon.getJointAngle(Joints[2]->ID) + dynCon.getJointAngle(Joints[3]->ID);
+		returnJointAngles.thetas[4] = dynCon.getJointAngle(*Joints[4]);
+		returnJointAngles.thetas[5] = dynCon.getJointAngle(*Joints[5]);
+		break;											   
+	}													   
+	case Base: case InOut: case UpDown: {				   
+		returnJointAngles.thetas[1] = dynCon.getJointAngle(*Joints[1]);
+		returnJointAngles.thetas[2] = dynCon.getJointAngle(*Joints[2]);
+		returnJointAngles.thetas[3] = dynCon.getJointAngle(*Joints[3]);
 		break;
 	}
 	case Lock: {
 		returnJointAngles = dynCon.getJointAngles();
-		break;
+		return returnJointAngles;
 	}
 	}
+	returnJointAngles.currentUnitType = Raw;
 	return returnJointAngles;
 }
 
@@ -82,23 +87,29 @@ Velocities Controller::_getJointVelocities(ControlMode controlMode)
 	Velocities returnJointVelocities;
 	switch (controlMode) {
 	case Gripper: {
-		returnJointVelocities = dynCon.getJointVelocity(Joints[4]->ID) + dynCon.getJointVelocity(Joints[5]->ID);
+		returnJointVelocities.velocities[4] = dynCon.getJointVelocity(Joints[4]->ID);
+		returnJointVelocities.velocities[5] = dynCon.getJointVelocity(Joints[5]->ID);
 		break;
 	}
 	case Base: case InOut: case UpDown: {
-		returnJointVelocities = dynCon.getJointVelocity(Joints[1]->ID) + dynCon.getJointVelocity(Joints[2]->ID) + dynCon.getJointVelocity(Joints[3]->ID);
+		returnJointVelocities.velocities[1] = dynCon.getJointVelocity(Joints[1]->ID);
+		returnJointVelocities.velocities[2] = dynCon.getJointVelocity(Joints[2]->ID);
+		returnJointVelocities.velocities[3] = dynCon.getJointVelocity(Joints[3]->ID);
 		break;
 	}
 	case Lock: {
 		returnJointVelocities = dynCon.getJointVelocities();
-		break;
+		return returnJointVelocities;
 	}
 	}
+	returnJointVelocities.currentUnitType = RawsPerSec;
+	returnJointVelocities.currentSpaceType = JointSpace;
 	return returnJointVelocities;
 }
 
 Velocities Controller::_toJointVel(JointAngles& jointAngles, Package& instructions)
 {
+
 	Velocities instructionVelocities = _toVel(instructions);
 	Velocities instructionJointVelocities = _spaceConverter(jointAngles, instructionVelocities, JointSpace);
 	instructionJointVelocities.currentUnitType = RadiansPerSec;
@@ -129,17 +140,21 @@ Velocities Controller::_toVel(Package& instructions)
 		break;
 	}
 	case InOut: {
-		returnVelocities.velocities[1] = directionSign * speedMS;
-		returnVelocities.currentSpaceType = CartesianSpace;
+		//returnVelocities.velocities[1] = directionSign * speedMS;
+		//returnVelocities.currentSpaceType = CartesianSpace;
+		returnVelocities.velocities[2] = directionSign * speedMS * _LinearToAngularRatio;
+		returnVelocities.currentSpaceType = JointSpace;
 		break;
 	}
 	case UpDown: {
-		returnVelocities.velocities[3] = directionSign * speedMS;
-		returnVelocities.currentSpaceType = CartesianSpace;
+		//returnVelocities.velocities[3] = directionSign * speedMS;
+		//returnVelocities.currentSpaceType = CartesianSpace;
+		returnVelocities.velocities[3] = directionSign * speedMS * _LinearToAngularRatio;
+		returnVelocities.currentSpaceType = JointSpace;
 		break;
 	}
 	case Lock: {
-		// Return velocities are initialised with 0
+		// Return velocities is initialised with 0
 		returnVelocities.currentSpaceType = JointSpace;
 		break;
 	}
@@ -150,98 +165,6 @@ Velocities Controller::_toVel(Package& instructions)
 	return returnVelocities;
 }
 
-void Controller::_typeConverter(JointAngles& inputAngles, AngleUnitType desiredUnit) {
-	if (desiredUnit == inputAngles.currentUnitType) {
-		return;
-	}
-
-	double conversionConstant;
-
-	switch (desiredUnit) {
-	case Degree: {
-		if (inputAngles.currentUnitType == Radians) {
-			conversionConstant = 360 / (2 * M_PI);
-			break;
-		}
-		if (inputAngles.currentUnitType == Raw) {
-			conversionConstant = 360 / 4095;
-			break;
-		}
-	}
-	case Radians: {
-		if (inputAngles.currentUnitType == Degree) {
-			conversionConstant = (2 * M_PI) / 360;
-			break;
-		}
-		if (inputAngles.currentUnitType == Raw) {
-			conversionConstant = (2 * M_PI) / 4095;
-			break;
-		}
-	}
-	case Raw: {
-		if (inputAngles.currentUnitType == Degree) {
-			conversionConstant = 4095 / 360;
-			break;
-		}
-		if (inputAngles.currentUnitType == Radians) {
-			conversionConstant = 4095 / (2 * M_PI);
-			break;
-		}
-	}
-	}
-	for (size_t i = 1; i < 6; i++)
-	{
-		inputAngles.thetas[i] *= conversionConstant;
-	}
-	inputAngles.currentUnitType = desiredUnit;
-}
-
-void Controller::_typeConverter(Velocities& inputVelocities, VelocityUnitType desiredUnit) {
-	if (desiredUnit == inputVelocities.currentUnitType) {
-		return;
-	}
-
-	double conversionConstant;
-
-	switch (desiredUnit) {
-	case DegreesPerSec: {
-		if (inputVelocities.currentUnitType == RadiansPerSec) {
-			conversionConstant = 360 / (2 * M_PI);
-			break;
-		}
-		if (inputVelocities.currentUnitType == RawsPerSec) {
-			conversionConstant = 360 / 4095;
-			break;
-		}
-	}
-	case RadiansPerSec: {
-		if (inputVelocities.currentUnitType == DegreesPerSec) {
-			conversionConstant = (2 * M_PI) / 360;
-			break;
-		}
-		if (inputVelocities.currentUnitType == RawsPerSec) {
-			conversionConstant = (2 * M_PI) / 4095;
-			break;
-		}
-	}
-	case RawsPerSec: {
-		if (inputVelocities.currentUnitType == DegreesPerSec) {
-			conversionConstant = 4095 / 360;
-			break;
-		}
-		if (inputVelocities.currentUnitType == RadiansPerSec) {
-			conversionConstant = 4095 / (2 * M_PI);
-			break;
-		}
-	}
-	}
-	for (size_t i = 1; i < 6; i++)
-	{
-		inputVelocities.velocities[i] *= conversionConstant;
-	}
-	inputVelocities.currentUnitType = desiredUnit;
-}
-
 // This does not convert joint 4 and 5
 Velocities Controller::_spaceConverter(JointAngles& jointAngles, Velocities& instructionVelocities, SpaceType desiredSpace)
 {
@@ -250,7 +173,7 @@ Velocities Controller::_spaceConverter(JointAngles& jointAngles, Velocities& ins
 		return instructionVelocities;
 	}
 	Velocities returnVelocities;
-	_typeConverter(jointAngles, Radians);
+	jointAngles.CovertTo(Radians);
 
 	// Jacobian:
 	BLA::Matrix<3, 3> jacobian; 

@@ -2,19 +2,28 @@
 
 ComputerConnection::ComputerConnection()
 {
-	DEBUG_SERIAL.begin(115200);
-	DATA_SERIAL.begin(57200);
+	DEBUG_SERIAL.begin(57600);
+	DATA_SERIAL.begin(57600);
 }
 
 Package ComputerConnection::getPackage()
 {
 	Package returnPackage;
 	if (DATA_SERIAL.available()) {
-		if (DATA_SERIAL.find(255))
+		int data = (int)DATA_SERIAL.read();
+		if (data == 255)
 		{
 			// Byte is the same as unsigned char
-			static byte databuffer[4];
-			DATA_SERIAL.readBytes(databuffer, sizeof(databuffer) / sizeof(byte));
+			DATA_SERIAL.readBytes(databuffer, 4);
+			Print<char*>("\nDatabuffer: ");
+			Print<int>((int)databuffer[0]);
+			Print<char*>(" ");
+			Print<int>((int)databuffer[1]);
+			Print<char*>(" ");
+			Print<int>((int)databuffer[2]);
+			Print<char*>(" ");
+			Print<int>((int)databuffer[3]);
+			Print<char*>(" ");
 			returnPackage.EmergencyStop = (bool)databuffer[0];
 			returnPackage.Mode = (ControlMode)databuffer[1];
 			returnPackage.Sign = (bool)databuffer[2];
@@ -23,10 +32,10 @@ Package ComputerConnection::getPackage()
 			return returnPackage;
 		}
 	}
-	returnPackage.EmergencyStop = false;
-	returnPackage.Mode = Base;
-	returnPackage.Sign = true;
-	returnPackage.Speed = (uint8_t)100;
-	returnPackage.isUpdated = true;
+	//returnPackage.EmergencyStop = false;
+	//returnPackage.Mode = UpDown;
+	//returnPackage.Sign = true;
+	//returnPackage.Speed = (uint8_t)10;
+	returnPackage.isUpdated = false;
 	return returnPackage;
 }

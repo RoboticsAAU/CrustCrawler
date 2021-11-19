@@ -10,11 +10,11 @@ DynamixelConnection::DynamixelConnection(ComputerConnection* pointer) : dynamixe
 		{
 			dynamixel.torqueOff(Joints[i]->ID);
 		}
-		bool PWM = dynamixel.writeControlTableItem(ControlTableItem::OPERATING_MODE, Joints[i]->ID, OperatingMode::OP_PWM);
-		bool Maxtheta = dynamixel.writeControlTableItem(ControlTableItem::MAX_POSITION_LIMIT, Joints[i]->ID, Joints[i]->MaxTheta);
-		bool Mintheta = dynamixel.writeControlTableItem(ControlTableItem::MIN_POSITION_LIMIT, Joints[i]->ID, Joints[i]->MinTheta);
-		bool PWMlimit = dynamixel.writeControlTableItem(ControlTableItem::PWM_LIMIT, Joints[i]->ID, Joints[i]->PWMlimit);
-		bool movingthreshold = dynamixel.writeControlTableItem(ControlTableItem::MOVING_THRESHOLD, Joints[i]->ID, MovingThreshold);
+		bool PWM = dynamixel.writeControlTableItem(ControlTableItem::OPERATING_MODE, Joints[i]->ID, OperatingMode::OP_VELOCITY);
+		//bool Maxtheta = dynamixel.writeControlTableItem(ControlTableItem::MAX_POSITION_LIMIT, Joints[i]->ID, Joints[i]->MaxTheta);
+		//bool Mintheta = dynamixel.writeControlTableItem(ControlTableItem::MIN_POSITION_LIMIT, Joints[i]->ID, Joints[i]->MinTheta);
+		//bool PWMlimit = dynamixel.writeControlTableItem(ControlTableItem::PWM_LIMIT, Joints[i]->ID, Joints[i]->PWMlimit);
+		//bool movingthreshold = dynamixel.writeControlTableItem(ControlTableItem::MOVING_THRESHOLD, Joints[i]->ID, MovingThreshold);
 
 		if (!dynamixel.getTorqueEnableStat(Joints[i]->ID))
 		{
@@ -28,18 +28,26 @@ JointAngles DynamixelConnection::getJointAngles()
 	JointAngles returnJointAngles;
 	for (size_t i = 1; i < 6; i++)
 	{
-		returnJointAngles.thetas[i] = dynamixel.getPresentPosition(Joints[i]->ID, ParamUnit::UNIT_RAW);
+		returnJointAngles.thetas[i] = getJointAngle(*Joints[i]);
 	}
 	returnJointAngles.currentUnitType = Raw;
 	return returnJointAngles;
 }
 
-JointAngles DynamixelConnection::getJointAngle(unsigned int& jointID)
+double DynamixelConnection::getJointAngle(Joint& joint)
 {
-	JointAngles returnJointAngles;
-	returnJointAngles.thetas[jointID] = dynamixel.getPresentPosition(jointID, ParamUnit::UNIT_RAW);
-	returnJointAngles.currentUnitType = Raw;
-	return returnJointAngles;
+	double readAngle = dynamixel.getPresentPosition(joint.ID, ParamUnit::UNIT_RAW);
+	//if (readAngle > joint.MaxTheta) 
+	//{ 
+	//	int jointMultiplier = readAngle / 4095;
+	//	readAngle -= jointMultiplier * 4095; 
+	//}
+	//else if (readAngle < joint.MinTheta) 
+	//{ 
+	//	int jointMultiplier = readAngle / -4095;
+	//	readAngle += (1 + jointMultiplier) * 4095; 
+	//}
+	return readAngle;
 }
 
 Velocities DynamixelConnection::getJointVelocities()
@@ -47,20 +55,16 @@ Velocities DynamixelConnection::getJointVelocities()
 	Velocities returnJointVelocities;
 	for (size_t i = 1; i < 6; i++)
 	{
-		returnJointVelocities.velocities[i] = dynamixel.getPresentVelocity(Joints[i]->ID, ParamUnit::UNIT_RAW);
+		returnJointVelocities.velocities[i] = getJointVelocity(Joints[i]->ID);
 	}
 	returnJointVelocities.currentUnitType = RawsPerSec;
 	returnJointVelocities.currentSpaceType = JointSpace;
 	return returnJointVelocities;
 }
 
-Velocities DynamixelConnection::getJointVelocity(unsigned int& jointID)
+double DynamixelConnection::getJointVelocity(unsigned int& jointID)
 {
-	Velocities returnJointVelocities;
-	returnJointVelocities.velocities[jointID] = dynamixel.getPresentVelocity(jointID, ParamUnit::UNIT_RAW);
-	returnJointVelocities.currentUnitType = RawsPerSec;
-	returnJointVelocities.currentSpaceType = JointSpace;
-	return returnJointVelocities;
+	return dynamixel.getPresentVelocity(jointID, ParamUnit::UNIT_RAW);
 
 }
 
@@ -72,26 +76,34 @@ void DynamixelConnection::EmergencyStop()
 	}
 }
 
-void DynamixelConnection::setJointPWM(JointTorques& correctionTorques, Velocities& correctionVelocities, JointAngles& currentJointAngles)
+void DynamixelConnection::setJointVelocity(Velocities& goalVelocities)
 {
 	for (size_t i = 1; i < 6; i++)
 	{
+		bool set = dynamixel.setGoalVelocity(Joints[i]->ID, goalVelocities.velocities[i], ParamUnit::UNIT_RAW);
+	}
+}
+
+void DynamixelConnection::setJointPWM(JointTorques& updateTorques, Velocities& correctionVelocities, JointAngles& currentJointAngles)
+{
+	for (size_t i = 1; i < 6; i++)
+	{
+		double currentJointPWM;
 		if (!_isWithinAngleBoundaries(*Joints[i], currentJointAngles.thetas[i]))
 		{
 			double _boundaryMidPoint = (Joints[i]->MaxTheta + Joints[i]->MinTheta) / 2;
-			currentJointPWM[i] = currentJointAngles.thetas[i] > _boundaryMidPoint ? -Joints[i]->PWMlimit : Joints[i]->PWMlimit;
+			currentJointPWM = currentJointAngles.thetas[i] > _boundaryMidPoint ? - 0.8 * Joints[i]->PWMlimit : 0.8 * Joints[i]->PWMlimit;
+			
 		}
 		// If the joint is a gripper joint, then we set the PWM to a constant
-		if (Joints[i]->ID == 4 || Joints[i]->ID == 5) {
-			currentJointPWM[i] = correctionVelocities.velocities[i] * Joints[i]->PWMlimit; // desiredVel only represents the direction (+ or -)
+		else if (Joints[i]->ID == 4 || Joints[i]->ID == 5) {
+			currentJointPWM = correctionVelocities.velocities[i] * 0.8 * Joints[i]->PWMlimit; // desiredVel only represents the direction (+ or -)
 		}
-
-		if (currentJointTorques.torques[i] != 0) // Possibly useless
-		{
-			currentJointTorques.torques[i] += correctionTorques.torques[i];
-			currentJointPWM[i] = _typeConverter(currentJointTorques.torques[i], correctionVelocities.velocities[i], *Joints[i], PWM);
+		else {
+			currentJointPWM = _typeConverter(updateTorques.torques[i], correctionVelocities.velocities[i], *Joints[i], PWM);
 		}
-		dynamixel.setGoalPWM(Joints[i]->ID, currentJointPWM[i]);
+		currentJointPWM *= 0.113;
+		//bool set = dynamixel.setGoalPWM(Joints[i]->ID, currentJointPWM);
 	}
 }
 
@@ -107,8 +119,7 @@ double DynamixelConnection::_typeConverter(double& variable, double& desiredVel,
 		return variable * torqueConstant + desiredVel * velocityConstant;
 	}
 	default:
-		// Error invalid type
-		break;
+		return 0;
 	}
 }
 

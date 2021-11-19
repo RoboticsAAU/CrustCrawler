@@ -56,34 +56,15 @@ struct JointAngles
 	double thetas[6] = { 0,0,0,0,0,0 };
 	AngleUnitType currentUnitType;
 
-	JointAngles operator+=(const JointAngles& addequal) {
-		for (size_t i = 1; i < 6; i++)
-		{
-			this->thetas[i] += addequal.thetas[i];
-		}
-	}
-	JointAngles operator+(const JointAngles& add) {
-		JointAngles returnAngles;
-		for (size_t i = 1; i < 6; i++)
-		{
-			returnAngles.thetas[i] = this->thetas[i] + add.thetas[i];
-		}
-		return returnAngles;
-	}
-	JointAngles operator-=(const JointAngles& subtractequal) {
-		for (size_t i = 1; i < 6; i++)
-		{
-			this->thetas[i] -= subtractequal.thetas[i];
-		}
-	}
-	JointAngles operator-(const JointAngles& subtract) {
-		JointAngles returnAngles;
-		for (size_t i = 1; i < 6; i++)
-		{
-			returnAngles.thetas[i] = this->thetas[i] - subtract.thetas[i];
-		}
-		return returnAngles;
-	}
+	void CovertTo(AngleUnitType newType);
+
+	JointAngles operator+=(const JointAngles& addequal);
+	JointAngles operator+(const JointAngles& add);
+	JointAngles operator-=(const JointAngles& subtractequal);
+	JointAngles operator-(const JointAngles& subtract);
+
+private:
+	void _typeConverter(JointAngles* inputAngles, AngleUnitType desiredUnit);
 };
 
 struct JointTorques
@@ -97,35 +78,15 @@ struct Velocities
 	VelocityUnitType currentUnitType;
 	SpaceType currentSpaceType;
 
+	void ConvertTo(VelocityUnitType newType);
+
 	// Doesn't handle spaceconversions - the two objects "Velocities" must be of same SpaceType
-	Velocities operator+=(const Velocities& addequal) {
-		for (size_t i = 1; i < 6; i++)
-		{
-			this->velocities[i] += addequal.velocities[i];
-		}
-	}
-	Velocities operator+(const Velocities& add) {
-		Velocities returnVelocities;
-		for (size_t i = 1; i < 6; i++)
-		{
-			returnVelocities.velocities[i] = this->velocities[i] + add.velocities[i];
-		}
-		return returnVelocities;
-	}
-	Velocities operator-=(const Velocities& subtractequal) {
-		for (size_t i = 1; i < 6; i++)
-		{
-			this->velocities[i] -= subtractequal.velocities[i];
-		}
-	}
-	Velocities operator-(const Velocities& subtract) {
-		Velocities returnVelocities;
-		for (size_t i = 1; i < 6; i++)
-		{
-			returnVelocities.velocities[i] = this->velocities[i] - subtract.velocities[i];
-		}
-		return returnVelocities;
-	}
+	Velocities operator+=(const Velocities& addequal);
+	Velocities operator+(const Velocities& add);
+	Velocities operator-=(const Velocities& subtractequal);
+	Velocities operator-(const Velocities& subtract);
+private:
+	void _typeConverter(Velocities* inputVelocities, VelocityUnitType desiredUnit);
 };
 
 struct Accelerations {
