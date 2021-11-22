@@ -10,7 +10,13 @@ DynamixelConnection::DynamixelConnection(ComputerConnection* pointer) : dynamixe
 		{
 			dynamixel.torqueOff(Joints[i]->ID);
 		}
-		bool PWM = dynamixel.writeControlTableItem(ControlTableItem::OPERATING_MODE, Joints[i]->ID, OperatingMode::OP_VELOCITY);
+#ifdef VELOCITY_CONTROL
+		bool ControlMode = dynamixel.writeControlTableItem(ControlTableItem::OPERATING_MODE, Joints[i]->ID, OperatingMode::OP_VELOCITY);
+#endif // VELOCITY_CONTROL
+#ifdef PWM_CONTROL
+		bool ControlMode = dynamixel.writeControlTableItem(ControlTableItem::OPERATING_MODE, Joints[i]->ID, OperatingMode::OP_PWM);
+#endif // PWM_CONTROL
+
 		//bool Maxtheta = dynamixel.writeControlTableItem(ControlTableItem::MAX_POSITION_LIMIT, Joints[i]->ID, Joints[i]->MaxTheta);
 		//bool Mintheta = dynamixel.writeControlTableItem(ControlTableItem::MIN_POSITION_LIMIT, Joints[i]->ID, Joints[i]->MinTheta);
 		//bool PWMlimit = dynamixel.writeControlTableItem(ControlTableItem::PWM_LIMIT, Joints[i]->ID, Joints[i]->PWMlimit);
@@ -65,14 +71,13 @@ Velocities DynamixelConnection::getJointVelocities()
 double DynamixelConnection::getJointVelocity(unsigned int& jointID)
 {
 	return dynamixel.getPresentVelocity(jointID, ParamUnit::UNIT_RAW);
-
 }
 
 void DynamixelConnection::EmergencyStop()
 {
 	for (size_t i = 1; i < 6; i++)
 	{
-		dynamixel.setGoalPWM(Joints[i]->ID, 0);
+		dynamixel.torqueOff(Joints[i]->ID);
 	}
 }
 
@@ -84,47 +89,33 @@ void DynamixelConnection::setJointVelocity(Velocities& goalVelocities)
 	}
 }
 
-void DynamixelConnection::setJointPWM(JointTorques& updateTorques, Velocities& correctionVelocities, JointAngles& currentJointAngles)
+void DynamixelConnection::setJointPWM(JointTorques& updateTorques, Velocities& currentVelocities)
 {
 	for (size_t i = 1; i < 6; i++)
 	{
-		double currentJointPWM;
-		if (!_isWithinAngleBoundaries(*Joints[i], currentJointAngles.thetas[i]))
-		{
-			double _boundaryMidPoint = (Joints[i]->MaxTheta + Joints[i]->MinTheta) / 2;
-			currentJointPWM = currentJointAngles.thetas[i] > _boundaryMidPoint ? - 0.8 * Joints[i]->PWMlimit : 0.8 * Joints[i]->PWMlimit;
-			
-		}
-		// If the joint is a gripper joint, then we set the PWM to a constant
-		else if (Joints[i]->ID == 4 || Joints[i]->ID == 5) {
-			currentJointPWM = correctionVelocities.velocities[i] * 0.8 * Joints[i]->PWMlimit; // desiredVel only represents the direction (+ or -)
-		}
-		else {
-			currentJointPWM = _typeConverter(updateTorques.torques[i], correctionVelocities.velocities[i], *Joints[i], PWM);
-		}
-		currentJointPWM *= 0.113;
-		//bool set = dynamixel.setGoalPWM(Joints[i]->ID, currentJointPWM);
+		double jointPWM = _typeConverter(updateTorques.torques[i], currentVelocities.velocities[i], Joints[i]->ServoType, PWM);
+		bool set = dynamixel.setGoalPWM(Joints[i]->ID, jointPWM);
 	}
 }
 
-double DynamixelConnection::_typeConverter(double& variable, double& desiredVel, Joint& joint, OutputType type)
+double DynamixelConnection::_typeConverter(double& variable, double& currentVel, ServoType& servoType, OutputType type)
 {
 	switch (type)
 	{
 	case Torque:
 		// Doesn't work for now
-		return (variable - desiredVel * velocityConstant) / torqueConstant;
+		return (variable - currentVel * velocityConstant) / torqueConstant;
 	case PWM: {
-		_getPWMConstants(variable, desiredVel, joint.ServoType);
-		return variable * torqueConstant + desiredVel * velocityConstant;
+		_getPWMConstants(variable, currentVel, servoType);
+		return variable * torqueConstant + currentVel * velocityConstant;
 	}
 	default:
 		return 0;
 	}
 }
 
-void DynamixelConnection::_getPWMConstants(double& desiredTorque, double& desiredVel, ServoType servoType) {
-	int constantPicker = copysign(1, (desiredTorque * desiredVel));
+void DynamixelConnection::_getPWMConstants(double& desiredTorque, double& currentVel, ServoType& servoType) {
+	int constantPicker = copysign(1, (desiredTorque * currentVel));
 
 	switch(servoType) {
 	case MX28R: {
@@ -146,8 +137,4 @@ void DynamixelConnection::_getPWMConstants(double& desiredTorque, double& desire
 		velocityConstant = 160.6;
 	}
 	}
-}
-
-bool DynamixelConnection::_isWithinAngleBoundaries(Joint& inputJoint, double inputAngle) {
-	return (inputAngle >= inputJoint.MinTheta) && (inputAngle <= inputJoint.MaxTheta);
 }

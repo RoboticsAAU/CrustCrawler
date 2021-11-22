@@ -6,48 +6,61 @@ Controller::Controller() : conSys(&comCon), dynCon(&comCon), dyn(&comCon) {
 	_maxJointLength = Joints[2]->Length + Joints[3]->Length + Joints[4]->Length;
 	_maxAngularVelocity = MaxLinearVelocity / _maxJointLength;
 	_LinearToAngularRatio = _maxAngularVelocity / MaxLinearVelocity;
-
-	JointAngles startPosition = dynCon.getJointAngles();
-	dyn.SetStartPos(startPosition);
 }
 
 void Controller::run()
 {
 	_updateDeltaTime();
 
-	// Get package
+	// Get package sent from the computer 
 	Package currentInstructions = comCon.getPackage();
 	if (currentInstructions.isUpdated)
 	{
+		//Call emergency stop function if spacebar is pressed on the computer and quit the program.
 		if (currentInstructions.EmergencyStop)
 		{
 			dynCon.EmergencyStop();
 			return;
 		}
-		// We read the data once from the CrustCrawler
+		// We read the data once per loop from the CrustCrawler
 		JointAngles currentJointAngles = _getJointAngles(currentInstructions.Mode);
-		Velocities currentJointVelocities = _getJointVelocities(currentInstructions.Mode);
 
 		// We convert our instructions to joint velocities
 		currentJointAngles.CovertTo(Radians);
 		Velocities desiredJointVelocities = _toJointVel(currentJointAngles, currentInstructions);
-		desiredJointVelocities.ConvertTo(RawsPerSec);
 
+#ifdef VELOCITY_CONTROL
+		// If we control our robot by velocity, we can then just set the joint velocities now,
+		// since the joints have their own control system
+		desiredJointVelocities.ConvertTo(RawsPerSec);
 		dynCon.setJointVelocity(desiredJointVelocities);
-				
-		// We take our desired and current joint velocities and calculate a correction velocity
+#endif // VELOCITY_CONTROL
+
+#ifdef PWM_CONTROL
+		// If we control our robot by PWM, then our robot has no internal control systems.
+		// We therefore need to control/regulate them ourselves.
+
+		// To control our robot we also need our current joint velocities
+		Velocities currentJointVelocities = _getJointVelocities(currentInstructions.Mode);
+		
+		// So we take our desired and current joint velocities and calculate our correction/error velocities
 		//desiredJointVelocities.ConvertTo(RadiansPerSec);
 		//Velocities correctionVelocities = conSys.Control(currentJointVelocities, desiredJointVelocities, deltaTime);
 
 		// Then we calculate our goal velocity - The inputs must be the same space type
-		//Velocities goalVelocities = correctionVelocities + currentJointVelocities;
+		Velocities goalVelocities = desiredJointVelocities;
 
 		// We compute our goal torques
-		//goalVelocities.ConvertTo(RadiansPerSec);
-		//JointTorques goalTorques = dyn.InverseDynamics(goalVelocities, deltaTime);
+		currentJointVelocities.ConvertTo(RadiansPerSec);
+		goalVelocities.ConvertTo(RadiansPerSec);
+		MotionSnapshot goalMotion = _toMotion(currentJointVelocities, goalVelocities, deltaTime);
+
+
+		JointTorques goalTorques = dyn.InverseDynamics(goalMotion);
 
 		// Send torque to joints
-		//dynCon.setJointPWM(goalTorques, correctionVelocities, currentJointAngles);
+		dynCon.setJointPWM(goalTorques, currentJointVelocities);
+#endif // PWM_CONTROL
 	}
 }
 
@@ -109,7 +122,6 @@ Velocities Controller::_getJointVelocities(ControlMode controlMode)
 
 Velocities Controller::_toJointVel(JointAngles& jointAngles, Package& instructions)
 {
-
 	Velocities instructionVelocities = _toVel(instructions);
 	Velocities instructionJointVelocities = _spaceConverter(jointAngles, instructionVelocities, JointSpace);
 	instructionJointVelocities.currentUnitType = RadiansPerSec;
@@ -129,8 +141,8 @@ Velocities Controller::_toVel(Package& instructions)
 	{
 	case Gripper: {
 		// Should probably map to the instruction speed
-		returnVelocities.velocities[4] = directionSign;
-		returnVelocities.velocities[5] = -1*directionSign;
+		returnVelocities.velocities[4] = -1*directionSign * speedMS;
+		returnVelocities.velocities[5] = directionSign * speedMS;
 		returnVelocities.currentSpaceType = JointSpace;
 		break;
 	}
@@ -140,17 +152,13 @@ Velocities Controller::_toVel(Package& instructions)
 		break;
 	}
 	case InOut: {
-		//returnVelocities.velocities[1] = directionSign * speedMS;
-		//returnVelocities.currentSpaceType = CartesianSpace;
-		returnVelocities.velocities[2] = directionSign * speedMS * _LinearToAngularRatio;
-		returnVelocities.currentSpaceType = JointSpace;
+		returnVelocities.velocities[1] = directionSign * speedMS;
+		returnVelocities.currentSpaceType = CartesianSpace;
 		break;
 	}
 	case UpDown: {
-		//returnVelocities.velocities[3] = directionSign * speedMS;
-		//returnVelocities.currentSpaceType = CartesianSpace;
-		returnVelocities.velocities[3] = directionSign * speedMS * _LinearToAngularRatio;
-		returnVelocities.currentSpaceType = JointSpace;
+		returnVelocities.velocities[3] = directionSign * speedMS;
+		returnVelocities.currentSpaceType = CartesianSpace;
 		break;
 	}
 	case Lock: {
@@ -236,3 +244,16 @@ Velocities Controller::_spaceConverter(JointAngles& jointAngles, Velocities& ins
 	returnVelocities.currentSpaceType = desiredSpace;
 	return returnVelocities;
 }
+
+MotionSnapshot Controller::_toMotion(Velocities& currentVelocities, Velocities& goalVelocities, double& deltaTime)
+{
+	MotionSnapshot returnMotionSnapshot;
+	returnMotionSnapshot.velocities = goalVelocities;
+
+	for (int i = 1; i < 6; i++) {
+		returnMotionSnapshot.positions.thetas[i] = Integrate(goalVelocities.velocities[i], returnMotionSnapshot.positions.thetas[i], deltaTime);
+		returnMotionSnapshot.acceleration.accelerations[i] = Differentiate(goalVelocities.velocities[i], currentVelocities.velocities[i], deltaTime);
+	}
+	return returnMotionSnapshot;
+}
+

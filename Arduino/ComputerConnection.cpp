@@ -15,15 +15,6 @@ Package ComputerConnection::getPackage()
 		{
 			// Byte is the same as unsigned char
 			DATA_SERIAL.readBytes(databuffer, 4);
-			Print<char*>("\nDatabuffer: ");
-			Print<int>((int)databuffer[0]);
-			Print<char*>(" ");
-			Print<int>((int)databuffer[1]);
-			Print<char*>(" ");
-			Print<int>((int)databuffer[2]);
-			Print<char*>(" ");
-			Print<int>((int)databuffer[3]);
-			Print<char*>(" ");
 			returnPackage.EmergencyStop = (bool)databuffer[0];
 			returnPackage.Mode = (ControlMode)databuffer[1];
 			returnPackage.Sign = (bool)databuffer[2];

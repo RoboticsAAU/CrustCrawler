@@ -51,6 +51,11 @@ struct Package
 	bool isUpdated;
 };
 
+struct JointTorques
+{
+	double torques[6] = { 0,0,0,0,0,0 };
+};
+
 struct JointAngles
 {
 	double thetas[6] = { 0,0,0,0,0,0 };
@@ -67,10 +72,6 @@ private:
 	void _typeConverter(JointAngles* inputAngles, AngleUnitType desiredUnit);
 };
 
-struct JointTorques
-{
-	double torques[6] = { 0,0,0,0,0,0 };
-};
 
 struct Velocities
 {
@@ -91,8 +92,13 @@ private:
 
 struct Accelerations {
 	double accelerations[6] = { 0,0,0,0,0,0 };
+};
 
-
+struct MotionSnapshot
+{
+	JointAngles positions;
+	Velocities velocities;
+	Accelerations acceleration;
 };
 
 struct Joint

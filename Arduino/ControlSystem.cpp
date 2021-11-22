@@ -36,3 +36,7 @@ double ControlSystem::_PID(double& desiredValue, double& currentValue, int&& ite
 
 	return (proportional + integral[iterator] + derivative);
 }
+
+bool ControlSystem::_isWithinAngleBoundaries(Joint& inputJoint, double inputAngle) {
+	return (inputAngle >= inputJoint.MinTheta) && (inputAngle <= inputJoint.MaxTheta);
+}

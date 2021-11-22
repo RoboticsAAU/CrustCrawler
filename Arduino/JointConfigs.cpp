@@ -11,8 +11,8 @@ Joint Joint5 = { 5, 10, 0.115, 1024, 1917, 885, MX28R }; //minTheta is 0.25*4095
 // Makes array indexing easier
 Joint* Joints[6] = { nullptr, &Joint1, &Joint2, &Joint3, &Joint4, &Joint5 };
 
-// Defines the threshold before we recognise that the joint is moving (unit = ??)
-int MovingThreshold = 5;
+// Defines the threshold before we recognise that the joint is moving in range 0 ~ 1023 (unit = 0.229 rpm)
+const int MovingThreshold = 5;
 
 // Unit = m/s
 const double MaxLinearVelocity = 0.15;
