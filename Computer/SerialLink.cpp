@@ -44,16 +44,20 @@ void SerialLink::sendData() {
     }
 #endif
 
-    // Then we try to send it, and only set isSent to true once the package is actually sent. 
-    //Notice that 1 is subtracted from package.size to avoid sending the terminating character
-    for (int i = 0; i < package.size() - 1; i++)
-    {
-        while (isSent != 1)
+
+    if ((std::chrono::steady_clock::now() - serialDelay) > std::chrono::milliseconds::duration(100)) {
+        // Then we try to send it, and only set isSent to true once the package is actually sent. 
+        //Notice that 1 is subtracted from package.size to avoid sending the terminating character
+        for (int i = 0; i < package.size() - 1; i++)
         {
-            // WriteSerialPort return true or false whether or not the package has been written.
-            isSent = Serial->writeChar(package.at(i));
+            while (isSent != 1)
+            {
+                // WriteSerialPort return true or false whether or not the package has been written.
+                isSent = Serial->writeChar(package.at(i));
+            }
+            isSent = 0;
         }
-        isSent = 0;
+        serialDelay = std::chrono::steady_clock::now();
     }
 
 }

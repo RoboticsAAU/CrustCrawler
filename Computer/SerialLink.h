@@ -79,6 +79,7 @@ private:
 	//Declaration of pointer to char array and variable to store baudrate. Both used to establish serial connection by serialib.h
 	char* comPort;
 	DWORD baudRate;
+	std::chrono::time_point<std::chrono::steady_clock> serialDelay = std::chrono::steady_clock::now();
 
 	//Variable used as a condition when sending data to arduino through serialib
 	int isSent;
