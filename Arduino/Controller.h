@@ -53,6 +53,10 @@ private:
 	// Converts currently only from cartesian to joint space
 	Velocities _spaceConverter(JointAngles& jointAngles, Velocities& instructionVelocities, SpaceType desiredSpace);
 
+	// Slows down the velocities when close to angle limits.
+	void breakVelocityAtLimit(JointAngles& jointAngles, Velocities& instructionJointVelocities);
+	double decelerationConstant = 0.25; // The lower this constant is, the faster the deceleration becomes.
+
 	// Returns a motion snapshot based on a desired goal velocity
 	//MotionSnapshot _toMotion(JointAngles& currentPositions, JointAngles& goalPositions, double& deltaTime);
 	//MotionSnapshot _toMotion(Velocities& currentVelocities, Velocities& goalVelocities, double& deltaTime);

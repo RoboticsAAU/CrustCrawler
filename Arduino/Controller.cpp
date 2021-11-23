@@ -151,6 +151,9 @@ Velocities Controller::_toJointVel(JointAngles& jointAngles, Package& instructio
 	Velocities instructionVelocities = _toVel(instructions);
 	Velocities instructionJointVelocities = _spaceConverter(jointAngles, instructionVelocities, JointSpace);
 	instructionJointVelocities.currentUnitType = RadiansPerSec;
+
+	//breakVelocityAtLimit(jointAngles, instructionJointVelocities);
+
 	return instructionJointVelocities;
 }
 
@@ -269,6 +272,25 @@ Velocities Controller::_spaceConverter(JointAngles& jointAngles, Velocities& ins
 	}
 	returnVelocities.currentSpaceType = desiredSpace;
 	return returnVelocities;
+}
+
+void Controller::breakVelocityAtLimit(JointAngles& jointAngles, Velocities& instructionJointVelocities){
+
+	for (int i = 1; i < 6; i++) {
+		if ((instructionJointVelocities.velocities[i] < 0) && (jointAngles.thetas[i] < Joints[i]->MinTheta)) {
+			double angleDiff = abs(jointAngles.thetas[i] - Joints[i]->MinTheta);
+			
+			instructionJointVelocities.velocities[i] = angleDiff / (angleDiff + decelerationConstant);
+		}
+		else if((instructionJointVelocities.velocities[i] > 0) && (jointAngles.thetas[i] > Joints[i]->MaxTheta)){
+			double angleDiff = abs(jointAngles.thetas[i] - Joints[i]->MaxTheta);
+
+			instructionJointVelocities.velocities[i] = angleDiff / (angleDiff + decelerationConstant);
+		}
+		else {
+			instructionJointVelocities.velocities[i] = 0;
+		}
+	}
 }
 
 /*
