@@ -91,7 +91,7 @@ void DynamixelConnection::setJointVelocity(Velocities& goalVelocities)
 
 void DynamixelConnection::setJointPWM(JointTorques& updateTorques, Velocities& currentVelocities)
 {
-	for (size_t i = 1; i < 6; i++)
+	for (size_t i = 1; i < 4; i++)
 	{
 		double jointPWM = _typeConverter(updateTorques.torques[i], currentVelocities.velocities[i], Joints[i]->ServoType, PWM);
 		bool set = dynamixel.setGoalPWM(Joints[i]->ID, jointPWM);
@@ -115,26 +115,34 @@ double DynamixelConnection::_typeConverter(double& variable, double& currentVel,
 }
 
 void DynamixelConnection::_getPWMConstants(double& desiredTorque, double& currentVel, ServoType& servoType) {
-	int constantPicker = copysign(1, (desiredTorque * currentVel));
+	
+	int constantPicker = 0;
 
+	//If the value is approximately equal to zero
+	if( !( abs(desiredTorque * currentVel) < 1e-6 ) ){
+		constantPicker = (int)copysign(1, (desiredTorque * currentVel));
+	}
 	switch(servoType) {
 	case MX28R: {
 		if (constantPicker < 0) { torqueConstant = 211.7; }
 		else if (constantPicker == 0) { torqueConstant = 427.4; }
 		else if (constantPicker > 0) { torqueConstant = 642.0; }
 		velocityConstant = 115.3;
+		break;
 	}
 	case MX64R: {
 		if (constantPicker < 0) { torqueConstant = 80.9; }
 		else if (constantPicker == 0) { torqueConstant = 152.7; }
 		else if (constantPicker > 0) { torqueConstant = 224.5; }
 		velocityConstant = 105.3;
+		break;
 	}
 	case MX106R: {
 		if (constantPicker < 0) { torqueConstant = 40.4; }
 		else if (constantPicker == 0) { torqueConstant = 83.9; }
 		else if (constantPicker > 0) { torqueConstant = 127.5; }
 		velocityConstant = 160.6;
+		break;
 	}
 	}
 }

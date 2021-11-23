@@ -10,18 +10,43 @@ Controller::Controller() : conSys(&comCon), dynCon(&comCon), dyn(&comCon) {
 
 void Controller::run()
 {
+	#ifdef DYNAMICS_TEST
+
+	JointAngles desiredAngles;
+	desiredAngles.thetas[2] = 20;
+	desiredAngles.currentUnitType = Degree;
+	desiredAngles.CovertTo(Radians);
+
+	//desiredAngles = dynCon.getJointAngles();
+
+	Velocities desiredJointVelocities;
+
+	Accelerations desiredAcceleration;
+
+	JointTorques torques;
+
+	torques = dyn.InverseDynamics(desiredAngles, desiredJointVelocities, desiredAcceleration);
+	
+	dynCon.setJointPWM(torques, desiredJointVelocities);
+
+	comCon.Print<char*>("\n");
+
+	return;
+	#endif // DYNAMICS_TEST
+
 	_updateDeltaTime();
 
 	// Get package sent from the computer 
 	Package currentInstructions = comCon.getPackage();
 	if (currentInstructions.isUpdated)
 	{
-		//Call emergency stop function if spacebar is pressed on the computer and quit the program.
+		// Call emergency stop function if spacebar is pressed on the computer.
 		if (currentInstructions.EmergencyStop)
 		{
 			dynCon.EmergencyStop();
 			return;
 		}
+
 		// We read the data once per loop from the CrustCrawler
 		JointAngles currentJointAngles = _getJointAngles(currentInstructions.Mode);
 
@@ -37,29 +62,30 @@ void Controller::run()
 #endif // VELOCITY_CONTROL
 
 #ifdef PWM_CONTROL
+
 		// If we control our robot by PWM, then our robot has no internal control systems.
 		// We therefore need to control/regulate them ourselves.
 
 		// To control our robot we also need our current joint velocities
 		Velocities currentJointVelocities = _getJointVelocities(currentInstructions.Mode);
 		
-		// So we take our desired and current joint velocities and calculate our correction/error velocities
-		//desiredJointVelocities.ConvertTo(RadiansPerSec);
-		//Velocities correctionVelocities = conSys.Control(currentJointVelocities, desiredJointVelocities, deltaTime);
+		// We take our desired and current joint velocities and calculate our correction/error velocities
+		Velocities errorVelocities = desiredJointVelocities - currentJointVelocities;
 
-		// Then we calculate our goal velocity - The inputs must be the same space type
-		Velocities goalVelocities = desiredJointVelocities;
+		// We calculate our torques from the control system
+		errorVelocities.ConvertTo(RadiansPerSec);
+		JointTorques controlTorques = conSys.Control(errorVelocities, currentJointAngles, deltaTime);
 
-		// We compute our goal torques
-		currentJointVelocities.ConvertTo(RadiansPerSec);
-		goalVelocities.ConvertTo(RadiansPerSec);
-		MotionSnapshot goalMotion = _toMotion(currentJointVelocities, goalVelocities, deltaTime);
+		// We calculate our static torques.
+		Accelerations zeroAcceleration;
+		JointTorques currentTorques = dyn.InverseDynamics(currentJointAngles, currentJointVelocities, zeroAcceleration);
 
 
-		JointTorques goalTorques = dyn.InverseDynamics(goalMotion);
+		JointTorques goalTorques = currentTorques;
 
-		// Send torque to joints
+		// We then send this goal torque to the joints
 		dynCon.setJointPWM(goalTorques, currentJointVelocities);
+
 #endif // PWM_CONTROL
 	}
 }
@@ -245,15 +271,18 @@ Velocities Controller::_spaceConverter(JointAngles& jointAngles, Velocities& ins
 	return returnVelocities;
 }
 
+/*
 MotionSnapshot Controller::_toMotion(Velocities& currentVelocities, Velocities& goalVelocities, double& deltaTime)
 {
 	MotionSnapshot returnMotionSnapshot;
+	// Since the input is a velocity, the output velocity must be the same as our goal velocity
 	returnMotionSnapshot.velocities = goalVelocities;
 
+	// We then compute the positions and accelerations required for this desired velocity.
 	for (int i = 1; i < 6; i++) {
 		returnMotionSnapshot.positions.thetas[i] = Integrate(goalVelocities.velocities[i], returnMotionSnapshot.positions.thetas[i], deltaTime);
 		returnMotionSnapshot.acceleration.accelerations[i] = Differentiate(goalVelocities.velocities[i], currentVelocities.velocities[i], deltaTime);
 	}
 	return returnMotionSnapshot;
 }
-
+*/

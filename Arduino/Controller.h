@@ -14,6 +14,8 @@
 #include "ControlSystem.h"
 #include "CalculusOperations.h"
 
+#define DYNAMICS_TEST
+
 
 class Controller : public CalculusOperations
 {
@@ -51,9 +53,9 @@ private:
 	// Converts currently only from cartesian to joint space
 	Velocities _spaceConverter(JointAngles& jointAngles, Velocities& instructionVelocities, SpaceType desiredSpace);
 
-	// 
+	// Returns a motion snapshot based on a desired goal velocity
 	//MotionSnapshot _toMotion(JointAngles& currentPositions, JointAngles& goalPositions, double& deltaTime);
-	MotionSnapshot _toMotion(Velocities& currentVelocities, Velocities& goalVelocities, double& deltaTime);
+	//MotionSnapshot _toMotion(Velocities& currentVelocities, Velocities& goalVelocities, double& deltaTime);
 	//MotionSnapshot _toMotion(Accelerations& currentAccelerations, Accelerations& goalAccelrations, double& deltaTime);
 };
 

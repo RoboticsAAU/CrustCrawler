@@ -54,6 +54,11 @@ struct Package
 struct JointTorques
 {
 	double torques[6] = { 0,0,0,0,0,0 };
+
+	JointTorques operator+=(const JointTorques& addequal);
+	JointTorques operator+(const JointTorques& add);
+	JointTorques operator-=(const JointTorques& subtractequal);
+	JointTorques operator-(const JointTorques& subtract);
 };
 
 struct JointAngles
@@ -94,17 +99,9 @@ struct Accelerations {
 	double accelerations[6] = { 0,0,0,0,0,0 };
 };
 
-struct MotionSnapshot
-{
-	JointAngles positions;
-	Velocities velocities;
-	Accelerations acceleration;
-};
-
 struct Joint
 {
 	unsigned int ID;
-	double Mass;
 	double Length;
 	int MinTheta, MaxTheta;
 	int PWMlimit;

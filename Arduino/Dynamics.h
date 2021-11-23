@@ -11,7 +11,7 @@ class Dynamics
 {
 public:
 	Dynamics(ComputerConnection* pointer);
-	JointTorques InverseDynamics(MotionSnapshot& snapshot);
+	JointTorques InverseDynamics(JointAngles& positions, Velocities& velocities, Accelerations& accelerations);
 private:
 	ComputerConnection* pComCon;
 };

@@ -1,35 +1,42 @@
 #include "ControlSystem.h"
 ControlSystem::ControlSystem(ComputerConnection* pointer) : pComCon(pointer) {}
 
-Velocities ControlSystem::Control(Velocities& currentJointVel, Velocities& desiredJointVel, double& deltaTime)
+JointTorques ControlSystem::Control(Velocities& errorVelocities, JointAngles& currentAngles, double& deltaTime)
 {
-	if (currentJointVel.currentUnitType != desiredJointVel.currentUnitType)
-	{
-		currentJointVel.ConvertTo(desiredJointVel.currentUnitType);
-	}
-	Velocities returnVelocities;
+	if (errorVelocities.currentUnitType != RadiansPerSec) {	errorVelocities.ConvertTo(RadiansPerSec); }
+	JointTorques returnJointTorques;
 	for (size_t i = 1; i < 6; i++)
 	{
-		returnVelocities.velocities[i] = _PID(desiredJointVel.velocities[i], currentJointVel.velocities[i], Joints[i]->ID, deltaTime);
+		// Error handling
+		/*
+		if (!_isWithinAngleBoundaries(*Joints[i], currentAngles.thetas[i]))
+		{
+			double _boundaryMidPoint = (Joints[i]->MaxTheta + Joints[i]->MinTheta) / 2;
+			returnJointTorques.torques[i] = currentAngles.thetas[i] > _boundaryMidPoint ? -0.8 * Joints[i]->PWMlimit : 0.8 * Joints[i]->PWMlimit;
+			continue;
+		}
+		*/
+
+		// Regulating
+		returnJointTorques.torques[i] = _PID(errorVelocities.velocities[i], i, deltaTime);
 	}
-	returnVelocities.currentUnitType = currentJointVel.currentUnitType;
-	returnVelocities.currentSpaceType = currentJointVel.currentSpaceType;
-	return returnVelocities;
+	return returnJointTorques;
 }
 
-double ControlSystem::_PID(double& desiredValue, double& currentValue, int&& iterator, double& deltaTime){
+double ControlSystem::_PID(double& error, int&& iterator, double& deltaTime){
 	double Kp{ 0.7 }, Ki{ 0.001 }, Kd{ 0.05 };
-	double error = desiredValue - currentValue;
 	
 	double proportional = Kp * error;
-	if (currentValue > 0.98 * desiredValue || currentValue < 1.02 * desiredValue)
-	{
+
+	/*
+	if (error > -0.02 && error < 0.02) {
 		integral[iterator] = Ki * Integrate(error, integral[iterator], deltaTime);
 	}
-	else if (currentValue < 0.3 * desiredValue || currentValue > 1.7 * desiredValue)
-	{
+	else {
 		integral[iterator] = 0;
 	}
+	*/
+
 	double derivative = Kd * Differentiate(error, lastError[iterator], deltaTime);
 	
 	lastError[iterator] = error;

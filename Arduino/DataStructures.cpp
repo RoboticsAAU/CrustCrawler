@@ -200,3 +200,42 @@ void Velocities::_typeConverter(Velocities* inputVelocities, VelocityUnitType de
 	inputVelocities->currentUnitType = desiredUnit;
 }
 
+JointTorques JointTorques::operator+=(const JointTorques& addequal)
+{
+	JointTorques returnTorques;
+	for (size_t i = 1; i < 6; i++)
+	{
+		returnTorques.torques[i] += addequal.torques[i];
+	}
+	return returnTorques;
+}
+
+JointTorques JointTorques::operator+(const JointTorques& add)
+{
+	JointTorques returnTorques;
+	for (size_t i = 1; i < 6; i++)
+	{
+		returnTorques.torques[i] = this->torques[i] + add.torques[i];
+	}
+	return returnTorques;
+}
+
+JointTorques JointTorques::operator-=(const JointTorques& subtractequal)
+{
+	JointTorques returnTorques;
+	for (size_t i = 1; i < 6; i++)
+	{
+		returnTorques.torques[i] -= subtractequal.torques[i];
+	}
+	return returnTorques;
+}
+
+JointTorques JointTorques::operator-(const JointTorques& subtract)
+{
+	JointTorques returnTorques;
+	for (size_t i = 1; i < 6; i++)
+	{
+		returnTorques.torques[i] = this->torques[i] - subtract.torques[i];
+	}
+	return returnTorques;
+}

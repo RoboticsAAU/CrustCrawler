@@ -2,7 +2,7 @@
 
 ComputerConnection::ComputerConnection()
 {
-	DEBUG_SERIAL.begin(57600);
+	DEBUG_SERIAL.begin(115200);
 	DATA_SERIAL.begin(57600);
 }
 

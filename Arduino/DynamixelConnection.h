@@ -37,7 +37,5 @@ private:
 	double _typeConverter(double& variable, double& currentVel, ServoType& servoType, OutputType type);
 	void _getPWMConstants(double& desiredTorque, double& currentVel, ServoType& servoType);
 	double torqueConstant, velocityConstant;
-	bool _isWithinAngleBoundaries(Joint& inputJoint, double inputAngle);
-
 };
 
