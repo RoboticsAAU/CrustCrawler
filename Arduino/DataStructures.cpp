@@ -48,7 +48,7 @@ JointAngles JointAngles::operator-=(const JointAngles& subtractequal) {
 	}
 }
 
-void JointAngles::CovertTo(AngleUnitType newType)
+void JointAngles::ConvertTo(AngleUnitType newType)
 {
 	_typeConverter(this, newType);
 }

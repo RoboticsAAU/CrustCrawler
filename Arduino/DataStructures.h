@@ -66,7 +66,7 @@ struct JointAngles
 	double thetas[6] = { 0,0,0,0,0,0 };
 	AngleUnitType currentUnitType;
 
-	void CovertTo(AngleUnitType newType);
+	void ConvertTo(AngleUnitType newType);
 
 	JointAngles operator+=(const JointAngles& addequal);
 	JointAngles operator+(const JointAngles& add);

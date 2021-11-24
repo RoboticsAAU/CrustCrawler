@@ -14,8 +14,7 @@
 #include "ControlSystem.h"
 #include "CalculusOperations.h"
 
-#define DYNAMICS_TEST
-
+//#define DYNAMICS_TEST
 
 class Controller : public CalculusOperations
 {
@@ -55,7 +54,8 @@ private:
 
 	// Slows down the velocities when close to angle limits.
 	void breakVelocityAtLimit(JointAngles& jointAngles, Velocities& instructionJointVelocities);
-	double decelerationConstant = 0.25; // The lower this constant is, the faster the deceleration becomes.
+	double decelerationConstant = 0.25; // The lower this constant is, the faster the decelerationdjakdass becomes.
+	double BreakingThreshold = 10; // Raws
 
 	// Returns a motion snapshot based on a desired goal velocity
 	//MotionSnapshot _toMotion(JointAngles& currentPositions, JointAngles& goalPositions, double& deltaTime);

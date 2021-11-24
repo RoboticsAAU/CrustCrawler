@@ -5,6 +5,7 @@ JointTorques ControlSystem::Control(Velocities& errorVelocities, JointAngles& cu
 {
 	if (errorVelocities.currentUnitType != RadiansPerSec) {	errorVelocities.ConvertTo(RadiansPerSec); }
 	JointTorques returnJointTorques;
+	// double correctedValues[6]; 
 	for (size_t i = 1; i < 6; i++)
 	{
 		// Error handling
@@ -12,9 +13,12 @@ JointTorques ControlSystem::Control(Velocities& errorVelocities, JointAngles& cu
 		if (!_isWithinAngleBoundaries(*Joints[i], currentAngles.thetas[i]))
 		{
 			double _boundaryMidPoint = (Joints[i]->MaxTheta + Joints[i]->MinTheta) / 2;
-			returnJointTorques.torques[i] = currentAngles.thetas[i] > _boundaryMidPoint ? -0.8 * Joints[i]->PWMlimit : 0.8 * Joints[i]->PWMlimit;
-			continue;
+			errorVelocities.velocities[i] = currentAngles.thetas[i] > _boundaryMidPoint ? -constant : constant;
 		}
+		else if (_isWithinBreakingThreshold(*Joints[i], currentAngles.thetas[i])){
+			
+		}
+
 		*/
 
 		// Regulating
