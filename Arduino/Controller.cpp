@@ -25,11 +25,10 @@ void Controller::run()
 
 	JointTorques torques;
 
-	torques = dyn.InverseDynamics(desiredAngles, desiredJointVelocities, desiredAcceleration);
+	//torques = dyn.InverseDynamics(desiredAngles, desiredJointVelocities, desiredAcceleration);
 	
 	dynCon.setJointPWM(torques, desiredJointVelocities);
 
-	comCon.Print<char*>("\n");
 
 	return;
 	#endif // DYNAMICS_TEST
@@ -49,15 +48,39 @@ void Controller::run()
 
 		// We read the data once per loop from the CrustCrawler
 		JointAngles currentJointAngles = _getJointAngles(currentInstructions.Mode);
+		comCon.Print<char*>("\nCurrent Joint Angles:");
+		comCon.Print<double>(currentJointAngles.thetas[1]);
+		comCon.Print<char*>(" ");
+		comCon.Print<double>(currentJointAngles.thetas[2]);
+		comCon.Print<char*>(" ");
+		comCon.Print<double>(currentJointAngles.thetas[3]);
+		comCon.Print<char*>(" ");
+
 
 		// We convert our instructions to joint velocities
 		currentJointAngles.ConvertTo(Radians);
 		Velocities desiredJointVelocities = _toJointVel(currentJointAngles, currentInstructions);
 
+		Velocities currentJointVelocities = _getJointVelocities(currentInstructions.Mode);
+		comCon.Print<char*>("\nCurrent joint velocities:");
+		comCon.Print<double>(currentJointVelocities.velocities[1]);
+		comCon.Print<char*>(" ");
+		comCon.Print<double>(currentJointVelocities.velocities[2]);
+		comCon.Print<char*>(" ");
+		comCon.Print<double>(currentJointVelocities.velocities[3]);
+		comCon.Print<char*>(" ");
+
 #ifdef VELOCITY_CONTROL
 		// If we control our robot by velocity, we can then just set the joint velocities now,
 		// since the joints have their own control system
-		desiredJointVelocities.ConvertTo(RawsPerSec);
+		desiredJointVelocities.ConvertTo(RPM);
+		comCon.Print<char*>("\nDesired joint velocities:");
+		comCon.Print<double>(desiredJointVelocities.velocities[1]);
+		comCon.Print<char*>(" ");
+		comCon.Print<double>(desiredJointVelocities.velocities[2]);
+		comCon.Print<char*>(" ");
+		comCon.Print<double>(desiredJointVelocities.velocities[3]);
+		comCon.Print<char*>(" ");
 		dynCon.setJointVelocity(desiredJointVelocities);
 #endif // VELOCITY_CONTROL
 
@@ -87,6 +110,8 @@ void Controller::run()
 		dynCon.setJointPWM(goalTorques, currentJointVelocities);
 
 #endif // PWM_CONTROL
+		// Add delay to get fixed loop time
+		comCon.Print<char*>("\n");
 	}
 }
 
@@ -152,7 +177,7 @@ Velocities Controller::_toJointVel(JointAngles& jointAngles, Package& instructio
 	Velocities instructionJointVelocities = _spaceConverter(jointAngles, instructionVelocities, JointSpace);
 	instructionJointVelocities.currentUnitType = RadiansPerSec;
 
-	//breakVelocityAtLimit(jointAngles, instructionJointVelocities);
+	breakVelocityAtLimit(jointAngles, instructionJointVelocities);
 
 	return instructionJointVelocities;
 }
@@ -299,7 +324,7 @@ void Controller::breakVelocityAtLimit(JointAngles& jointAngles, Velocities& inst
 
 			// If minDiff was negative, then we are outside the limits and need to regulate by a constant value till we are back inside the limits      
 			if ( minDiff < 0){
-				instructionJointVelocities.velocities[1] = 0.2;
+				instructionJointVelocities.velocities[1] = 10;
 				jointAngles.ConvertTo(Radians);
 				return;
 			}
@@ -313,7 +338,7 @@ void Controller::breakVelocityAtLimit(JointAngles& jointAngles, Velocities& inst
 
 			// If maxDiff was negative, then we are outside the limits and need to regulate by a constant value till we are back inside the limits     
 			if (maxDiff < 0) {
-				instructionJointVelocities.velocities[1] = -0.2;
+				instructionJointVelocities.velocities[1] = -10;
 				jointAngles.ConvertTo(Radians);
 				return;
 			}
@@ -331,7 +356,7 @@ void Controller::breakVelocityAtLimit(JointAngles& jointAngles, Velocities& inst
 
 			// If minDiff was negative, then we are outside the limits and need to regulate by a constant value till we are back inside the limits      
 			if (minDiff < 0) {
-				instructionJointVelocities.velocities[2] = 0.2;
+				instructionJointVelocities.velocities[2] = 10;
 				jointAngles.ConvertTo(Radians);
 			}
 			else {
@@ -345,7 +370,7 @@ void Controller::breakVelocityAtLimit(JointAngles& jointAngles, Velocities& inst
 
 			// If maxDiff was negative, then we are outside the limits and need to regulate by a constant value till we are back inside the limits     
 			if (maxDiff < 0) {
-				instructionJointVelocities.velocities[2] = -0.2;
+				instructionJointVelocities.velocities[2] = -10;
 				jointAngles.ConvertTo(Radians);
 				return;
 			}
@@ -364,7 +389,7 @@ void Controller::breakVelocityAtLimit(JointAngles& jointAngles, Velocities& inst
 
 			// If minDiff was negative, then we are outside the limits and need to regulate by a constant value till we are back inside the limits      
 			if (minDiff < 0) {
-				instructionJointVelocities.velocities[3] = 0.2;
+				instructionJointVelocities.velocities[3] = 10;
 				jointAngles.ConvertTo(Radians);
 				return;
 			}
@@ -379,7 +404,7 @@ void Controller::breakVelocityAtLimit(JointAngles& jointAngles, Velocities& inst
 
 			// If maxDiff was negative, then we are outside the limits and need to regulate by a constant value till we are back inside the limits     
 			if (maxDiff < 0) {
-				instructionJointVelocities.velocities[3] = -0.2;
+				instructionJointVelocities.velocities[3] = -10;
 				jointAngles.ConvertTo(Radians);
 				return;
 			}
@@ -399,7 +424,7 @@ void Controller::breakVelocityAtLimit(JointAngles& jointAngles, Velocities& inst
 
 			// If minDiff was negative, then we are outside the limits and need to regulate by a constant value till we are back inside the limits      
 			if (minDiff < 0) {
-				instructionJointVelocities.velocities[4] = 0.2;
+				instructionJointVelocities.velocities[4] = 10;
 				jointAngles.ConvertTo(Radians);
 				return;
 			}
@@ -413,7 +438,7 @@ void Controller::breakVelocityAtLimit(JointAngles& jointAngles, Velocities& inst
 
 			// If maxDiff was negative, then we are outside the limits and need to regulate by a constant value till we are back inside the limits     
 			if (maxDiff < 0) {
-				instructionJointVelocities.velocities[4] = -0.2;
+				instructionJointVelocities.velocities[4] = -10;
 				jointAngles.ConvertTo(Radians);
 				return;
 			}
@@ -431,7 +456,7 @@ void Controller::breakVelocityAtLimit(JointAngles& jointAngles, Velocities& inst
 
 			// If minDiff was negative, then we are outside the limits and need to regulate by a constant value till we are back inside the limits      
 			if (minDiff < 0) {
-				instructionJointVelocities.velocities[5] = 0.2;
+				instructionJointVelocities.velocities[5] = 10;
 				jointAngles.ConvertTo(Radians);
 				return;
 			}
@@ -445,7 +470,7 @@ void Controller::breakVelocityAtLimit(JointAngles& jointAngles, Velocities& inst
 
 			// If maxDiff was negative, then we are outside the limits and need to regulate by a constant value till we are back inside the limits     
 			if (maxDiff < 0) {
-				instructionJointVelocities.velocities[5] = -0.2;
+				instructionJointVelocities.velocities[5] = -10;
 				jointAngles.ConvertTo(Radians);
 				return;
 			}
@@ -458,18 +483,3 @@ void Controller::breakVelocityAtLimit(JointAngles& jointAngles, Velocities& inst
 	jointAngles.ConvertTo(Radians);
 }
 
-/*
-MotionSnapshot Controller::_toMotion(Velocities& currentVelocities, Velocities& goalVelocities, double& deltaTime)
-{
-	MotionSnapshot returnMotionSnapshot;
-	// Since the input is a velocity, the output velocity must be the same as our goal velocity
-	returnMotionSnapshot.velocities = goalVelocities;
-
-	// We then compute the positions and accelerations required for this desired velocity.
-	for (int i = 1; i < 6; i++) {
-		returnMotionSnapshot.positions.thetas[i] = Integrate(goalVelocities.velocities[i], returnMotionSnapshot.positions.thetas[i], deltaTime);
-		returnMotionSnapshot.acceleration.accelerations[i] = Differentiate(goalVelocities.velocities[i], currentVelocities.velocities[i], deltaTime);
-	}
-	return returnMotionSnapshot;
-}
-*/

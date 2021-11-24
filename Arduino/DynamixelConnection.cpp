@@ -70,7 +70,7 @@ Velocities DynamixelConnection::getJointVelocities()
 
 double DynamixelConnection::getJointVelocity(unsigned int& jointID)
 {
-	return dynamixel.getPresentVelocity(jointID, ParamUnit::UNIT_RAW);
+	return dynamixel.getPresentVelocity(jointID, ParamUnit::UNIT_RPM);
 }
 
 void DynamixelConnection::EmergencyStop()
@@ -85,7 +85,7 @@ void DynamixelConnection::setJointVelocity(Velocities& goalVelocities)
 {
 	for (size_t i = 1; i < 6; i++)
 	{
-		bool set = dynamixel.setGoalVelocity(Joints[i]->ID, goalVelocities.velocities[i], ParamUnit::UNIT_RAW);
+		bool set = dynamixel.setGoalVelocity(Joints[i]->ID, goalVelocities.velocities[i], ParamUnit::UNIT_RPM);
 	}
 }
 

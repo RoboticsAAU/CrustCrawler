@@ -163,35 +163,40 @@ void Velocities::_typeConverter(Velocities* inputVelocities, VelocityUnitType de
 
 	switch (desiredUnit) {
 	case DegreesPerSec: {
-		if (inputVelocities->currentUnitType == RadiansPerSec) {
-			conversionConstant = 360 / (2 * M_PI);
-			break;
+		switch (inputVelocities->currentUnitType)
+		{
+		case RadiansPerSec: conversionConstant = 360 / (2 * M_PI); break;
+		case RawsPerSec: conversionConstant = 360 / 4095; break;
+		case RPM: conversionConstant = 360 / 60; break;
 		}
-		if (inputVelocities->currentUnitType == RawsPerSec) {
-			conversionConstant = 360 / 4095;
-			break;
-		}
+		break;
 	}
 	case RadiansPerSec: {
-		if (inputVelocities->currentUnitType == DegreesPerSec) {
-			conversionConstant = (2 * M_PI) / 360;
-			break;
+		switch (inputVelocities->currentUnitType)
+		{
+		case DegreesPerSec: conversionConstant = (2 * M_PI) / 360; break;
+		case RawsPerSec: conversionConstant = (2 * M_PI) / 4095; break;
+		case RPM: conversionConstant = (2 * M_PI) / 60; break;
 		}
-		if (inputVelocities->currentUnitType == RawsPerSec) {
-			conversionConstant = (2 * M_PI) / 4095;
-			break;
-		}
+		break;
 	}
 	case RawsPerSec: {
-		if (inputVelocities->currentUnitType == DegreesPerSec) {
-			conversionConstant = 4095 / 360;
-			break;
+		switch (inputVelocities->currentUnitType)
+		{
+		case DegreesPerSec: conversionConstant = 4095 / 360; break;
+		case RadiansPerSec: conversionConstant = 4095 / (2 * M_PI); break;
+		case RPM: conversionConstant = 4095 / 60; break;
 		}
-		if (inputVelocities->currentUnitType == RadiansPerSec) {
-			conversionConstant = 4095 / (2 * M_PI);
-			break;
-		}
+		break;
 	}
+	case RPM:
+		switch (inputVelocities->currentUnitType)
+		{
+		case DegreesPerSec: conversionConstant = 60 / 360; break;
+		case RadiansPerSec: conversionConstant = 60 / (2 * M_PI); break;
+		case RawsPerSec: conversionConstant = 60 / 4095; break;
+		}
+		break;
 	}
 	for (size_t i = 1; i < 6; i++)
 	{

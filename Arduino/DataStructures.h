@@ -12,7 +12,8 @@ enum VelocityUnitType
 {
 	DegreesPerSec,
 	RadiansPerSec,
-	RawsPerSec
+	RawsPerSec,
+	RPM
 };
 
 enum OutputType
