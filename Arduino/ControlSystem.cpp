@@ -49,5 +49,5 @@ double ControlSystem::_PID(double& error, int&& iterator, double& deltaTime){
 }
 
 bool ControlSystem::_isWithinAngleBoundaries(Joint& inputJoint, double inputAngle) {
-	return (inputAngle >= inputJoint.MinTheta) && (inputAngle <= inputJoint.MaxTheta);
+	return (inputAngle > inputJoint.MinTheta) && (inputAngle < inputJoint.MaxTheta);
 }
