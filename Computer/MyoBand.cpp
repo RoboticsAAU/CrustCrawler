@@ -19,7 +19,7 @@ MyoBand::MyoBand() : onArm(false), isUnlocked(false), isPaired(true) {
         
         //We enable the EMG stream
         pMyo->setStreamEmg(myo::Myo::streamEmgEnabled);
-
+        
         //Since we have 8 channels we reserve 8 elements in emgSamples
         emgSamples.reserve(8);
         emgSamples.insert(emgSamples.begin(), 8, 0);
@@ -92,6 +92,10 @@ void MyoBand::onPose(myo::Myo* myo, uint64_t timestamp, myo::Pose pose) {
 
 void MyoBand::onEmgData(myo::Myo* myo, uint64_t timestamp, const int8_t* emg) {
     emgSamples.assign(emg, emg + 8);
+}
+
+void MyoBand::notifyUser(){
+    pMyo->notifyUserAction();
 }
 
 #ifdef _DEBUG

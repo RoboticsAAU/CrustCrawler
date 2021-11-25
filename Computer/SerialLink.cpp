@@ -254,6 +254,10 @@ void SerialLink::getMode() {
         }
     }
    
+    if (controlMode != previousControlMode) {
+        pMyoBand->notifyUser();
+    }
+
     //After updating the controlMode above, we assign the mode to the corresponding package variable
     Mode = controlMode;
 

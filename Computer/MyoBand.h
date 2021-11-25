@@ -61,7 +61,8 @@ public:
     void onArmUnsync(myo::Myo* myo, uint64_t timestamp) override;
 
     void onPose(myo::Myo* myo, uint64_t timestamp, myo::Pose pose) override;
-    void onEmgData(myo::Myo* myo, uint64_t timestamp, const int8_t* emg) override;         
+    void onEmgData(myo::Myo* myo, uint64_t timestamp, const int8_t* emg) override; 
+    void notifyUser();
 };
 
 #endif 
