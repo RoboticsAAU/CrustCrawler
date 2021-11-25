@@ -14,7 +14,7 @@ Controller* controller;
 
 // the setup function runs once when you press reset or power the board
 void setup() {
-	delay(4000);
+	delay(3000);
 	controller = new Controller();
 }
 

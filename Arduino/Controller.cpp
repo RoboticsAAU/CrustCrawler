@@ -47,7 +47,7 @@ void Controller::run()
 		}
 
 		// We read the data once per loop from the CrustCrawler
-		JointAngles currentJointAngles = _getJointAngles(currentInstructions.Mode);
+		JointAngles currentJointAngles = _getJointAngles(currentInstructions.Mode);		
 		comCon.Print<char*>("\nCurrent Joint Angles:");
 		comCon.Print<double>(currentJointAngles.thetas[1]);
 		comCon.Print<char*>(" ");
@@ -55,7 +55,10 @@ void Controller::run()
 		comCon.Print<char*>(" ");
 		comCon.Print<double>(currentJointAngles.thetas[3]);
 		comCon.Print<char*>(" ");
-
+		comCon.Print<double>(currentJointAngles.thetas[4]);
+		comCon.Print<char*>(" ");
+		comCon.Print<double>(currentJointAngles.thetas[5]);
+		comCon.Print<char*>(" ");
 
 		// We convert our instructions to joint velocities
 		currentJointAngles.ConvertTo(Radians);
@@ -68,6 +71,10 @@ void Controller::run()
 		comCon.Print<double>(currentJointVelocities.velocities[2]);
 		comCon.Print<char*>(" ");
 		comCon.Print<double>(currentJointVelocities.velocities[3]);
+		comCon.Print<char*>(" ");
+		comCon.Print<double>(currentJointVelocities.velocities[4]);
+		comCon.Print<char*>(" ");
+		comCon.Print<double>(currentJointVelocities.velocities[5]);
 		comCon.Print<char*>(" ");
 
 #ifdef VELOCITY_CONTROL
@@ -292,19 +299,28 @@ Velocities Controller::_spaceConverter(JointAngles& jointAngles, Velocities& ins
 	}
 
 	for (size_t i = 1; i < 4; i++)
-	{
+	{	
 		returnVelocities.velocities[i] = velocityVectorFrame0W(i - 1, 0);
+	}
+
+	if (0.33 < returnVelocities.velocities[2] && 0.34 > returnVelocities.velocities[2] ||
+		0.33 < returnVelocities.velocities[3] && 0.34 > returnVelocities.velocities[3]) {
+		double _determinant = getDeterminant(jacobian);
 	}
 	returnVelocities.currentSpaceType = desiredSpace;
 	return returnVelocities;
 }
 
+double Controller::getDeterminant(BLA::Matrix<3, 3> matrix) {
+	return matrix(0, 0) * (matrix(1, 1) * matrix(2, 2) - matrix(1, 2) * matrix(2, 1)) - 
+		   matrix(0, 1) * (matrix(1, 0) * matrix(2, 2) - matrix(1, 2) * matrix(2, 0)) + 
+		   matrix(0, 2) * (matrix(1, 0) * matrix(2, 1) - matrix(1, 1) * matrix(2, 0));
+}
+
 void Controller::breakVelocitiesAtLimit(JointAngles& jointAngles, Velocities& instructionJointVelocities) {
 	double angleDiff = 0;
-	bool flag[6];
+	bool flag[6] = { 0,0,0,0,0,0 };
 	jointAngles.ConvertTo(Raw);
-
-	for (int i = 1; i < 6; i++) flag[i] = false; // Setting all flags to false
 
 	for (int i = 1; i < 6; i++) {
 		// If the i'th joint is close to the lower angle limit and we are going towards the limit
@@ -328,18 +344,23 @@ void Controller::breakVelocitiesAtLimit(JointAngles& jointAngles, Velocities& in
 			flag[i] = true;
 		}
 
-		// If the flag of the i'th velocity is true, meaning that joint is breaking
+	}
+
+	// If the flag of the i'th velocity is true, meaning that joint is breaking
+	for (int i = 1; i < 6; i++) {
 		if (flag[i]) {
-			// If it is an uneven joint number and it is above 1, meaning either i=3 or i=5
-			if ((i % 2) && i > 1) {
-				// We break the velocity of the previous joint
-				breakVelocity(instructionJointVelocities.velocities[i - 1], angleDiff);
-			}
-			// If it is an even joint number and it is above 1, meaning either i=2 or i=4
-			else if (!(i % 2) && i > 1) {
-				// We break the velocity of the next joint
-				breakVelocity(instructionJointVelocities.velocities[i + 1], angleDiff);
-				i++;
+			switch (i) {
+			case 1: break;
+			case 2: case 4:
+				if (!flag[i + 1]) {
+					breakVelocity(instructionJointVelocities.velocities[i + 1], angleDiff);
+					break;
+				}
+			case 3: case 5:
+				if (!flag[i - 1]) {
+					breakVelocity(instructionJointVelocities.velocities[i - 1], angleDiff);
+					break;
+				}
 			}
 		}
 	}

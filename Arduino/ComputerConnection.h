@@ -18,7 +18,7 @@ public:
 
 	template <class dataType>
 	void Print(dataType data) {
-		DEBUG_SERIAL.print(data);
+		DEBUG_SERIAL.print(data);		
 	}
 private:
 	byte databuffer[4];
