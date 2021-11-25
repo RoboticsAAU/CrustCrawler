@@ -21,6 +21,6 @@ private:
 	double lastError[6];
 
 	bool _isWithinAngleBoundaries(Joint& inputJoint, double inputAngle);
-
+	Velocities _alignFingers(JointAngles& jointAngles);
 };
 
