@@ -53,9 +53,9 @@ private:
 	Velocities _spaceConverter(JointAngles& jointAngles, Velocities& instructionVelocities, SpaceType desiredSpace);
 
 	// Slows down the velocities when close to angle limits.
-	void breakVelocityAtLimit(JointAngles& jointAngles, Velocities& instructionJointVelocities);
-	double decelerationConstant = 0.25; // The lower this constant is, the faster the decelerationdjakdass becomes.
-	double BreakingThreshold = 10; // Raws
+	void breakVelocitiesAtLimit(JointAngles& jointAngles, Velocities& instructionJointVelocities);
+	void breakVelocity(double& velocity, double angleDiff);
+	double limitBoundary = 46; //Raw
 
 	// Returns a motion snapshot based on a desired goal velocity
 	//MotionSnapshot _toMotion(JointAngles& currentPositions, JointAngles& goalPositions, double& deltaTime);
