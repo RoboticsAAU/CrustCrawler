@@ -5,9 +5,14 @@ JointTorques ControlSystem::Control(Velocities& errorVelocities, JointAngles& cu
 {
 	if (errorVelocities.currentUnitType != RadiansPerSec) {	errorVelocities.ConvertTo(RadiansPerSec); }
 	JointTorques returnJointTorques;
+	errorVelocities;
 	// double correctedValues[6]; 
 	for (size_t i = 1; i < 6; i++)
 	{
+		if (i >= 4) {
+			// We add the correction of the fingers, in order to mirror them in each other. 
+			errorVelocities.velocities[i] += _alignFingers(currentAngles).velocities[i];
+		}
 		// Error handling
 		/*
 		if (!_isWithinAngleBoundaries(*Joints[i], currentAngles.thetas[i]))
@@ -50,4 +55,25 @@ double ControlSystem::_PID(double& error, int&& iterator, double& deltaTime){
 
 bool ControlSystem::_isWithinAngleBoundaries(Joint& inputJoint, double inputAngle) {
 	return (inputAngle > inputJoint.MinTheta) && (inputAngle < inputJoint.MaxTheta);
+}
+
+Velocities ControlSystem::_alignFingers(JointAngles& currentJointAngles) {
+
+	if (!currentJointAngles.currentUnitType == Radians) {
+		currentJointAngles.ConvertTo(Radians);
+	}
+
+	//Both fingers have the same zero point, and positive rotation direction, meaning that one angle is 3/4 ticks larger than the other. 
+	//Therefore we rotate their zero point to be at where the gripper is open, and calculate the difference between them from this point. 
+	double angleDifference = currentJointAngles.thetas[5] - M_PI_2 + currentJointAngles.thetas[4] - 3*M_PI_2;
+
+	//needs to be in 1/s.
+	double Kp = 1;
+
+	Velocities gripperVelocities;
+
+	gripperVelocities.velocities[4] = -Kp * angleDifference;
+	gripperVelocities.velocities[5] = Kp * angleDifference;
+
+	return gripperVelocities;
 }

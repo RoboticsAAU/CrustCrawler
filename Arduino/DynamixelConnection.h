@@ -11,8 +11,8 @@
 #include "JointConfigs.h"
 #include "ComputerConnection.h"
 
-#define VELOCITY_CONTROL
-//#define PWM_CONTROL
+//#define VELOCITY_CONTROL
+#define PWM_CONTROL
 #define DYNAMIXEL_SERIAL Serial
 const int DirectionPin{ 2 };
 
@@ -30,6 +30,7 @@ public:
 
 	void setJointVelocity(Velocities& goalVelocities);
 	void setJointPWM(JointTorques& updateTorques, Velocities& currentVelocities);
+	//void setGripperPWM(JointTorques& );
 private:
 	Dynamixel2Arduino dynamixel;
 	ComputerConnection* pComCon;

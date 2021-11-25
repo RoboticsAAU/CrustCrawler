@@ -57,6 +57,8 @@ private:
 	void breakVelocity(double& velocity, double angleDiff);
 	double limitBoundary = 46; //Raw
 
+
+
 	// Returns a motion snapshot based on a desired goal velocity
 	//MotionSnapshot _toMotion(JointAngles& currentPositions, JointAngles& goalPositions, double& deltaTime);
 	//MotionSnapshot _toMotion(Velocities& currentVelocities, Velocities& goalVelocities, double& deltaTime);

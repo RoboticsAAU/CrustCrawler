@@ -90,14 +90,14 @@ void Controller::run()
 		// We therefore need to control/regulate them ourselves.
 
 		// To control our robot we also need our current joint velocities
-		Velocities currentJointVelocities = _getJointVelocities(currentInstructions.Mode);
+		//Velocities currentJointVelocities = _getJointVelocities(currentInstructions.Mode);
 		
 		// We take our desired and current joint velocities and calculate our correction/error velocities
-		Velocities errorVelocities = desiredJointVelocities - currentJointVelocities;
-
+		Velocities userErrorVelocities = desiredJointVelocities - currentJointVelocities;
+		
 		// We calculate our torques from the control system
-		errorVelocities.ConvertTo(RadiansPerSec);
-		JointTorques controlTorques = conSys.Control(errorVelocities, currentJointAngles, deltaTime);
+		userErrorVelocities.ConvertTo(RadiansPerSec);
+		JointTorques controlTorques = conSys.Control(userErrorVelocities, currentJointAngles, deltaTime);
 
 		// We calculate our static torques.
 		Accelerations zeroAcceleration;
@@ -352,4 +352,3 @@ void Controller::breakVelocity(double& velocity, double angleDiff) {
 	// We set the velocity to 0 if it is under - happens when we have crossed the angle limit
 	if (velocity < 0) velocity = 0;
 }
-
