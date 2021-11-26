@@ -47,7 +47,7 @@ void Controller::run()
 		}
 
 		// We read the data once per loop from the CrustCrawler
-		JointAngles currentJointAngles = _getJointAngles(currentInstructions.Mode);		
+		JointAngles currentJointAngles = _getJointAngles(currentInstructions.Mode);
 		comCon.Print<char*>("\nCurrent Joint Angles:");
 		comCon.Print<double>(currentJointAngles.thetas[1]);
 		comCon.Print<char*>(" ");

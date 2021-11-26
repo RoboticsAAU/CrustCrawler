@@ -20,7 +20,7 @@ private:
 	double _PD(double& error, int&& iterator, double& deltaTime);
 
 	double _P(double& Kp, double& error);
-	double Kp[6] = { 0,0,0,0,0,0 };
+	double Kp[6] = { 0, 1, 1, 1, 0, 0 };
 	double gripperSyncGain = 1;
 
 	double _I(double& Ki, double& error, double& integral, double& deltaTime);
@@ -33,12 +33,17 @@ private:
 
 
 	// Used for error handling
+	void _handleJointLimitations(Velocities& errorVelocities, JointAngles& currentAngles);
+
 	double _velocityBreaker(int&& iterator, double& inputAngle);
 	double breakingConstant;
+
 	bool _isWithinAngleBoundaries(Joint& inputJoint, double inputAngle);
+
 	bool _isWithinBreakingThreshold(Joint& inputJoint, double inputAngle);
 	double breakingThreshold;
-	double _getGripperError(JointAngles& currentAngles);
+
+	void _gripperSynchronisation(Velocities& errorVelocities, JointAngles& currentAngles);
 	double gripperZeroAngle;
 
 };
