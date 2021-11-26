@@ -10,6 +10,7 @@ Controller::Controller() : conSys(&comCon), dynCon(&comCon), dyn(&comCon) {
 
 void Controller::run()
 {
+	comCon.Print<char*>("\n");
 	#ifdef DYNAMICS_TEST
 
 	JointAngles desiredAngles;
@@ -34,24 +35,23 @@ void Controller::run()
 	#endif // DYNAMICS_TEST
 
 	_updateDeltaTime();
+	comCon.Print<char*>("\nDeltatime: ");
+	comCon.Print<unsigned long>(deltaTime);
 	
-	// Get package sent from the computer 
+	// Get currently read package 
 	Package currentInstructions = comCon.getPackage();
-	if (currentInstructions.isUpdated)
-	{	
 
-		comCon.Print<char*>("\nDeltatime: ");
-		comCon.Print<unsigned long>(deltaTime);
+	// Call emergency stop function if spacebar is pressed on the computer.
+	if (currentInstructions.EmergencyStop)
+	{
+		dynCon.EmergencyStop();
+		return;
+	}
 
-		// Call emergency stop function if spacebar is pressed on the computer.
-		if (currentInstructions.EmergencyStop)
-		{
-			dynCon.EmergencyStop();
-			return;
-		}
-
-		// We read the data once per loop from the CrustCrawler
-		JointAngles currentJointAngles = _getJointAngles(currentInstructions.Mode);
+	// We read the data once per loop from the CrustCrawler
+	JointAngles currentJointAngles = _getJointAngles(currentInstructions.Mode);
+	/*
+	{
 		comCon.Print<char*>("\nCurrent Joint Angles:");
 		comCon.Print<double>(currentJointAngles.thetas[1]);
 		comCon.Print<char*>(" ");
@@ -63,12 +63,16 @@ void Controller::run()
 		comCon.Print<char*>(" ");
 		comCon.Print<double>(currentJointAngles.thetas[5]);
 		comCon.Print<char*>(" ");
+	}
+	*/
 
-		// We convert our instructions to joint velocities
-		currentJointAngles.ConvertTo(Radians);
-		Velocities desiredJointVelocities = _toJointVel(currentJointAngles, currentInstructions);
+	// We convert our instructions to joint velocities
+	currentJointAngles.ConvertTo(Radians);
+	Velocities desiredJointVelocities = _toJointVel(currentJointAngles, currentInstructions);
 
-		Velocities currentJointVelocities = _getJointVelocities(currentInstructions.Mode);
+	Velocities currentJointVelocities = _getJointVelocities(currentInstructions.Mode);
+	/*
+	{
 		comCon.Print<char*>("\nCurrent joint velocities:");
 		comCon.Print<double>(currentJointVelocities.velocities[1]);
 		comCon.Print<char*>(" ");
@@ -80,11 +84,15 @@ void Controller::run()
 		comCon.Print<char*>(" ");
 		comCon.Print<double>(currentJointVelocities.velocities[5]);
 		comCon.Print<char*>(" ");
+	}
+	*/
 
 #ifdef VELOCITY_CONTROL
-		// If we control our robot by velocity, we can then just set the joint velocities now,
-		// since the joints have their own control system
-		desiredJointVelocities.ConvertTo(RPM);
+	// If we control our robot by velocity, we can then just set the joint velocities now,
+	// since the joints have their own control system
+	desiredJointVelocities.ConvertTo(RPM);
+	/*
+	{
 		comCon.Print<char*>("\nDesired joint velocities:");
 		comCon.Print<double>(desiredJointVelocities.velocities[1]);
 		comCon.Print<char*>(" ");
@@ -92,44 +100,63 @@ void Controller::run()
 		comCon.Print<char*>(" ");
 		comCon.Print<double>(desiredJointVelocities.velocities[3]);
 		comCon.Print<char*>(" ");
+	}
+	*/
+
+	// Ensures a fixed send time
+	if (timeToNextSend < fixedSendTime) {
+		timeToNextSend += deltaTime;
+	}
+	else {
 		dynCon.setJointVelocity(desiredJointVelocities);
+		comCon.Print<char*>("\nSent");
+		timeToNextSend = 0;
+	}
 #endif // VELOCITY_CONTROL
 
 #ifdef PWM_CONTROL
 
-		// If we control our robot by PWM, then our robot has no internal control systems.
-		// We therefore need to control/regulate them ourselves.
+	// If we control our robot by PWM, then our robot has no internal control systems.
+	// We therefore need to control/regulate them ourselves.
 
-		// To control our robot we also need our current joint velocities
-		Velocities currentJointVelocities = _getJointVelocities(currentInstructions.Mode);
+	// To control our robot we also need our current joint velocities
+	Velocities currentJointVelocities = _getJointVelocities(currentInstructions.Mode);
 		
-		// We take our desired and current joint velocities and calculate our correction/error velocities
-		Velocities errorVelocities = desiredJointVelocities - currentJointVelocities;
+	// We take our desired and current joint velocities and calculate our correction/error velocities
+	Velocities errorVelocities = desiredJointVelocities - currentJointVelocities;
 		
-		// We calculate our torques from the control system
-		errorVelocities.ConvertTo(RadiansPerSec);
-		JointTorques controlTorques = conSys.Control(errorVelocities, currentJointAngles, deltaTime);
+	// We calculate our torques from the control system
+	errorVelocities.ConvertTo(RadiansPerSec);
+	JointTorques controlTorques = conSys.Control(errorVelocities, currentJointAngles, deltaTime);
 
-		// We calculate our static torques.
-		Accelerations zeroAcceleration;
-		JointTorques currentTorques = dyn.InverseDynamics(currentJointAngles, currentJointVelocities, zeroAcceleration);
+	// We calculate our static torques.
+	Accelerations zeroAcceleration;
+	JointTorques currentTorques = dyn.InverseDynamics(currentJointAngles, currentJointVelocities, zeroAcceleration);
 
+	JointTorques goalTorques = currentTorques;
 
-		JointTorques goalTorques = currentTorques;
-
+	// Ensures a fixed send time
+	if (timeToNextSend < fixedSendTime) {
+		timeToNextSend += deltaTime;
+	}
+	else {
 		// We then send this goal torque to the joints
 		dynCon.setJointPWM(goalTorques, currentJointVelocities);
+		timeToNextSend = 0;
+	}
 
 #endif // PWM_CONTROL
-		// Add delay to get fixed loop time
-		comCon.Print<char*>("\n");
-	}
+
+
+	// Add delay to get fixed loop time
 }
 
 void Controller::_updateDeltaTime()
 {
 	unsigned long currentTime = millis();
-	deltaTime = (currentTime - previousTime);
+	comCon.Print<char*>("\nCurrent time: ");
+	comCon.Print<unsigned long>(currentTime);
+	deltaTime = currentTime - previousTime;
 	previousTime = currentTime;
 }
 
@@ -303,8 +330,6 @@ Velocities Controller::_spaceConverter(JointAngles& jointAngles, Velocities& ins
 	}
 
 	double determinant = 1000 * getDeterminant(jacobian);
-	comCon.Print<char*>("\nDeterminant: ");
-	comCon.Print<double>(determinant);
 
 	for (size_t i = 1; i < 4; i++)
 	{	

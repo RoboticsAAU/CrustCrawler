@@ -8,7 +8,6 @@ ComputerConnection::ComputerConnection()
 
 Package ComputerConnection::getPackage()
 {
-	Package returnPackage;
 	if (DATA_SERIAL.available()) {
 		int data = (int)DATA_SERIAL.read();
 		if (data == 255)
@@ -23,10 +22,5 @@ Package ComputerConnection::getPackage()
 			return returnPackage;
 		}
 	}
-	//returnPackage.EmergencyStop = false;
-	//returnPackage.Mode = UpDown;
-	//returnPackage.Sign = true;
-	//returnPackage.Speed = (uint8_t)10;
-	returnPackage.isUpdated = false;
 	return returnPackage;
 }
