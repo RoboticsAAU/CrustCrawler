@@ -40,16 +40,19 @@ JointTorques ControlSystem::Control(Velocities& errorVelocities, JointAngles& cu
 	double gripperError = _getGripperError(currentAngles);
 	if (gripperError > 1e-6)
 	{
-		errorVelocities.velocities[4] = _P(1.0, gripperError);
-		errorVelocities.velocities[5] = _P(1.0, gripperError);
+		// Now regulate the error on each joint taking in to account their rotation direction
+		errorVelocities.velocities[4] -= _P(gripperSyncGain, gripperError);
+		errorVelocities.velocities[5] += _P(gripperSyncGain, gripperError);
 	}
 
-	JointTorques returnJointTorques;
+
+
 	// From the now corrected velocities, we can create our regulation torques.
+	JointTorques returnJointTorques;
 	for (size_t i = 1; i < 6; i++)
 	{
-		// Regulating
-		returnJointTorques.torques[i] = _PID(errorVelocities.velocities[i], i, deltaTime);
+		// Main regulating system
+		returnJointTorques.torques[i] = _PD(errorVelocities.velocities[i], i, deltaTime);
 	}
 	return returnJointTorques;
 }
@@ -59,12 +62,21 @@ double ControlSystem::_PID(double& error, int&& iterator, double& deltaTime){
 
 	if (error > -0.02 && error < 0.02) { integral[iterator] = _I(Ki[iterator], error, integral[iterator], deltaTime); }
 	else { integral[iterator] = 0; }
-	
+
 	double derivative = _D(Kd[iterator], error, lastError[iterator], deltaTime);
-	
 	lastError[iterator] = error;
 
 	return (proportional + integral[iterator] + derivative);
+}
+
+double ControlSystem::_PD(double& error, int&& iterator, double& deltaTime)
+{
+	double proportional = _P(Kp[iterator], error);
+
+	double derivative = _D(Kd[iterator], error, lastError[iterator], deltaTime);
+	lastError[iterator] = error;
+
+	return proportional + derivative;
 }
 
 double ControlSystem::_P(double& Kp, double& error)
@@ -107,8 +119,10 @@ bool ControlSystem::_isWithinBreakingThreshold(Joint& inputJoint, double inputAn
 
 double ControlSystem::_getGripperError(JointAngles& currentAngles)
 {
-
-	return 0.0;
+	// The zeropoints of the fingers are moved to be orthogonal from the link by the pi multiplications. 
+	// Then the differences from each of the zero points are added together. 
+	// If they are an equal distance from the moved zero points, this returns 0
+	return currentAngles.thetas[5] - M_PI_2 + currentAngles.thetas[4] - 3 * M_PI_2;
 }
 
 
