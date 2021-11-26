@@ -42,6 +42,7 @@ private:
 
 	// Returns the desired velocities - in jointspace - from the instructions, based on the current posiiton of the CrustCrawler
 	Velocities _toJointVel(JointAngles& jointAngles, Package& instructions);
+	double Controller::getDeterminant(BLA::Matrix<3, 3> matrix);
 
 	// Return the instruction velocities in cartesian or joint space, based on the control mode
 	Velocities _toVel(Package& instructions);
@@ -53,13 +54,9 @@ private:
 	Velocities _spaceConverter(JointAngles& jointAngles, Velocities& instructionVelocities, SpaceType desiredSpace);
 
 	// Slows down the velocities when close to angle limits.
-	void breakVelocityAtLimit(JointAngles& jointAngles, Velocities& instructionJointVelocities);
-	double decelerationConstant = 0.25; // The lower this constant is, the faster the decelerationdjakdass becomes.
-	double BreakingThreshold = 10; // Raws
+	void breakVelocitiesAtLimit(JointAngles& jointAngles, Velocities& instructionJointVelocities);
+	void breakVelocity(double& velocity, double angleDiff);
+	double limitBoundary = 46; // Unit: Raw
 
-	// Returns a motion snapshot based on a desired goal velocity
-	//MotionSnapshot _toMotion(JointAngles& currentPositions, JointAngles& goalPositions, double& deltaTime);
-	//MotionSnapshot _toMotion(Velocities& currentVelocities, Velocities& goalVelocities, double& deltaTime);
-	//MotionSnapshot _toMotion(Accelerations& currentAccelerations, Accelerations& goalAccelrations, double& deltaTime);
 };
 

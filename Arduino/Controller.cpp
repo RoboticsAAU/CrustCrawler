@@ -47,7 +47,7 @@ void Controller::run()
 		}
 
 		// We read the data once per loop from the CrustCrawler
-		JointAngles currentJointAngles = _getJointAngles(currentInstructions.Mode);
+		JointAngles currentJointAngles = _getJointAngles(currentInstructions.Mode);		
 		comCon.Print<char*>("\nCurrent Joint Angles:");
 		comCon.Print<double>(currentJointAngles.thetas[1]);
 		comCon.Print<char*>(" ");
@@ -55,7 +55,10 @@ void Controller::run()
 		comCon.Print<char*>(" ");
 		comCon.Print<double>(currentJointAngles.thetas[3]);
 		comCon.Print<char*>(" ");
-
+		comCon.Print<double>(currentJointAngles.thetas[4]);
+		comCon.Print<char*>(" ");
+		comCon.Print<double>(currentJointAngles.thetas[5]);
+		comCon.Print<char*>(" ");
 
 		// We convert our instructions to joint velocities
 		currentJointAngles.ConvertTo(Radians);
@@ -68,6 +71,10 @@ void Controller::run()
 		comCon.Print<double>(currentJointVelocities.velocities[2]);
 		comCon.Print<char*>(" ");
 		comCon.Print<double>(currentJointVelocities.velocities[3]);
+		comCon.Print<char*>(" ");
+		comCon.Print<double>(currentJointVelocities.velocities[4]);
+		comCon.Print<char*>(" ");
+		comCon.Print<double>(currentJointVelocities.velocities[5]);
 		comCon.Print<char*>(" ");
 
 #ifdef VELOCITY_CONTROL
@@ -90,14 +97,14 @@ void Controller::run()
 		// We therefore need to control/regulate them ourselves.
 
 		// To control our robot we also need our current joint velocities
-		Velocities currentJointVelocities = _getJointVelocities(currentInstructions.Mode);
+		//Velocities currentJointVelocities = _getJointVelocities(currentInstructions.Mode);
 		
 		// We take our desired and current joint velocities and calculate our correction/error velocities
-		Velocities errorVelocities = desiredJointVelocities - currentJointVelocities;
-
+		Velocities userErrorVelocities = desiredJointVelocities - currentJointVelocities;
+		
 		// We calculate our torques from the control system
-		errorVelocities.ConvertTo(RadiansPerSec);
-		JointTorques controlTorques = conSys.Control(errorVelocities, currentJointAngles, deltaTime);
+		userErrorVelocities.ConvertTo(RadiansPerSec);
+		JointTorques controlTorques = conSys.Control(userErrorVelocities, currentJointAngles, deltaTime);
 
 		// We calculate our static torques.
 		Accelerations zeroAcceleration;
@@ -177,7 +184,7 @@ Velocities Controller::_toJointVel(JointAngles& jointAngles, Package& instructio
 	Velocities instructionJointVelocities = _spaceConverter(jointAngles, instructionVelocities, JointSpace);
 	instructionJointVelocities.currentUnitType = RadiansPerSec;
 
-	breakVelocityAtLimit(jointAngles, instructionJointVelocities);
+	breakVelocitiesAtLimit(jointAngles, instructionJointVelocities);
 
 	return instructionJointVelocities;
 }
@@ -292,194 +299,77 @@ Velocities Controller::_spaceConverter(JointAngles& jointAngles, Velocities& ins
 	}
 
 	for (size_t i = 1; i < 4; i++)
-	{
+	{	
 		returnVelocities.velocities[i] = velocityVectorFrame0W(i - 1, 0);
+	}
+
+	if (0.33 < returnVelocities.velocities[2] && 0.34 > returnVelocities.velocities[2] ||
+		0.33 < returnVelocities.velocities[3] && 0.34 > returnVelocities.velocities[3]) {
+		double _determinant = getDeterminant(jacobian);
 	}
 	returnVelocities.currentSpaceType = desiredSpace;
 	return returnVelocities;
 }
 
-void Controller::breakVelocityAtLimit(JointAngles& jointAngles, Velocities& instructionJointVelocities){
-
-	jointAngles.ConvertTo(Raw);
-	bool minFlags[6];
-	bool maxFlags[6];
-	for (int i = 1; i < 6; i++) {
-		if (abs(instructionJointVelocities.velocities[i]) < 1e-6) {
-			continue;
-		}
-		if (jointAngles.thetas[i] < (Joints[i]->MinTheta + BreakingThreshold)) {
-			minFlags[i] = true;
-		}
-		if (jointAngles.thetas[i] > (Joints[i]->MaxTheta - BreakingThreshold)) {
-			maxFlags[i] = true;
-		}
-	}
-
-	if ( minFlags[1] || maxFlags[1] ) {
-		// We can either have a max or min flag, never both 
-		if (minFlags[1]){
-			// The difference is positive when the angle is within boundary, and negative otherwise. 
-			double minDiff = jointAngles.thetas[1] - Joints[1]->MinTheta;
-
-			// If minDiff was negative, then we are outside the limits and need to regulate by a constant value till we are back inside the limits      
-			if ( minDiff < 0){
-				instructionJointVelocities.velocities[1] = 10;
-				jointAngles.ConvertTo(Radians);
-				return;
-			}
-			else {
-				instructionJointVelocities.velocities[1] *= minDiff / (minDiff + decelerationConstant);
-			}
-		}
-		else if(maxFlags[1]) {
-			//The difference is positive when the angle is within boundary, and negative otherwise. 
-			double maxDiff = Joints[1]->MaxTheta - jointAngles.thetas[1];
-
-			// If maxDiff was negative, then we are outside the limits and need to regulate by a constant value till we are back inside the limits     
-			if (maxDiff < 0) {
-				instructionJointVelocities.velocities[1] = -10;
-				jointAngles.ConvertTo(Radians);
-				return;
-			}
-			else {
-				instructionJointVelocities.velocities[1] *= maxDiff / (maxDiff + decelerationConstant);
-			}
-		}
-	}
-
-	if (minFlags[2] || maxFlags[2]) {
-		// We can either have a max or min flag, never both 
-		if (minFlags[2]) {
-			// The difference is positive when the angle is within boundary, and negative otherwise. 
-			double minDiff = jointAngles.thetas[2] - Joints[2]->MinTheta;
-
-			// If minDiff was negative, then we are outside the limits and need to regulate by a constant value till we are back inside the limits      
-			if (minDiff < 0) {
-				instructionJointVelocities.velocities[2] = 10;
-				jointAngles.ConvertTo(Radians);
-			}
-			else {
-				instructionJointVelocities.velocities[2] *= minDiff / (minDiff + decelerationConstant);
-				instructionJointVelocities.velocities[3] *= minDiff / (minDiff + decelerationConstant);
-			}
-		}
-		else if (maxFlags[2]) {
-			//The difference is positive when the angle is within boundary, and negative otherwise. 
-			double maxDiff = Joints[2]->MaxTheta - jointAngles.thetas[2];
-
-			// If maxDiff was negative, then we are outside the limits and need to regulate by a constant value till we are back inside the limits     
-			if (maxDiff < 0) {
-				instructionJointVelocities.velocities[2] = -10;
-				jointAngles.ConvertTo(Radians);
-				return;
-			}
-			else {
-				instructionJointVelocities.velocities[2] *= maxDiff / (maxDiff + decelerationConstant);
-				instructionJointVelocities.velocities[3] *= maxDiff / (maxDiff + decelerationConstant);
-			}
-		}
-	}
-
-	if (minFlags[3] || maxFlags[3]) {
-		// We can either have a max or min flag, never both 
-		if (minFlags[3]) {
-			// The difference is positive when the angle is within boundary, and negative otherwise. 
-			double minDiff = jointAngles.thetas[3] - Joints[3]->MinTheta;
-
-			// If minDiff was negative, then we are outside the limits and need to regulate by a constant value till we are back inside the limits      
-			if (minDiff < 0) {
-				instructionJointVelocities.velocities[3] = 10;
-				jointAngles.ConvertTo(Radians);
-				return;
-			}
-			else {
-				instructionJointVelocities.velocities[3] *= minDiff / (minDiff + decelerationConstant);
-				instructionJointVelocities.velocities[2] *= minDiff / (minDiff + decelerationConstant);
-			}
-		}
-		else if (maxFlags[3]) {
-			//The difference is positive when the angle is within boundary, and negative otherwise. 
-			double maxDiff = Joints[3]->MaxTheta - jointAngles.thetas[3];
-
-			// If maxDiff was negative, then we are outside the limits and need to regulate by a constant value till we are back inside the limits     
-			if (maxDiff < 0) {
-				instructionJointVelocities.velocities[3] = -10;
-				jointAngles.ConvertTo(Radians);
-				return;
-			}
-			else {
-				instructionJointVelocities.velocities[3] *= maxDiff / (maxDiff + decelerationConstant);
-				instructionJointVelocities.velocities[2] *= maxDiff / (maxDiff + decelerationConstant);
-			}
-		}
-	}
-	
-		
-	if (minFlags[4] || maxFlags[4]) {
-		// We can either have a max or min flag, never both 
-		if (minFlags[4]) {
-			// The difference is positive when the angle is within boundary, and negative otherwise. 
-			double minDiff = jointAngles.thetas[4] - Joints[4]->MinTheta;
-
-			// If minDiff was negative, then we are outside the limits and need to regulate by a constant value till we are back inside the limits      
-			if (minDiff < 0) {
-				instructionJointVelocities.velocities[4] = 10;
-				jointAngles.ConvertTo(Radians);
-				return;
-			}
-			else {
-				instructionJointVelocities.velocities[4] *= minDiff / (minDiff + decelerationConstant);
-			}
-		}
-		else if (maxFlags[4]) {
-			//The difference is positive when the angle is within boundary, and negative otherwise. 
-			double maxDiff = Joints[4]->MaxTheta - jointAngles.thetas[4];
-
-			// If maxDiff was negative, then we are outside the limits and need to regulate by a constant value till we are back inside the limits     
-			if (maxDiff < 0) {
-				instructionJointVelocities.velocities[4] = -10;
-				jointAngles.ConvertTo(Radians);
-				return;
-			}
-			else {
-				instructionJointVelocities.velocities[4] *= maxDiff / (maxDiff + decelerationConstant);
-			}
-		}
-	}
-
-	if (minFlags[5] || maxFlags[5]) {
-		// We can either have a max or min flag, never both 
-		if (minFlags[5]) {
-			// The difference is positive when the angle is within boundary, and negative otherwise. 
-			double minDiff = jointAngles.thetas[5] - Joints[5]->MinTheta;
-
-			// If minDiff was negative, then we are outside the limits and need to regulate by a constant value till we are back inside the limits      
-			if (minDiff < 0) {
-				instructionJointVelocities.velocities[5] = 10;
-				jointAngles.ConvertTo(Radians);
-				return;
-			}
-			else {
-				instructionJointVelocities.velocities[5] *= minDiff / (minDiff + decelerationConstant);
-			}
-		}
-		else if (maxFlags[5]) {
-			//The difference is positive when the angle is within boundary, and negative otherwise. 
-			double maxDiff = Joints[5]->MaxTheta - jointAngles.thetas[5];
-
-			// If maxDiff was negative, then we are outside the limits and need to regulate by a constant value till we are back inside the limits     
-			if (maxDiff < 0) {
-				instructionJointVelocities.velocities[5] = -10;
-				jointAngles.ConvertTo(Radians);
-				return;
-			}
-			else {
-				instructionJointVelocities.velocities[5] *= maxDiff / (maxDiff + decelerationConstant);
-			}
-		}
-	}
-	
-	jointAngles.ConvertTo(Radians);
+double Controller::getDeterminant(BLA::Matrix<3, 3> matrix) {
+	return matrix(0, 0) * (matrix(1, 1) * matrix(2, 2) - matrix(1, 2) * matrix(2, 1)) - 
+		   matrix(0, 1) * (matrix(1, 0) * matrix(2, 2) - matrix(1, 2) * matrix(2, 0)) + 
+		   matrix(0, 2) * (matrix(1, 0) * matrix(2, 1) - matrix(1, 1) * matrix(2, 0));
 }
 
+void Controller::breakVelocitiesAtLimit(JointAngles& jointAngles, Velocities& instructionJointVelocities) {
+	double angleDiff = 0;
+	bool flag[6] = { 0,0,0,0,0,0 };
+	jointAngles.ConvertTo(Raw);
+
+	for (int i = 1; i < 6; i++) {
+		// If the i'th joint is close to the lower angle limit and we are going towards the limit
+		if ((jointAngles.thetas[i] < (Joints[i]->MinTheta + limitBoundary)) &&
+			(instructionJointVelocities.velocities[i] < -1e-6))
+		{
+			angleDiff = jointAngles.thetas[i] - Joints[i]->MinTheta;
+
+			// We break the velocity of the i'th joint
+			breakVelocity(instructionJointVelocities.velocities[i], angleDiff);
+			flag[i] = true;
+		}
+		// If the i'th joint is close to the upper angle limit and we are going towards the limit
+		if ((jointAngles.thetas[i] > (Joints[i]->MaxTheta - limitBoundary)) &&
+			(instructionJointVelocities.velocities[i] > 1e-6))
+		{
+			angleDiff = Joints[i]->MaxTheta - jointAngles.thetas[i];
+
+			// We break the velocity of the i'th joint
+			breakVelocity(instructionJointVelocities.velocities[i], angleDiff);
+			flag[i] = true;
+		}
+
+	}
+
+	// If the flag of the i'th velocity is true, meaning that joint is breaking
+	for (int i = 1; i < 6; i++) {
+		if (flag[i]) {
+			switch (i) {
+			case 1: break;
+			case 2: case 4:
+				if (!flag[i + 1]) {
+					breakVelocity(instructionJointVelocities.velocities[i + 1], angleDiff);
+					break;
+				}
+			case 3: case 5:
+				if (!flag[i - 1]) {
+					breakVelocity(instructionJointVelocities.velocities[i - 1], angleDiff);
+					break;
+				}
+			}
+		}
+	}
+}
+
+void Controller::breakVelocity(double& velocity, double angleDiff) {
+	// Breaking the velocity - as angleDiff goes to 0, so does the velocity.
+	velocity = (velocity / limitBoundary) * angleDiff;
+
+	// We set the velocity to 0 if it is under - happens when we have crossed the angle limit
+	if (velocity < 0) velocity = 0;
+}
