@@ -2,20 +2,34 @@
 
 DynamixelConnection::DynamixelConnection(ComputerConnection* pointer) : dynamixel(DYNAMIXEL_SERIAL, DirectionPin), pComCon(pointer)
 {
-	dynamixel.begin(57600);
+	dynamixel.begin(1000000);
 
-	for (size_t i = 1; i < 6; i++)
-	{
+	for (size_t i = 1; i < 6; i++) {
 		if (dynamixel.getTorqueEnableStat(Joints[i]->ID))
 		{
 			dynamixel.torqueOff(Joints[i]->ID);
 		}
+		dynamixel.writeControlTableItem(ControlTableItem::BAUD_RATE, Joints[i]->ID, 1);
+	}
+
+	dynamixel.begin(57600);
+	pComCon->Print<unsigned long>(dynamixel.getPortBaud());
+
+	for (size_t i = 1; i < 6; i++)
+	{	
+		if (dynamixel.getTorqueEnableStat(Joints[i]->ID))
+		{
+			dynamixel.torqueOff(Joints[i]->ID);
+		}
+
+
 #ifdef VELOCITY_CONTROL
 		bool ControlMode = dynamixel.writeControlTableItem(ControlTableItem::OPERATING_MODE, Joints[i]->ID, OperatingMode::OP_VELOCITY);
 #endif // VELOCITY_CONTROL
 #ifdef PWM_CONTROL
 		bool ControlMode = dynamixel.writeControlTableItem(ControlTableItem::OPERATING_MODE, Joints[i]->ID, OperatingMode::OP_PWM);
 #endif // PWM_CONTROL
+				//bool Maxtheta = dynamixel.writeControlTableItem(ControlTableItem::MAX_POSITION_LIMIT, Joints[i]->ID, Joints[i]->MaxTheta);
 
 
 		//bool Maxtheta = dynamixel.writeControlTableItem(ControlTableItem::MAX_POSITION_LIMIT, Joints[i]->ID, Joints[i]->MaxTheta);
@@ -32,17 +46,9 @@ DynamixelConnection::DynamixelConnection(ComputerConnection* pointer) : dynamixe
 		
 		double offset = copysign(2047, currentAngle);
 
-		if (i == 4 || i == 5) {
-			currentAngle -= offset;
-		}
-
 		rawOffsets[i] = (-(currentAngle + offset) / 4095);
 		rawOffsets[i] *= 4095;
-
-		if (i == 4 || i == 5) {
-			rawOffsets[i] -= offset;
-		}
-		
+	
 			
 			/*if (currentAngle < -2047) {
 				rawOffsets[i] = -((currentAngle - 2047) / 4095);
@@ -70,8 +76,12 @@ JointAngles DynamixelConnection::getJointAngles()
 
 double DynamixelConnection::getJointAngle(Joint& joint)
 {
+	
 	double readAngle = dynamixel.getPresentPosition(joint.ID, ParamUnit::UNIT_RAW);
 
+	readAngle += rawOffsets[joint.ID];
+	
+	return readAngle;
 	/*if (joint.ID == 4 || joint.ID == 5) {
 		pComCon->Print<double>(readAngle);
 		pComCon->Print<char*>("  ");
@@ -86,8 +96,8 @@ double DynamixelConnection::getJointAngle(Joint& joint)
 	//	int jointMultiplier = readAngle / -4095;
 	//	readAngle += (1 + jointMultiplier) * 4095; 
 	//}
-	pComCon->Print<int>(rawOffsets[joint.ID]);
-	return readAngle + rawOffsets[joint.ID];
+	
+	
 }
 
 Velocities DynamixelConnection::getJointVelocities()
@@ -119,7 +129,7 @@ void DynamixelConnection::setJointVelocity(Velocities& goalVelocities)
 {
 	for (size_t i = 1; i < 6; i++)
 	{
-		bool set = dynamixel.setGoalVelocity(Joints[i]->ID, goalVelocities.velocities[i], ParamUnit::UNIT_RPM);
+		bool set = dynamixel.setGoalVelocity(Joints[i]->ID, (int)goalVelocities.velocities[i], ParamUnit::UNIT_RPM);
 	}
 }
 

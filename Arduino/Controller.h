@@ -37,7 +37,7 @@ private:
 
 	// Updates the current delta/loop-time
 	void _updateDeltaTime();
-	double deltaTime = 0;
+	unsigned long deltaTime = 0;
 	unsigned long previousTime = 0;
 
 	// Returns the desired velocities - in jointspace - from the instructions, based on the current posiiton of the CrustCrawler
@@ -52,11 +52,12 @@ private:
 
 	// Converts currently only from cartesian to joint space
 	Velocities _spaceConverter(JointAngles& jointAngles, Velocities& instructionVelocities, SpaceType desiredSpace);
+	double determinantThreshold = 5.0;
 
 	// Slows down the velocities when close to angle limits.
 	void breakVelocitiesAtLimit(JointAngles& jointAngles, Velocities& instructionJointVelocities);
 	void breakVelocity(double& velocity, double angleDiff);
-	double limitBoundary = 46; // Unit: Raw
+	double limitBoundary = 100; // Unit: Raw
 
 };
 

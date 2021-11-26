@@ -34,11 +34,15 @@ void Controller::run()
 	#endif // DYNAMICS_TEST
 
 	_updateDeltaTime();
-
+	
 	// Get package sent from the computer 
 	Package currentInstructions = comCon.getPackage();
 	if (currentInstructions.isUpdated)
-	{
+	{	
+
+		comCon.Print<char*>("\nDeltatime: ");
+		comCon.Print<unsigned long>(deltaTime);
+
 		// Call emergency stop function if spacebar is pressed on the computer.
 		if (currentInstructions.EmergencyStop)
 		{
@@ -125,7 +129,7 @@ void Controller::run()
 void Controller::_updateDeltaTime()
 {
 	unsigned long currentTime = millis();
-	deltaTime = (currentTime - previousTime) / 1000.0;
+	deltaTime = (currentTime - previousTime);
 	previousTime = currentTime;
 }
 
@@ -202,7 +206,7 @@ Velocities Controller::_toVel(Package& instructions)
 	{
 	case Gripper: {
 		// Should probably map to the instruction speed
-		returnVelocities.velocities[4] = -1*directionSign * speedMS;
+		returnVelocities.velocities[4] = -directionSign * speedMS;
 		returnVelocities.velocities[5] = directionSign * speedMS;
 		returnVelocities.currentSpaceType = JointSpace;
 		break;
@@ -283,9 +287,9 @@ Velocities Controller::_spaceConverter(JointAngles& jointAngles, Velocities& ins
 		bool isNonSingular = Invert(jacobianInverse);
 
 		//If the jacobian is singular
-		if (!isNonSingular) {
-			// Some error message
-		}
+		//if (!isNonSingular) {
+		//	// Some error message
+		//}
 		velocityVectorFrame0W = jacobianInverse * velocityVectorFrame0W;
 		break;
 	}
@@ -298,15 +302,23 @@ Velocities Controller::_spaceConverter(JointAngles& jointAngles, Velocities& ins
 		break;
 	}
 
+	double determinant = 1000 * getDeterminant(jacobian);
+	comCon.Print<char*>("\nDeterminant: ");
+	comCon.Print<double>(determinant);
+
 	for (size_t i = 1; i < 4; i++)
 	{	
-		returnVelocities.velocities[i] = velocityVectorFrame0W(i - 1, 0);
+		if (abs(determinant) < determinantThreshold) {
+			returnVelocities.velocities[i] *= abs(determinant) / determinantThreshold;
+		}
+		else {
+			returnVelocities.velocities[i] = velocityVectorFrame0W(i - 1, 0);
+		}
 	}
 
-	if (0.33 < returnVelocities.velocities[2] && 0.34 > returnVelocities.velocities[2] ||
-		0.33 < returnVelocities.velocities[3] && 0.34 > returnVelocities.velocities[3]) {
-		double _determinant = getDeterminant(jacobian);
-	}
+
+	
+
 	returnVelocities.currentSpaceType = desiredSpace;
 	return returnVelocities;
 }
@@ -322,10 +334,12 @@ void Controller::breakVelocitiesAtLimit(JointAngles& jointAngles, Velocities& in
 	bool flag[6] = { 0,0,0,0,0,0 };
 	jointAngles.ConvertTo(Raw);
 
+
 	for (int i = 1; i < 6; i++) {
+				
 		// If the i'th joint is close to the lower angle limit and we are going towards the limit
-		if ((jointAngles.thetas[i] < (Joints[i]->MinTheta + limitBoundary)) &&
-			(instructionJointVelocities.velocities[i] < -1e-6))
+		if (((jointAngles.thetas[i] < (Joints[i]->MinTheta + limitBoundary)) &&
+			(instructionJointVelocities.velocities[i] < -1e-6)))
 		{
 			angleDiff = jointAngles.thetas[i] - Joints[i]->MinTheta;
 
@@ -333,6 +347,7 @@ void Controller::breakVelocitiesAtLimit(JointAngles& jointAngles, Velocities& in
 			breakVelocity(instructionJointVelocities.velocities[i], angleDiff);
 			flag[i] = true;
 		}
+		
 		// If the i'th joint is close to the upper angle limit and we are going towards the limit
 		if ((jointAngles.thetas[i] > (Joints[i]->MaxTheta - limitBoundary)) &&
 			(instructionJointVelocities.velocities[i] > 1e-6))
@@ -351,12 +366,12 @@ void Controller::breakVelocitiesAtLimit(JointAngles& jointAngles, Velocities& in
 		if (flag[i]) {
 			switch (i) {
 			case 1: break;
-			case 2: case 4:
+			case 2:
 				if (!flag[i + 1]) {
 					breakVelocity(instructionJointVelocities.velocities[i + 1], angleDiff);
 					break;
 				}
-			case 3: case 5:
+			case 3:
 				if (!flag[i - 1]) {
 					breakVelocity(instructionJointVelocities.velocities[i - 1], angleDiff);
 					break;
@@ -367,9 +382,10 @@ void Controller::breakVelocitiesAtLimit(JointAngles& jointAngles, Velocities& in
 }
 
 void Controller::breakVelocity(double& velocity, double angleDiff) {
+	double sign = copysign(1.0, velocity);
 	// Breaking the velocity - as angleDiff goes to 0, so does the velocity.
 	velocity = (velocity / limitBoundary) * angleDiff;
 
 	// We set the velocity to 0 if it is under - happens when we have crossed the angle limit
-	if (velocity < 0) velocity = 0;
+	if (sign*velocity < 0) velocity = 0;
 }
