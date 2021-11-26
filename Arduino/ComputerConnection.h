@@ -22,5 +22,6 @@ public:
 	}
 private:
 	byte databuffer[4];
+	Package returnPackage;
 };
 

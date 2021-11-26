@@ -40,6 +40,9 @@ private:
 	unsigned long deltaTime = 0;
 	unsigned long previousTime = 0;
 
+	unsigned long timeToNextSend = 0;
+	unsigned long fixedSendTime = 100;
+
 	// Returns the desired velocities - in jointspace - from the instructions, based on the current posiiton of the CrustCrawler
 	Velocities _toJointVel(JointAngles& jointAngles, Package& instructions);
 	double Controller::getDeterminant(BLA::Matrix<3, 3> matrix);
