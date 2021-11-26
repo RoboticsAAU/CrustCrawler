@@ -53,11 +53,13 @@ private:
 	// Converts currently only from cartesian to joint space
 	Velocities _spaceConverter(JointAngles& jointAngles, Velocities& instructionVelocities, SpaceType desiredSpace);
 	double determinantThreshold = 5.0;
+	int directionSign = 0, prevDirectionSign = 0;
+	double determinantShift = 2;
 
 	// Slows down the velocities when close to angle limits.
 	void breakVelocitiesAtLimit(JointAngles& jointAngles, Velocities& instructionJointVelocities);
 	void breakVelocity(double& velocity, double angleDiff);
 	double limitBoundary = 100; // Unit: Raw
-
+	
 };
 

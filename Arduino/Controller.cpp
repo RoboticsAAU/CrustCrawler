@@ -199,15 +199,15 @@ Velocities Controller::_toVel(Package& instructions)
 {
 	Velocities returnVelocities;
 	
-	int directionSign = instructions.Sign ? -1 : 1;
+	directionSign = instructions.Sign ? -1 : 1;
 	double speedMS = instructions.Speed / 1000.0;
 
 	switch (instructions.Mode)
 	{
 	case Gripper: {
 		// Should probably map to the instruction speed
-		returnVelocities.velocities[4] = -directionSign * speedMS;
-		returnVelocities.velocities[5] = directionSign * speedMS;
+		returnVelocities.velocities[4] = -3 * directionSign * speedMS;
+		returnVelocities.velocities[5] = 3 * directionSign * speedMS;
 		returnVelocities.currentSpaceType = JointSpace;
 		break;
 	}
@@ -308,16 +308,16 @@ Velocities Controller::_spaceConverter(JointAngles& jointAngles, Velocities& ins
 
 	for (size_t i = 1; i < 4; i++)
 	{	
-		if (abs(determinant) < determinantThreshold) {
-			returnVelocities.velocities[i] *= abs(determinant) / determinantThreshold;
+		returnVelocities.velocities[i] = velocityVectorFrame0W(i - 1, 0);
+
+		if ((abs(determinant) - determinantShift < determinantThreshold) && (directionSign == prevDirectionSign)) {
+			returnVelocities.velocities[i] *= (abs(determinant) - determinantShift) / determinantThreshold;
 		}
 		else {
-			returnVelocities.velocities[i] = velocityVectorFrame0W(i - 1, 0);
+			prevDirectionSign = directionSign;
 		}
+		
 	}
-
-
-	
 
 	returnVelocities.currentSpaceType = desiredSpace;
 	return returnVelocities;
