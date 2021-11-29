@@ -330,22 +330,28 @@ Velocities Controller::_spaceConverter(JointAngles& jointAngles, Velocities& ins
 	}
 
 	double determinant = 1000 * getDeterminant(jacobian);
+	comCon.Print<char*>("\nDeterminant: ");
+	comCon.Print<double>(determinant);
 
 	for (size_t i = 1; i < 4; i++)
 	{	
 		returnVelocities.velocities[i] = velocityVectorFrame0W(i - 1, 0);
-
-		if ((abs(determinant) - determinantShift < determinantThreshold) && (directionSign == prevDirectionSign)) {
-			returnVelocities.velocities[i] *= (abs(determinant) - determinantShift) / determinantThreshold;
-		}
-		else {
-			prevDirectionSign = directionSign;
-		}
-		
+		breakVelocityAtSingularity(returnVelocities.velocities[i], determinant);
 	}
 
 	returnVelocities.currentSpaceType = desiredSpace;
 	return returnVelocities;
+}
+
+void Controller::breakVelocityAtSingularity(double& velocity, double determinant) {
+	if ((abs(determinant) - determinantShift) < determinantThreshold) {
+		if (directionSign == prevDirectionSign) {
+			velocity *= pow((abs(determinant) - determinantShift) / determinantThreshold, exp(1));
+		}
+	}
+	else {
+		prevDirectionSign = directionSign;
+	}
 }
 
 double Controller::getDeterminant(BLA::Matrix<3, 3> matrix) {
@@ -369,7 +375,7 @@ void Controller::breakVelocitiesAtLimit(JointAngles& jointAngles, Velocities& in
 			angleDiff = jointAngles.thetas[i] - Joints[i]->MinTheta;
 
 			// We break the velocity of the i'th joint
-			breakVelocity(instructionJointVelocities.velocities[i], angleDiff);
+			breakVelocityAtLimit(instructionJointVelocities.velocities[i], angleDiff);
 			flag[i] = true;
 		}
 		
@@ -380,7 +386,7 @@ void Controller::breakVelocitiesAtLimit(JointAngles& jointAngles, Velocities& in
 			angleDiff = Joints[i]->MaxTheta - jointAngles.thetas[i];
 
 			// We break the velocity of the i'th joint
-			breakVelocity(instructionJointVelocities.velocities[i], angleDiff);
+			breakVelocityAtLimit(instructionJointVelocities.velocities[i], angleDiff);
 			flag[i] = true;
 		}
 
@@ -393,12 +399,12 @@ void Controller::breakVelocitiesAtLimit(JointAngles& jointAngles, Velocities& in
 			case 1: break;
 			case 2:
 				if (!flag[i + 1]) {
-					breakVelocity(instructionJointVelocities.velocities[i + 1], angleDiff);
+					breakVelocityAtLimit(instructionJointVelocities.velocities[i + 1], angleDiff);
 					break;
 				}
 			case 3:
 				if (!flag[i - 1]) {
-					breakVelocity(instructionJointVelocities.velocities[i - 1], angleDiff);
+					breakVelocityAtLimit(instructionJointVelocities.velocities[i - 1], angleDiff);
 					break;
 				}
 			}
@@ -406,7 +412,7 @@ void Controller::breakVelocitiesAtLimit(JointAngles& jointAngles, Velocities& in
 	}
 }
 
-void Controller::breakVelocity(double& velocity, double angleDiff) {
+void Controller::breakVelocityAtLimit(double& velocity, double angleDiff) {
 	double sign = copysign(1.0, velocity);
 	// Breaking the velocity - as angleDiff goes to 0, so does the velocity.
 	velocity = (velocity / limitBoundary) * angleDiff;
