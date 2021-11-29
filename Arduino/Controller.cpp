@@ -50,7 +50,7 @@ void Controller::run()
 
 	// We read the data once per loop from the CrustCrawler
 	JointAngles currentJointAngles = _getJointAngles(currentInstructions.Mode);
-	/*
+	
 	{
 		comCon.Print<char*>("\nCurrent Joint Angles:");
 		comCon.Print<double>(currentJointAngles.thetas[1]);
@@ -64,7 +64,7 @@ void Controller::run()
 		comCon.Print<double>(currentJointAngles.thetas[5]);
 		comCon.Print<char*>(" ");
 	}
-	*/
+	
 
 	// We convert our instructions to joint velocities
 	currentJointAngles.ConvertTo(Radians);
