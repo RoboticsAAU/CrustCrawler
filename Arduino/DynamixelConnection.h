@@ -12,7 +12,7 @@
 #include "ComputerConnection.h"
 
 //#define VELOCITY_CONTROL
-#define PWM_CONTROL
+#define PWM_CONTROL 
 #define DYNAMIXEL_SERIAL Serial
 const int DirectionPin{ 2 };
 
@@ -26,8 +26,8 @@ public:
 	JointAngles getJointAngles();
 	double getJointAngle(Joint& joint);
 	Velocities getJointVelocities();
-	double getJointVelocity(unsigned int& jointID);
-	double getJointLoad(unsigned int& jointID);
+	double getJointVelocity(Joint& joint);
+	double getJointLoad(Joint& joint);
 
 	void setJointVelocity(Velocities& goalVelocities);
 	void setJointPWM(JointTorques& updateTorques, Velocities& currentVelocities);

@@ -20,7 +20,7 @@ private:
 	double _PD(double& error, int&& iterator, unsigned long& deltaTime);
 
 	double _P(double& Kp, double& error);
-	double Kp[6] = { 0, 1, 1, 1, 0, 0 };
+	double Kp[6] = { 0, 0.3, 0.3, 0.3, 0, 0 };
 	double gripperSyncGain = 1;
 
 	double _I(double& Ki, double& error, double& integral, unsigned long& deltaTime);

@@ -41,7 +41,7 @@ private:
 	unsigned long previousTime = 0;
 
 	unsigned long accumulatedTime = 0;
-	unsigned long fixedSendTime = 100;
+	unsigned long fixedSendTime = 10 * 1000;
 
 	// Returns the desired velocities - in jointspace - from the instructions, based on the current posiiton of the CrustCrawler
 	Velocities _toJointVel(JointAngles& jointAngles, Package& instructions);

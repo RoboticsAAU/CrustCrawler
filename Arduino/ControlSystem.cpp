@@ -3,8 +3,8 @@ ControlSystem::ControlSystem(ComputerConnection* pointer) : pComCon(pointer) {}
 
 JointTorques ControlSystem::Control(Velocities& errorVelocities, JointAngles& currentAngles, unsigned long& deltaTime)
 {
-	if (errorVelocities.currentUnitType != RadiansPerSec) {	errorVelocities.ConvertTo(RadiansPerSec); }
-	if (currentAngles.currentUnitType != Radians) { currentAngles.ConvertTo(Radians); }
+	// We convert our angles and velocities to the correct unit  
+	currentAngles.ConvertTo(Radians); errorVelocities.ConvertTo(RadiansPerSec); 
 
 	//_handleJointLimitations(errorVelocities, currentAngles);
 

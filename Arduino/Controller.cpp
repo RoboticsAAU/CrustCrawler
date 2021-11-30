@@ -35,8 +35,8 @@ void Controller::run()
 	#endif // DYNAMICS_TEST
 
 	_updateDeltaTime();
-	comCon.Print<char*>("\nDeltatime: ");
-	comCon.Print<unsigned long>(deltaTime);
+	//comCon.Print<char*>("\nDeltatime: ");
+	//comCon.Print<unsigned long>(deltaTime);
 	
 	// Get currently read package 
 	Package currentInstructions = comCon.getPackage();
@@ -49,9 +49,11 @@ void Controller::run()
 	}
 
 	// We read the data once per loop from the CrustCrawler
-	JointAngles currentJointAngles = _getJointAngles(currentInstructions.Mode);
+	JointAngles currentJointAngles = dynCon.getJointAngles();
+	//_getJointAngles(currentInstructions.Mode);
 	
-	{
+
+	/* {
 		comCon.Print<char*>("\nCurrent Joint Angles:");
 		comCon.Print<double>(currentJointAngles.thetas[1]);
 		comCon.Print<char*>(" ");
@@ -63,14 +65,14 @@ void Controller::run()
 		comCon.Print<char*>(" ");
 		comCon.Print<double>(currentJointAngles.thetas[5]);
 		comCon.Print<char*>(" ");
-	}
+	}*/
 	
 
 	// We convert our instructions to joint velocities
-	currentJointAngles.ConvertTo(Radians);
 	Velocities desiredJointVelocities = _toJointVel(currentJointAngles, currentInstructions);
 
-	Velocities currentJointVelocities = _getJointVelocities(currentInstructions.Mode);
+	Velocities currentJointVelocities = dynCon.getJointVelocities();
+	//_getJointVelocities(currentInstructions.Mode);
 	/*
 	{
 		comCon.Print<char*>("\nCurrent joint velocities:");
@@ -120,13 +122,12 @@ void Controller::run()
 	// We therefore need to control/regulate them ourselves.
 
 	// To control our robot we also need our current joint velocities
-	Velocities currentJointVelocities = _getJointVelocities(currentInstructions.Mode);
+	//Velocities currentJointVelocities = _getJointVelocities(currentInstructions.Mode);
 		
 	// We take our desired and current joint velocities and calculate our correction/error velocities
 	Velocities errorVelocities = desiredJointVelocities - currentJointVelocities;
 		
 	// We calculate our torques from the control system
-	errorVelocities.ConvertTo(RadiansPerSec);
 	JointTorques controlTorques = conSys.Control(errorVelocities, currentJointAngles, deltaTime);
 		
 	// We calculate our static torques.
@@ -134,6 +135,7 @@ void Controller::run()
 	JointTorques currentTorques = dyn.InverseDynamics(currentJointAngles, currentJointVelocities, zeroAcceleration);
 		
 	JointTorques goalTorques = controlTorques + currentTorques;
+	Velocities TestVelocity;
 
 	accumulatedTime += deltaTime;
 	// We check if another loop can be achieved with the same deltaTime. If not then instructions are sent
@@ -144,7 +146,54 @@ void Controller::run()
 	else if(accumulatedTime + deltaTime > fixedSendTime){
 		delayMicroseconds(fixedSendTime - accumulatedTime);
 		dynCon.setJointPWM(goalTorques, currentJointVelocities);
+		/*
+		comCon.Print<char*>("\nErrorTime: ");
+		comCon.Print<unsigned long>((fixedSendTime-deltaTime)/1000);
+
+		unsigned long errorTime = (fixedSendTime - accumulatedTime)/1000;
+
+
+		comCon.Print<char*>("\nIDTorque1: ");
+		comCon.Print<double>(currentTorques.torques[1]);
+
+		comCon.Print<char*>("\nControlTorque1: ");
+		comCon.Print<double>(controlTorques.torques[1]);
+
+		comCon.Print<char*>("\nGoalTorque1: ");
+		comCon.Print<double>(goalTorques.torques[1]);
+
+		comCon.Print<char*>("\nJointVelocity1: ");
+		comCon.Print<double>(currentJointVelocities.velocities[1]);
+
+
+		comCon.Print<char*>("\nIDTorque2: ");
+		comCon.Print<double>(currentTorques.torques[2]);
+
+		comCon.Print<char*>("\nControlTorque2: ");
+		comCon.Print<double>(controlTorques.torques[2]);
+
+		comCon.Print<char*>("\nGoalTorque2: ");
+		comCon.Print<double>(goalTorques.torques[2]);
+
+		comCon.Print<char*>("\nJointVelocity2: ");
+		comCon.Print<double>(currentJointVelocities.velocities[2]);
+
+
+		comCon.Print<char*>("\nIDTorque3: ");
+		comCon.Print<double>(currentTorques.torques[3]);
+
+		comCon.Print<char*>("\nControlTorque3: ");
+		comCon.Print<double>(controlTorques.torques[3]);
+
+		comCon.Print<char*>("\nGoalTorque3: ");
+		comCon.Print<double>(goalTorques.torques[3]);
+
+		comCon.Print<char*>("\nJointVelocity3: ");
+		comCon.Print<double>(currentJointVelocities.velocities[3]);
+
+
 		accumulatedTime = 0;
+		*/
 	}
 
 #endif // PWM_CONTROL
@@ -154,8 +203,8 @@ void Controller::run()
 void Controller::_updateDeltaTime()
 {
 	unsigned long currentTime = micros();
-	comCon.Print<char*>("\nCurrent time: ");
-	comCon.Print<unsigned long>(currentTime);
+	//comCon.Print<char*>("\nCurrent time: ");
+	//comCon.Print<unsigned long>(currentTime);
 	deltaTime = currentTime - previousTime;
 	previousTime = currentTime;
 }
@@ -189,14 +238,14 @@ Velocities Controller::_getJointVelocities(ControlMode controlMode)
 	Velocities returnJointVelocities;
 	switch (controlMode) {
 	case Gripper: {
-		returnJointVelocities.velocities[4] = dynCon.getJointVelocity(Joints[4]->ID);
-		returnJointVelocities.velocities[5] = dynCon.getJointVelocity(Joints[5]->ID);
-		break;
-	}
-	case Base: case InOut: case UpDown: {
-		returnJointVelocities.velocities[1] = dynCon.getJointVelocity(Joints[1]->ID);
-		returnJointVelocities.velocities[2] = dynCon.getJointVelocity(Joints[2]->ID);
-		returnJointVelocities.velocities[3] = dynCon.getJointVelocity(Joints[3]->ID);
+		returnJointVelocities.velocities[4] = dynCon.getJointVelocity(*Joints[4]);
+		returnJointVelocities.velocities[5] = dynCon.getJointVelocity(*Joints[5]);
+		break;														  
+	}																  
+	case Base: case InOut: case UpDown: {							  
+		returnJointVelocities.velocities[1] = dynCon.getJointVelocity(*Joints[1]);
+		returnJointVelocities.velocities[2] = dynCon.getJointVelocity(*Joints[2]);
+		returnJointVelocities.velocities[3] = dynCon.getJointVelocity(*Joints[3]);
 		break;
 	}
 	case Lock: {
@@ -204,13 +253,14 @@ Velocities Controller::_getJointVelocities(ControlMode controlMode)
 		return returnJointVelocities;
 	}
 	}
-	returnJointVelocities.currentUnitType = RawsPerSec;
+	returnJointVelocities.currentUnitType = RPM;
 	returnJointVelocities.currentSpaceType = JointSpace;
 	return returnJointVelocities;
 }
 
 Velocities Controller::_toJointVel(JointAngles& jointAngles, Package& instructions)
 {
+	jointAngles.ConvertTo(Radians);
 	Velocities instructionVelocities = _toVel(instructions);
 	Velocities instructionJointVelocities = _spaceConverter(jointAngles, instructionVelocities, JointSpace);
 	instructionJointVelocities.currentUnitType = RadiansPerSec;

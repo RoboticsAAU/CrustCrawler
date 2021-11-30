@@ -4,14 +4,14 @@ DynamixelConnection::DynamixelConnection(ComputerConnection* pointer) : dynamixe
 {
 	dynamixel.begin(57600);
 
-	//for (size_t i = 1; i < 6; i++) {
-	//	if (dynamixel.getTorqueEnableStat(Joints[i]->ID))
-	//	{
-	//		dynamixel.torqueOff(Joints[i]->ID);
-	//	}
-	//	dynamixel.writeControlTableItem(ControlTableItem::BAUD_RATE, Joints[i]->ID, 3);
-	//}
-	//dynamixel.begin(1000000);
+	for (size_t i = 1; i < 6; i++) {
+		if (dynamixel.getTorqueEnableStat(Joints[i]->ID))
+		{
+			dynamixel.torqueOff(Joints[i]->ID);
+		}
+		dynamixel.writeControlTableItem(ControlTableItem::BAUD_RATE, Joints[i]->ID, 3);
+	}
+	dynamixel.begin(1000000);
 
 	for (size_t i = 1; i < 6; i++)
 	{	
@@ -43,17 +43,6 @@ DynamixelConnection::DynamixelConnection(ComputerConnection* pointer) : dynamixe
 
 		rawOffsets[i] = (-(currentAngle + offset) / 4095);
 		rawOffsets[i] *= 4095;
-	
-			
-			/*if (currentAngle < -2047) {
-				rawOffsets[i] = -((currentAngle - 2047) / 4095);
-			}
-			else if (currentAngle > 2047) {
-				rawOffsets[i] = -((currentAngle + 2047) / 4095);
-			}
-			else {
-				rawOffsets[i] = 0;
-			}*/
 		
 	}
 }
@@ -71,28 +60,11 @@ JointAngles DynamixelConnection::getJointAngles()
 
 double DynamixelConnection::getJointAngle(Joint& joint)
 {
-	
 	double readAngle = dynamixel.getPresentPosition(joint.ID, ParamUnit::UNIT_RAW);
 
 	readAngle += rawOffsets[joint.ID];
 	
-	return readAngle;
-	/*if (joint.ID == 4 || joint.ID == 5) {
-		pComCon->Print<double>(readAngle);
-		pComCon->Print<char*>("  ");
-	}*/
-	//if (readAngle > joint.MaxTheta) 
-	//{ 
-	//	int jointMultiplier = readAngle / 4095;
-	//	readAngle -= jointMultiplier * 4095; 
-	//}
-	//else if (readAngle < joint.MinTheta) 
-	//{ 
-	//	int jointMultiplier = readAngle / -4095;
-	//	readAngle += (1 + jointMultiplier) * 4095; 
-	//}
-	
-	
+	return readAngle;	
 }
 
 Velocities DynamixelConnection::getJointVelocities()
@@ -100,23 +72,21 @@ Velocities DynamixelConnection::getJointVelocities()
 	Velocities returnJointVelocities;
 	for (size_t i = 1; i < 6; i++)
 	{
-		returnJointVelocities.velocities[i] = getJointVelocity(Joints[i]->ID);
+		returnJointVelocities.velocities[i] = getJointVelocity(*Joints[i]);
 	}
-	returnJointVelocities.currentUnitType = RawsPerSec;
+	returnJointVelocities.currentUnitType = RPM;
 	returnJointVelocities.currentSpaceType = JointSpace;
 	return returnJointVelocities;
 }
 
-double DynamixelConnection::getJointVelocity(unsigned int& jointID)
+double DynamixelConnection::getJointVelocity(Joint& joint)
 {
-	return dynamixel.getPresentVelocity(jointID, ParamUnit::UNIT_RPM);
+	return dynamixel.getPresentVelocity(joint.ID, ParamUnit::UNIT_RPM);
 }
 
-double DynamixelConnection::getJointLoad(unsigned int& jointID) {
-	//getPresentCurrent returns a range from 0 ~ 2047, where one unit is 3.36 mA
-	double tmpCurrent = dynamixel.getPresentCurrent(jointID);
-	//Convert to milliamps
-	return tmpCurrent * 3.36;
+double DynamixelConnection::getJointLoad(Joint& joint) {
+	//getPresentCurrent returns the load percentage. 
+	return dynamixel.getPresentCurrent(joint.ID, ParamUnit::UNIT_PERCENT);
 }
 
 void DynamixelConnection::EmergencyStop()
@@ -129,6 +99,7 @@ void DynamixelConnection::EmergencyStop()
 
 void DynamixelConnection::setJointVelocity(Velocities& goalVelocities)
 {
+	goalVelocities.ConvertTo(RPM);
 	for (size_t i = 1; i < 6; i++)
 	{
 		bool set = dynamixel.setGoalVelocity(Joints[i]->ID, (int)goalVelocities.velocities[i], ParamUnit::UNIT_RPM);
@@ -137,6 +108,7 @@ void DynamixelConnection::setJointVelocity(Velocities& goalVelocities)
 
 void DynamixelConnection::setJointPWM(JointTorques& updateTorques, Velocities& currentVelocities)
 {
+	currentVelocities.ConvertTo(RadiansPerSec);
 	for (size_t i = 1; i < 4; i++)
 	{
 		double jointPWM = _typeConverter(updateTorques.torques[i], currentVelocities.velocities[i], Joints[i]->ServoType, PWM);

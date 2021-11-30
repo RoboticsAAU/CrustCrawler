@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="utf-8"?>
+<PlotSettings xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+  <CurveSettingCollection>
+    <CurveSettings>
+      <CurveId>Joint1</CurveId>
+      <CurveDisplayName>Joint1</CurveDisplayName>
+      <CurveLineTicks>None</CurveLineTicks>
+      <CurveColor>Maroon</CurveColor>
+      <ChartAssignment2>0</ChartAssignment2>
+    </CurveSettings>
+    <CurveSettings>
+      <CurveId>Joint2</CurveId>
+      <CurveDisplayName>Joint2</CurveDisplayName>
+      <CurveLineTicks>None</CurveLineTicks>
+      <CurveColor>#008000</CurveColor>
+      <ChartAssignment2>1</ChartAssignment2>
+    </CurveSettings>
+    <CurveSettings>
+      <CurveId>Joint3</CurveId>
+      <CurveDisplayName>Joint3</CurveDisplayName>
+      <CurveLineTicks>None</CurveLineTicks>
+      <CurveColor>#000080</CurveColor>
+      <ChartAssignment2>2</ChartAssignment2>
+    </CurveSettings>
+  </CurveSettingCollection>
+  <XSweepTime>20 sec</XSweepTime>
+  <XTimeFormat>Auto</XTimeFormat>
+  <DisplayRefreshRate>AsDataComesIn</DisplayRefreshRate>
+  <ChartType>LineChart</ChartType>
+  <OptimizeBinaryCurves>On</OptimizeBinaryCurves>
+  <CurveDistribution>MultipleCharts</CurveDistribution>
+  <TriggerEnabled>false</TriggerEnabled>
+  <TriggerCondition>None</TriggerCondition>
+  <TriggerMode>Continuous</TriggerMode>
+  <LineWidths2>Medium</LineWidths2>
+</PlotSettings>
