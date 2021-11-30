@@ -27,6 +27,7 @@ public:
 	double getJointAngle(Joint& joint);
 	Velocities getJointVelocities();
 	double getJointVelocity(unsigned int& jointID);
+	double getJointLoad(unsigned int& jointID);
 
 	void setJointVelocity(Velocities& goalVelocities);
 	void setJointPWM(JointTorques& updateTorques, Velocities& currentVelocities);

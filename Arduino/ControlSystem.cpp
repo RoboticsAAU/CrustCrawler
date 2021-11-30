@@ -53,7 +53,7 @@ double ControlSystem::_P(double& Kp, double& error)
 
 double ControlSystem::_I(double& Ki, double& error, double& integral, double& deltaTime)
 {
-	return Ki * Integrate(error, integral, deltaTime);;
+	return Ki * Integrate(error, integral, deltaTime);
 }
 
 double ControlSystem::_D(double& Kd, double& error, double& lastError, double& deltaTime)

@@ -112,6 +112,13 @@ double DynamixelConnection::getJointVelocity(unsigned int& jointID)
 	return dynamixel.getPresentVelocity(jointID, ParamUnit::UNIT_RPM);
 }
 
+double DynamixelConnection::getJointLoad(unsigned int& jointID) {
+	//getPresentCurrent returns a range from 0 ~ 2047, where one unit is 3.36 mA
+	double tmpCurrent = dynamixel.getPresentCurrent(jointID);
+	//Convert to milliamps
+	return tmpCurrent * 3.36;
+}
+
 void DynamixelConnection::EmergencyStop()
 {
 	for (size_t i = 1; i < 6; i++)
