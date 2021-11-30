@@ -1,7 +1,7 @@
 #include "Controller.h"
 
 Controller::Controller() : conSys(&comCon), dynCon(&comCon), dyn(&comCon) {
-	previousTime = millis(); 
+	previousTime = micros(); 
 
 	_maxJointLength = Joints[2]->Length + Joints[3]->Length + Joints[4]->Length;
 	_maxAngularVelocity = MaxLinearVelocity / _maxJointLength;
@@ -128,32 +128,32 @@ void Controller::run()
 	// We calculate our torques from the control system
 	errorVelocities.ConvertTo(RadiansPerSec);
 	JointTorques controlTorques = conSys.Control(errorVelocities, currentJointAngles, deltaTime);
-
+		
 	// We calculate our static torques.
 	Accelerations zeroAcceleration;
 	JointTorques currentTorques = dyn.InverseDynamics(currentJointAngles, currentJointVelocities, zeroAcceleration);
+		
+	JointTorques goalTorques = controlTorques + currentTorques;
 
-	JointTorques goalTorques = currentTorques;
-
-	// Ensures a fixed send time
-	if (timeToNextSend < fixedSendTime) {
-		timeToNextSend += deltaTime;
+	accumulatedTime += deltaTime;
+	// We check if another loop can be achieved with the same deltaTime. If not then instructions are sent
+	if (accumulatedTime + deltaTime < fixedSendTime) {
+		return;
 	}
-	else {
-		// We then send this goal torque to the joints
+
+	else if(accumulatedTime + deltaTime > fixedSendTime){
+		delayMicroseconds(fixedSendTime - accumulatedTime);
 		dynCon.setJointPWM(goalTorques, currentJointVelocities);
-		timeToNextSend = 0;
+		accumulatedTime = 0;
 	}
 
 #endif // PWM_CONTROL
 
-
-	// Add delay to get fixed loop time
 }
 
 void Controller::_updateDeltaTime()
 {
-	unsigned long currentTime = millis();
+	unsigned long currentTime = micros();
 	comCon.Print<char*>("\nCurrent time: ");
 	comCon.Print<unsigned long>(currentTime);
 	deltaTime = currentTime - previousTime;

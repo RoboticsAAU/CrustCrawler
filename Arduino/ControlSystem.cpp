@@ -1,26 +1,26 @@
 #include "ControlSystem.h"
 ControlSystem::ControlSystem(ComputerConnection* pointer) : pComCon(pointer) {}
 
-JointTorques ControlSystem::Control(Velocities& errorVelocities, JointAngles& currentAngles, double& deltaTime)
+JointTorques ControlSystem::Control(Velocities& errorVelocities, JointAngles& currentAngles, unsigned long& deltaTime)
 {
 	if (errorVelocities.currentUnitType != RadiansPerSec) {	errorVelocities.ConvertTo(RadiansPerSec); }
 	if (currentAngles.currentUnitType != Radians) { currentAngles.ConvertTo(Radians); }
 
-	_handleJointLimitations(errorVelocities, currentAngles);
+	//_handleJointLimitations(errorVelocities, currentAngles);
 
-	_gripperSynchronisation(errorVelocities, currentAngles);
+	//_gripperSynchronisation(errorVelocities, currentAngles);
 
 	// From the now corrected velocities, we can create our regulation torques.
 	JointTorques returnJointTorques;
 	for (size_t i = 1; i < 6; i++)
 	{
 		// Main regulating system
-		returnJointTorques.torques[i] = _PD(errorVelocities.velocities[i], i, deltaTime);
+		returnJointTorques.torques[i] = _P(Kp[i], errorVelocities.velocities[i]);
 	}
 	return returnJointTorques;
 }
 
-double ControlSystem::_PID(double& error, int&& iterator, double& deltaTime){
+double ControlSystem::_PID(double& error, int&& iterator, unsigned long& deltaTime){
 	double proportional = _P(Kp[iterator], error);
 
 	double derivative = _D(Kd[iterator], error, lastError[iterator], deltaTime);
@@ -36,7 +36,7 @@ double ControlSystem::_PID(double& error, int&& iterator, double& deltaTime){
 	return (proportional + integral[iterator] + derivative);
 }
 
-double ControlSystem::_PD(double& error, int&& iterator, double& deltaTime)
+double ControlSystem::_PD(double& error, int&& iterator, unsigned long& deltaTime)
 {
 	double proportional = _P(Kp[iterator], error);
 
@@ -51,12 +51,12 @@ double ControlSystem::_P(double& Kp, double& error)
 	return Kp * error;
 }
 
-double ControlSystem::_I(double& Ki, double& error, double& integral, double& deltaTime)
+double ControlSystem::_I(double& Ki, double& error, double& integral, unsigned long& deltaTime)
 {
 	return Ki * Integrate(error, integral, deltaTime);
 }
 
-double ControlSystem::_D(double& Kd, double& error, double& lastError, double& deltaTime)
+double ControlSystem::_D(double& Kd, double& error, double& lastError, unsigned long& deltaTime)
 {
 	return  Kd * Differentiate(error, lastError, deltaTime);
 }
