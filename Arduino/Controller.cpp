@@ -132,11 +132,12 @@ void Controller::run()
 		
 	// We calculate our static torques.
 	Accelerations zeroAcceleration;
+	Velocities zeroVelocity;
 	JointTorques currentTorques = dyn.InverseDynamics(currentJointAngles, currentJointVelocities, zeroAcceleration);
-		
-	JointTorques goalTorques = controlTorques + currentTorques;
-	Velocities TestVelocity;
+	//JointTorques currentTorques = dyn.InverseDynamics(currentJointAngles, zeroVelocity, zeroAcceleration);
 
+	JointTorques goalTorques = controlTorques + currentTorques;
+	
 	accumulatedTime += deltaTime;
 	// We check if another loop can be achieved with the same deltaTime. If not then instructions are sent
 	if (accumulatedTime + deltaTime < fixedSendTime) {
@@ -203,8 +204,8 @@ void Controller::run()
 void Controller::_updateDeltaTime()
 {
 	unsigned long currentTime = micros();
-	//comCon.Print<char*>("\nCurrent time: ");
-	//comCon.Print<unsigned long>(currentTime);
+	comCon.Print<char*>("\nCurrent time: ");
+	comCon.Print<unsigned long>(currentTime);
 	deltaTime = currentTime - previousTime;
 	previousTime = currentTime;
 }
@@ -380,8 +381,8 @@ Velocities Controller::_spaceConverter(JointAngles& jointAngles, Velocities& ins
 	}
 
 	double determinant = 1000 * getDeterminant(jacobian);
-	comCon.Print<char*>("\nDeterminant: ");
-	comCon.Print<double>(determinant);
+	//comCon.Print<char*>("\nDeterminant: ");
+	//comCon.Print<double>(determinant);
 
 	for (size_t i = 1; i < 4; i++)
 	{	
