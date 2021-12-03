@@ -10,6 +10,7 @@ JointAngles JointAngles::operator+(const JointAngles& add) {
 	{
 		returnAngles.thetas[i] = this->thetas[i] + add.thetas[i];
 	}
+	returnAngles.currentUnitType = add.currentUnitType;
 	return returnAngles;
 }
 
@@ -22,6 +23,7 @@ JointAngles JointAngles::operator+=(const JointAngles& addequal) {
 	{
 		this->thetas[i] += addequal.thetas[i];
 	}
+	this->currentUnitType = addequal.currentUnitType;
 }
 
 JointAngles JointAngles::operator-(const JointAngles& subtract) {
@@ -34,6 +36,7 @@ JointAngles JointAngles::operator-(const JointAngles& subtract) {
 	{
 		returnAngles.thetas[i] = this->thetas[i] - subtract.thetas[i];
 	}
+	returnAngles.currentUnitType = subtract.currentUnitType;
 	return returnAngles;
 }
 
@@ -46,6 +49,7 @@ JointAngles JointAngles::operator-=(const JointAngles& subtractequal) {
 	{
 		this->thetas[i] -= subtractequal.thetas[i];
 	}
+	this->currentUnitType = subtractequal.currentUnitType;
 }
 
 void JointAngles::ConvertTo(AngleUnitType newType)
@@ -110,6 +114,7 @@ Velocities Velocities::operator+(const Velocities& add) {
 	{
 		returnVelocities.velocities[i] = this->velocities[i] + add.velocities[i];
 	}
+	returnVelocities.currentUnitType = add.currentUnitType;
 	return returnVelocities;
 }
 
@@ -122,6 +127,7 @@ Velocities Velocities::operator+=(const Velocities& addequal) {
 	{
 		this->velocities[i] += addequal.velocities[i];
 	}
+	this->currentUnitType = addequal.currentUnitType;
 }
 
 Velocities Velocities::operator-(const Velocities& subtract) {
@@ -134,6 +140,7 @@ Velocities Velocities::operator-(const Velocities& subtract) {
 	{
 		returnVelocities.velocities[i] = this->velocities[i] - subtract.velocities[i];
 	}
+	returnVelocities.currentUnitType = subtract.currentUnitType;
 	return returnVelocities;
 }
 
@@ -146,6 +153,7 @@ Velocities Velocities::operator-=(const Velocities& subtractequal) {
 	{
 		this->velocities[i] -= subtractequal.velocities[i];
 	}
+	this->currentUnitType = subtractequal.currentUnitType;
 }
 
 void Velocities::ConvertTo(VelocityUnitType newType)

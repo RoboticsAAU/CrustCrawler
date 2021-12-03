@@ -11,7 +11,7 @@ Controller::Controller() : conSys(&comCon), dynCon(&comCon), dyn(&comCon) {
 void Controller::run()
 {
 	comCon.Print<char*>("\n");
-	#ifdef DYNAMICS_TEST
+#ifdef DYNAMICS_TEST
 
 	JointAngles desiredAngles;
 	desiredAngles.thetas[2] = 20;
@@ -32,7 +32,7 @@ void Controller::run()
 
 
 	return;
-	#endif // DYNAMICS_TEST
+#endif // DYNAMICS_TEST
 
 	_updateDeltaTime();
 	//comCon.Print<char*>("\nDeltatime: ");
@@ -123,13 +123,17 @@ void Controller::run()
 
 	// To control our robot we also need our current joint velocities
 	//Velocities currentJointVelocities = _getJointVelocities(currentInstructions.Mode);
-		
+	
+	//desiredJointVelocities.ConvertTo(RadiansPerSec);
+	///desiredJointVelocities.velocities[1] = 1;
+	currentJointVelocities.ConvertTo(RadiansPerSec);
+
 	// We take our desired and current joint velocities and calculate our correction/error velocities
 	Velocities errorVelocities = desiredJointVelocities - currentJointVelocities;
-		
+	
 	// We calculate our torques from the control system
 	JointTorques controlTorques = conSys.Control(errorVelocities, currentJointAngles, deltaTime);
-		
+	
 	// We calculate our static torques.
 	Accelerations zeroAcceleration;
 	Velocities zeroVelocity;
@@ -193,8 +197,16 @@ void Controller::run()
 		comCon.Print<double>(currentJointVelocities.velocities[3]);
 
 
-		accumulatedTime = 0;
+		
 		*/
+
+		comCon.Print<char*>("\nJointVelocity1: ");
+		comCon.Print<double>(currentJointVelocities.velocities[1]);
+
+		comCon.Print<char*>("\nIDTorque1: ");
+		comCon.Print<double>(100000*currentTorques.torques[1]);
+
+		accumulatedTime = 0;
 	}
 
 #endif // PWM_CONTROL
@@ -204,8 +216,8 @@ void Controller::run()
 void Controller::_updateDeltaTime()
 {
 	unsigned long currentTime = micros();
-	comCon.Print<char*>("\nCurrent time: ");
-	comCon.Print<unsigned long>(currentTime);
+	//comCon.Print<char*>("\nCurrent time: ");
+	//comCon.Print<unsigned long>(currentTime);
 	deltaTime = currentTime - previousTime;
 	previousTime = currentTime;
 }

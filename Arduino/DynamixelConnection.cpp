@@ -112,6 +112,10 @@ void DynamixelConnection::setJointPWM(JointTorques& updateTorques, Velocities& c
 	for (size_t i = 1; i < 4; i++)
 	{
 		double jointPWM = _typeConverter(updateTorques.torques[i], currentVelocities.velocities[i], Joints[i]->ServoType, PWM);
+		if (i == 1) {
+			pComCon->Print<char*>("\nJ1 PWM: ");
+			pComCon->Print<double>(jointPWM);
+		}
 		bool set = dynamixel.setGoalPWM(Joints[i]->ID, jointPWM);
 	}
 }

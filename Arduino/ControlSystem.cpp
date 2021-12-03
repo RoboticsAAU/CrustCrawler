@@ -15,7 +15,7 @@ JointTorques ControlSystem::Control(Velocities& errorVelocities, JointAngles& cu
 	for (size_t i = 1; i < 6; i++)
 	{
 		// Main regulating system
-		returnJointTorques.torques[i] = _P(Kp[i], errorVelocities.velocities[i]);
+		returnJointTorques.torques[i] = _PD(errorVelocities.velocities[i],i,deltaTime);
 	}
 	return returnJointTorques;
 }
