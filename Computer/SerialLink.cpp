@@ -45,7 +45,7 @@ void SerialLink::sendData() {
 #endif
 
 
-    if ((std::chrono::steady_clock::now() - serialDelay) > std::chrono::milliseconds::duration(100)) {
+    if ((std::chrono::steady_clock::now() - serialDelay) > std::chrono::milliseconds::duration(50)) {
         // Then we try to send it, and only set isSent to true once the package is actually sent. 
         //Notice that 1 is subtracted from package.size to avoid sending the terminating character
         for (int i = 0; i < package.size() - 1; i++)
