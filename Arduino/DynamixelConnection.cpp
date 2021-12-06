@@ -109,7 +109,7 @@ void DynamixelConnection::setJointVelocity(Velocities& goalVelocities)
 void DynamixelConnection::setJointPWM(JointTorques& updateTorques, Velocities& currentVelocities)
 {
 	currentVelocities.ConvertTo(RadiansPerSec);
-	for (size_t i = 1; i < 4; i++)
+	for (size_t i = 1; i < 6; i++)
 	{
 		double jointPWM = _typeConverter(updateTorques.torques[i], currentVelocities.velocities[i], Joints[i]->ServoType, PWM);
 		if (i == 1) {

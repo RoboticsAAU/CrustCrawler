@@ -125,7 +125,7 @@ void Controller::run()
 	//Velocities currentJointVelocities = _getJointVelocities(currentInstructions.Mode);
 	
 	//desiredJointVelocities.ConvertTo(RadiansPerSec);
-	///desiredJointVelocities.velocities[1] = 1;
+	//desiredJointVelocities.velocities[1] = 1;
 	currentJointVelocities.ConvertTo(RadiansPerSec);
 
 	// We take our desired and current joint velocities and calculate our correction/error velocities

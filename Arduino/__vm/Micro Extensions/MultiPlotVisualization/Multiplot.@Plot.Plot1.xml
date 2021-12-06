@@ -11,7 +11,7 @@
   </CurveSettingCollection>
   <XSweepTime>20 sec</XSweepTime>
   <XTimeFormat>Auto</XTimeFormat>
-  <DisplayRefreshRate>Rate50ms</DisplayRefreshRate>
+  <DisplayRefreshRate>AsDataComesIn</DisplayRefreshRate>
   <ChartType>AreaChartSemiTransparent</ChartType>
   <OptimizeBinaryCurves>On</OptimizeBinaryCurves>
   <CurveDistribution>MultipleCharts</CurveDistribution>

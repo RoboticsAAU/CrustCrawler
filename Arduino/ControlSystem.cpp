@@ -15,7 +15,8 @@ JointTorques ControlSystem::Control(Velocities& errorVelocities, JointAngles& cu
 	for (size_t i = 1; i < 6; i++)
 	{
 		// Main regulating system
-		returnJointTorques.torques[i] = _PD(errorVelocities.velocities[i],i,deltaTime);
+		//returnJointTorques.torques[i] = _PD(errorVelocities.velocities[i],i,deltaTime);
+		returnJointTorques.torques[i] = _PID(errorVelocities.velocities[i], i, deltaTime);
 	}
 	return returnJointTorques;
 }
@@ -28,8 +29,12 @@ double ControlSystem::_PID(double& error, int&& iterator, unsigned long& deltaTi
 	// Avoids integral windup
 	// If we want to expand on this we could limit it further by thresholding the derivative of the step reponse. 
 	double slopeConstant = 1;
-	if (error > -0.02 && error < 0.02 && derivative / Kd[iterator] < slopeConstant) { integral[iterator] = _I(Ki[iterator], error, integral[iterator], deltaTime); }
-	else { integral[iterator] = 0; }
+	if (abs(error) < 0.1 && abs(derivative / Kd[iterator]) < slopeConstant) {
+		integral[iterator] = _I(Ki[iterator], error, integral[iterator], deltaTime);
+	}
+	else { 
+		integral[iterator] = 0; 
+	}
 
 	lastError[iterator] = error;
 
