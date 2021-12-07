@@ -11,8 +11,9 @@
 #include "JointConfigs.h"
 #include "ComputerConnection.h"
 
-#define VELOCITY_CONTROL
-//#define PWM_CONTROL 
+//#define VELOCITY_CONTROL
+#define PWM_CONTROL 
+
 #define DYNAMIXEL_SERIAL Serial
 const int DirectionPin{ 2 };
 
