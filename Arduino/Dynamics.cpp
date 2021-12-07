@@ -1,8 +1,6 @@
 #include "Dynamics.h"  
 
-Dynamics::Dynamics(ComputerConnection* pointer) : pComCon(pointer)
-{
-}
+Dynamics::Dynamics(ComputerConnection* pointer) : pComCon(pointer) {}
 
 JointTorques Dynamics::InverseDynamics(JointAngles& positions, Velocities& velocities, Accelerations& accelerations)
 {
