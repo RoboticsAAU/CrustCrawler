@@ -45,13 +45,15 @@ private:
 
 	// Returns the desired velocities - in jointspace - from the instructions, based on the current posiiton of the CrustCrawler
 	Velocities _toJointVel(JointAngles& jointAngles, Package& instructions);
-	double Controller::getDeterminant(BLA::Matrix<3, 3> matrix);
+	double getDeterminant(BLA::Matrix<3, 3> matrix);
 
 	// Return the instruction velocities in cartesian or joint space, based on the control mode
 	Velocities _toVel(Package& instructions);
 	double _maxJointLength;
 	double _maxAngularVelocity;
 	double _LinearToAngularRatio;
+	double _GripperCloseConstant = 1; // Velocity in Radians
+	bool _isClosing = false;
 
 	// Converts currently only from cartesian to joint space
 	Velocities _spaceConverter(JointAngles& jointAngles, Velocities& instructionVelocities, SpaceType desiredSpace);

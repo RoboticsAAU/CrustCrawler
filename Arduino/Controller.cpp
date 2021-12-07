@@ -290,14 +290,29 @@ Velocities Controller::_toVel(Package& instructions)
 	Velocities returnVelocities;
 	
 	directionSign = instructions.Sign ? -1 : 1;
+
 	double speedMS = instructions.Speed / 1000.0;
+
+	// If the last gripper direction corresponded to closing, we make the fingers close at a constant speed.
+	// This way, fingers can still close while in other modes
+	if (_isClosing) {
+		returnVelocities.velocities[4] = -_GripperCloseConstant;
+		returnVelocities.velocities[5] = _GripperCloseConstant;
+	}
+
 
 	switch (instructions.Mode)
 	{
 	case Gripper: {
-		// Should probably map to the instruction speed
-		returnVelocities.velocities[4] = -3 * directionSign * speedMS;
-		returnVelocities.velocities[5] = 3 * directionSign * speedMS;
+		// We determine whether or not the current direction sign corresponds to closing
+		_isClosing = !instructions.Sign;
+
+		// If we are not closing, we open with the user inputs velocity (times 3 for faster motion)
+		if (!_isClosing) {
+			returnVelocities.velocities[4] = -3 * directionSign * speedMS;
+			returnVelocities.velocities[5] = 3 * directionSign * speedMS;
+		}
+		
 		returnVelocities.currentSpaceType = JointSpace;
 		break;
 	}
@@ -320,7 +335,7 @@ Velocities Controller::_toVel(Package& instructions)
 		// Return velocities is initialised with 0
 		returnVelocities.currentSpaceType = JointSpace;
 		break;
-	}
+	} 
 	default:
 		// Invalid Control mode
 		break;
@@ -396,11 +411,15 @@ Velocities Controller::_spaceConverter(JointAngles& jointAngles, Velocities& ins
 	//comCon.Print<char*>("\nDeterminant: ");
 	//comCon.Print<double>(determinant);
 
-	for (size_t i = 1; i < 4; i++)
+	for (size_t i = 1; i < 6; i++)
 	{	
 		returnVelocities.velocities[i] = velocityVectorFrame0W(i - 1, 0);
 		breakVelocityAtSingularity(returnVelocities.velocities[i], determinant);
 	}
+
+	// Remember the gripper velocities
+	returnVelocities.velocities[4] = instructionVelocities.velocities[4];
+	returnVelocities.velocities[5] = instructionVelocities.velocities[5];
 
 	returnVelocities.currentSpaceType = desiredSpace;
 	return returnVelocities;

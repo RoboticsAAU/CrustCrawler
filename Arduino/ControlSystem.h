@@ -20,7 +20,8 @@ private:
 	double _PD(double& error, int&& iterator, unsigned long& deltaTime);
 
 	double _P(double& Kp, double& error);
-	double Kp[6] = { 0, 1.1, 2, 0.9, 1, 1 };
+	//double Kp[6] = { 0, 1.1, 2.8, 1.2, 0.6, 0.6 };
+	double Kp[6] = { 0, 1.1, 2.5, 1.2, 0.6, 0.6 };
 	double gripperSyncGain = 1;
 
 	double _I(double& Ki, double& error, double& integral, unsigned long& deltaTime);
@@ -28,7 +29,8 @@ private:
 	double integral[6] = { 0,0,0,0,0,0 };
 
 	double _D(double& Kd, double& error, double& lastError, unsigned long& deltaTime);
-	double Kd[6] = { 0, 0.0002, 0.0001, 0.0001, 0, 0 };
+	//double Kd[6] = { 0, 0.0002, 0.05, 0.0001, 0, 0 };
+	double Kd[6] = { 0, 1000, 0.00, 0.000, 0, 0 };
 	double lastError[6];
 
 
