@@ -42,7 +42,7 @@ void Controller::run()
 	// Get currently read package 
 	Package currentInstructions = comCon.getPackage();
 	
-	if (millis() - timeStamp >= 10000) {
+	if (millis() - timeStamp >= 5000) {
 		comCon.Print<unsigned int>(currentInstructions.EmergencyStop);
 		comCon.Print<char*>("\n");
 		comCon.Print<unsigned int>(currentInstructions.Mode);
@@ -207,15 +207,15 @@ Velocities Controller::_toVel(Package& instructions)
 {
 	Velocities returnVelocities;
 	
-	directionSign = instructions.Sign ? -1 : 1;
+	directionSign = instructions.Sign ? 1 : -1;
 
 	double speedMS = instructions.Speed / 1000.0;
 
 	// If the last gripper direction corresponded to closing, we make the fingers close at a constant speed.
 	// This way, fingers can still close while in other modes
 	if (_isClosing) {
-		returnVelocities.velocities[4] = -_GripperCloseConstant;
-		returnVelocities.velocities[5] = _GripperCloseConstant;
+		returnVelocities.velocities[4] = directionSign * _GripperCloseConstant;
+		returnVelocities.velocities[5] = -directionSign * _GripperCloseConstant;
 	}
 
 
@@ -227,15 +227,15 @@ Velocities Controller::_toVel(Package& instructions)
 
 		// If we are not closing, we open with the user inputs velocity (times 3 for faster motion)
 		if (!_isClosing) {
-			returnVelocities.velocities[4] = -3 * directionSign * speedMS;
-			returnVelocities.velocities[5] = 3 * directionSign * speedMS;
+			returnVelocities.velocities[4] = 3 * directionSign * speedMS;
+			returnVelocities.velocities[5] = -3 * directionSign * speedMS;
 		}
 		
 		returnVelocities.currentSpaceType = JointSpace;
 		break;
 	}
 	case Base: {
-		returnVelocities.velocities[1] = 3*directionSign * (speedMS * _LinearToAngularRatio);
+		returnVelocities.velocities[1] = -3*directionSign * (speedMS * _LinearToAngularRatio);
 		returnVelocities.currentSpaceType = JointSpace;
 		break;
 	}
