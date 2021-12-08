@@ -10,7 +10,7 @@ Controller::Controller() : conSys(&comCon), dynCon(&comCon), dyn(&comCon) {
 
 void Controller::run()
 {
-	comCon.Print<char*>("\n");
+	//comCon.Print<char*>("\n");
 
 #ifdef DYNAMICS_TEST
 
@@ -41,6 +41,19 @@ void Controller::run()
 	
 	// Get currently read package 
 	Package currentInstructions = comCon.getPackage();
+	
+	if (millis() - timeStamp >= 10000) {
+		comCon.Print<unsigned int>(currentInstructions.EmergencyStop);
+		comCon.Print<char*>("\n");
+		comCon.Print<unsigned int>(currentInstructions.Mode);
+		comCon.Print<char*>("\n");
+		comCon.Print<unsigned int>(currentInstructions.Sign);
+		comCon.Print<char*>("\n");
+		comCon.Print<unsigned int>(currentInstructions.Speed);
+		comCon.Print<char*>("\n\n");
+		timeStamp = millis();
+	}
+	
 
 	// Call emergency stop function if spacebar is pressed on the computer.
 	if (currentInstructions.EmergencyStop)
@@ -53,6 +66,15 @@ void Controller::run()
 	JointAngles currentJointAngles = dynCon.getJointAngles();
 	
 
+	// For solution testing 
+	/*if (millis() - timeStamp >= 5000) {
+		for (int i = 1; i < 6; i++) {
+			comCon.Print<double>(currentJointAngles.thetas[i]);
+			comCon.Print<char*>("\n");
+		}
+		timeStamp = millis();
+		comCon.Print<char*>("\n");
+	}*/
 	// We convert our instructions to joint velocities
 	Velocities desiredJointVelocities = _toJointVel(currentJointAngles, currentInstructions);
 

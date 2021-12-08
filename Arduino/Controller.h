@@ -67,5 +67,7 @@ private:
 	void breakVelocityAtLimit(double& velocity, double angleDiff);
 	double limitBoundary = 100; // Unit: Raw
 	
+	//For testing
+	unsigned long timeStamp = 5000;
 };
 
