@@ -214,8 +214,8 @@ Velocities Controller::_toVel(Package& instructions)
 	// If the last gripper direction corresponded to closing, we make the fingers close at a constant speed.
 	// This way, fingers can still close while in other modes
 	if (_isClosing) {
-		returnVelocities.velocities[4] = directionSign * _GripperCloseConstant;
-		returnVelocities.velocities[5] = -directionSign * _GripperCloseConstant;
+		returnVelocities.velocities[4] = -_GripperCloseConstant;
+		returnVelocities.velocities[5] =  _GripperCloseConstant;
 	}
 
 
