@@ -223,7 +223,7 @@ Velocities Controller::_toVel(Package& instructions)
 	{
 	case Gripper: {
 		// We determine whether or not the current direction sign corresponds to closing
-		_isClosing = !instructions.Sign;
+		if(instructions.Speed > 0) _isClosing = !instructions.Sign;
 
 		// If we are not closing, we open with the user inputs velocity (times 3 for faster motion)
 		if (!_isClosing) {
