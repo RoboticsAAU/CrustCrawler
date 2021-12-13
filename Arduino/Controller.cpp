@@ -235,7 +235,7 @@ Velocities Controller::_toVel(Package& instructions)
 		break;
 	}
 	case Base: {
-		returnVelocities.velocities[1] = -3*directionSign * (speedMS * _LinearToAngularRatio);
+		returnVelocities.velocities[1] = -directionSign * (speedMS * _LinearToAngularRatio);
 		returnVelocities.currentSpaceType = JointSpace;
 		break;
 	}
