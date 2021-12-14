@@ -51,6 +51,6 @@ void Filtering::Decelerate(bool input){
 //Debug function that is defined through include guard whenever the "Solution Configuration" is set to Debug-mode. We check this through the macro "_DEBUG"
 #ifdef _DEBUG
 void Filtering::print(){
-	printf("MovAvg: %.3f ", MoveAvg(false));
+	printf("MovAvg: %5.2f ", MoveAvg(false));
 }
 #endif
