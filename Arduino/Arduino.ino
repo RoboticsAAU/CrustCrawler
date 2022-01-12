@@ -1,43 +1,24 @@
-//#include "ComputerConnector.cpp"
+/*
+ Name:		Arduino.ino
+ Created:	15/11/2021 15:36:53
+ Author:	P-363
+*/
+// Generel includes
 
-//int led = 13;
+// Library includes
 
-//ComputerConnector* computerConnector;
+// Custom includes
+#include "Controller.h"
 
+Controller* controller;
 
 // the setup function runs once when you press reset or power the board
-//void setup() {
-
-//}
-
-	//pinMode(led, OUTPUT);
-	//computerConnector = new ComputerConnector();
-	//Controller = new Controller(*ComputerConnector);
-
-
-
-// the loop function runs over and over again until power down or reset
-//void loop() {
-
-//}
-	//digitalWrite(led, HIGH);
-	//delay(100);
-	//digitalWrite(led, LOW);
-	//delay(100);
-
-	//computerConnector->debugPrint();
-
-
-	//switch controlMode
-
-
-
-
-
 void setup() {
-
+	delay(1000);
+	controller = new Controller();
 }
 
+// the loop function runs over and over again until power down or reset
 void loop() {
-
+	controller->run();
 }
