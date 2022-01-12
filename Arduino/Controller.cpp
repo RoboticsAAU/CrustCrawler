@@ -129,14 +129,14 @@ Velocities Controller::_toVel(Package& instructions)
 	// The speed is converted to SI-unit (from mm/s to m/s)
 	double speedMS = instructions.Speed / 1000.0;
 
-	// If the last gripper direction corresponded to closing, we make the fingers close at a constant speed.
+	// If the last gripper direction corresponded to closing, we make the fingers close at a constant speed
 	// This way, fingers can still close while in other modes
 	if (_isClosing) {
 		returnVelocities.velocities[4] = -_GripperCloseConstant;
 		returnVelocities.velocities[5] = _GripperCloseConstant;
 	}
 
-	// Velocity is in the following defined based on the instruction mode.
+	// Velocity is in the following defined based on the instruction mode
 	switch (instructions.Mode)
 	{
 	case Gripper: {
@@ -286,42 +286,55 @@ Velocities Controller::_spaceConverter(JointAngles& jointAngles, Velocities& ins
 
 // Function used to brake velocity depending on the size of the Jacobian's determinant. 
 void Controller::brakeVelocityAtSingularity(double& velocity, double determinant) {
-	if ((abs(determinant) - determinantShift) < determinantThreshold) {
+	// We check whether the current determinant is below a certain threshold. If true, the velocity is reduced by multiplying with a gain expressed through a power function.
+	// NOTE: The shift ensures that joints stop before the singularity, while absolute determinant allows for both positive and negative approaches.
+	if ((abs(determinant) - determinantShift) < determinantThreshold) { 
+		// If current direction sign is equal the previous direction sign, it is assumed that the user continues to move towards a singularity and the velocity is thus reduced
 		if (directionSign == prevDirectionSign) {
 			velocity *= pow((abs(determinant) - determinantShift) / determinantThreshold, exp(1));
 		}
 	}
+	// If not, the variable "prevDirectionSign" is assigned to current direction sign
 	else {
 		prevDirectionSign = directionSign;
 	}
 }
 
+// Function to calculate the determinant of a 3x3 matrix
 double Controller::getDeterminant(BLA::Matrix<3, 3> matrix) {
 	return matrix(0, 0) * (matrix(1, 1) * matrix(2, 2) - matrix(1, 2) * matrix(2, 1)) -
 		matrix(0, 1) * (matrix(1, 0) * matrix(2, 2) - matrix(1, 2) * matrix(2, 0)) +
 		matrix(0, 2) * (matrix(1, 0) * matrix(2, 1) - matrix(1, 1) * matrix(2, 0));
 }
 
+// Function used to brake the velocity when joint angle limits are approached
 void Controller::brakeVelocitiesAtLimit(JointAngles& jointAngles, Velocities& instructionJointVelocities) {
+	// Local variable used to store angle difference
 	double angleDiff = 0;
+	// Local variable used to flag a joint if braking has occured. 
+	// This is used to brake joint 2 and 3 as a pair during Cartesian movements whenever one of them reaches a limit. 
 	bool flag[6] = { 0,0,0,0,0,0 };
+
 	jointAngles.ConvertTo(Raw);
 
-
+	// We check for each joint if they are within their limits 
 	for (int i = 1; i < 6; i++) {
 
-		// If the i'th joint is close to the lower angle limit and we are going towards the limit
+		// We check if the i'th joint is close to the lower angle limit and we are going towards the limit
 		if (((jointAngles.thetas[i] < (Joints[i]->MinTheta + limitBoundary)) &&
 			(instructionJointVelocities.velocities[i] < -1e-6)))
 		{
+			// The angle difference is calculated
 			angleDiff = jointAngles.thetas[i] - Joints[i]->MinTheta;
 
 			// We brake the velocity of the i'th joint
 			brakeVelocityAtLimit(instructionJointVelocities.velocities[i], angleDiff);
+
+			// The particular joint is flagged. 
 			flag[i] = true;
 		}
 
-		// If the i'th joint is close to the upper angle limit and we are going towards the limit
+		// We check if the i'th joint is close to the upper angle limit and we are going towards the limit
 		if ((jointAngles.thetas[i] > (Joints[i]->MaxTheta - limitBoundary)) &&
 			(instructionJointVelocities.velocities[i] > 1e-6))
 		{
@@ -329,22 +342,30 @@ void Controller::brakeVelocitiesAtLimit(JointAngles& jointAngles, Velocities& in
 
 			// We brake the velocity of the i'th joint
 			brakeVelocityAtLimit(instructionJointVelocities.velocities[i], angleDiff);
+
+			// The particular joint is flagged. 
 			flag[i] = true;
 		}
 
 	}
 
-	// If the flag of the i'th velocity is true, meaning that joint is braking
+	// We loop through each joint to check if the flag of the i'th velocity is true (meaning that joint braking has occurred)
 	for (int i = 1; i < 6; i++) {
+		// If braking has occurred
 		if (flag[i]) {
+			// Switch case is used to perform specific checks based on which joint has been flagged (currently only necessary for joint 2 and 3)
 			switch (i) {
 			case 1: break;
 			case 2:
+				// If braking has occurred for joint 2, we know that a Cartesian movement is being performed
+				// The other joint used for this movement (joint 3) must thus also brake. 
 				if (!flag[i + 1]) {
 					brakeVelocityAtLimit(instructionJointVelocities.velocities[i + 1], angleDiff);
 					break;
 				}
 			case 3:
+				// If braking has occurred for joint 3, we know that a Cartesian movement is being performed
+				// The other joint used for this movement (joint 2) must thus also brake
 				if (!flag[i - 1]) {
 					brakeVelocityAtLimit(instructionJointVelocities.velocities[i - 1], angleDiff);
 					break;
@@ -354,11 +375,14 @@ void Controller::brakeVelocitiesAtLimit(JointAngles& jointAngles, Velocities& in
 	}
 }
 
+// Function used to brake velocity when a joint limit has occurred.
 void Controller::brakeVelocityAtLimit(double& velocity, double angleDiff) {
+	// The sign of current velocity is stored. This is used to 
 	double sign = copysign(1.0, velocity);
 	// Braking the velocity - as angleDiff goes to 0, so does the velocity.
 	velocity = (velocity / limitBoundary) * angleDiff;
 
-	// We set the velocity to 0 if it is under - happens when we have crossed the angle limit
+	// We set the velocity to 0 if the expression is below zero. This is necessary to check as the angleDiff is negative when the limit has been crossed, 
+	// which results in a velocity of opposite sign.
 	if (sign * velocity < 0) velocity = 0;
 }
