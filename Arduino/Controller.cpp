@@ -383,6 +383,6 @@ void Controller::brakeVelocityAtLimit(double& velocity, double angleDiff) {
 	velocity = (velocity / limitBoundary) * angleDiff;
 
 	// We set the velocity to 0 if the expression is below zero. This is necessary to check as the angleDiff is negative when the limit has been crossed, 
-	// which results in a velocity of opposite sign.
+	// which results in a velocity of opposite sign. Multiplying with its original sign will always result in a negative number if the limit has been crossed. 
 	if (sign * velocity < 0) velocity = 0;
 }
