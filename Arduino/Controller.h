@@ -14,8 +14,6 @@
 #include "ControlSystem.h"
 #include "CalculusOperations.h"
 
-//#define DYNAMICS_TEST
-
 class Controller : public CalculusOperations
 {
 public:
@@ -23,43 +21,41 @@ public:
 	void run();
 
 private:
+	// Creating objects for the different classes
 	ComputerConnection comCon;
 	DynamixelConnection dynCon;
 	Kinematics kin;
 	Dynamics dyn;
 	ControlSystem conSys;
 
-	// Updates the current delta/loop-time
+	// Determining deltatime
 	void _updateDeltaTime();
-	unsigned long deltaTime = 0;
-	unsigned long previousTime = 0;
+	unsigned long deltaTime = 0;             // Time duration of previous runtime
+	unsigned long previousTime = 0;          // Time stamp that is set to the current time at the start of each loop
+	unsigned long accumulatedTime = 0;       // Variable to store the accumulated time since last time instructions were sent to servos
+	unsigned long fixedSendTime = 10 * 1000; // Constant fixed send time (in microseconds) corresponding to 10 milliseconds
 
-	unsigned long accumulatedTime = 0;
-	unsigned long fixedSendTime = 10 * 1000; // in microseconds
 
-	// Returns the desired velocities - in jointspace - from the instructions, based on the current posiiton of the CrustCrawler
+	// Converting instructions to joint velocity
 	Velocities _toJointVel(JointAngles& jointAngles, Package& instructions);
-	double getDeterminant(BLA::Matrix<3, 3> matrix);
 
-	// Return the instruction velocities in cartesian or joint space, based on the control mode
 	Velocities _toVel(Package& instructions);
-	double _maxJointLength;
-	double _maxAngularVelocity;
-	double _LinearToAngularRatio;
-	double _GripperCloseConstant = 1; // Velocity in Radians
-	bool _isClosing = false;
+	double _maxJointLength;             // The length of the CrustCrawler when it is fully extended (e.g. when all angles are 0)
+	double _maxAngularVelocity;			// The maximum permissible angular velocity based on CrustCrawler's max length and max linear velocity
+	double _LinearToAngularRatio;		// The ratio between linear and angular velocity. Derived from the formula for relation between tangential and angular velocity
+	double _GripperCloseConstant = 1.0; // Constant closing reference velocity of the grippers (in radians)
+	bool _isClosing = false;            // True if the gripper is closing (only used in PWM operating mode -> always false in Velocity operating mode)
 
-	// Converts currently only from cartesian to joint space
 	Velocities _spaceConverter(JointAngles& jointAngles, Velocities& instructionVelocities, SpaceType desiredSpace);
-	double determinantThreshold = 5.0, determinantShift = 2.0;
-	int directionSign = 0, prevDirectionSign = 0;
-
+	double getDeterminant(BLA::Matrix<3, 3> matrix);
 	void brakeVelocityAtSingularity(double& velocity, double determinant);
+	double determinantThreshold = 5.0;			  // A threshold for when velocity braking should begin
+	double determinantShift = 2.0;		          // Value used to shift the singularity stop point
+	int directionSign = 0, prevDirectionSign = 0; // The current and previous direction of movement determined from the current velocity
 
 	// Slows down the velocities when close to angle limits.
 	void brakeVelocitiesAtLimit(JointAngles& jointAngles, Velocities& instructionJointVelocities);
 	void brakeVelocityAtLimit(double& velocity, double angleDiff);
-	double limitBoundary = 100; // Unit: Raw
-	
+	double limitBoundary = 100.0;	// Boundary/threshold (in terms of angle difference) for when velocity braking should begin (in Raw)
 };
 

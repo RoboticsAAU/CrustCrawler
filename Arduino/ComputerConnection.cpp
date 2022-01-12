@@ -3,7 +3,7 @@
 
 ComputerConnection::ComputerConnection()
 {
-	// Initiating serial communication (for data transfer to servos and for debugging) at given baud rates
+	// Initiating serial communication (for data transfer from computer to Arduino and for debug purposes) at given baud rates
 	DEBUG_SERIAL.begin(115200);
 	DATA_SERIAL.begin(57600);
 }
@@ -20,11 +20,11 @@ Package ComputerConnection::getPackage()
 		if (data == 255)
 		{   
 			// The four bytes are stored into the "databuffer" array and subsequently assigned into their respective package variable
-			DATA_SERIAL.readBytes(databuffer, 4); // Byte (type of "databuffer") is the same as unsigned char
-			returnPackage.EmergencyStop = (bool)databuffer[0];
-			returnPackage.Mode = (ControlMode)databuffer[1];
-			returnPackage.Sign = (bool)databuffer[2];
-			returnPackage.Speed = (uint8_t)databuffer[3];
+			DATA_SERIAL.readBytes(dataBuffer, 4); // Byte (type of "databuffer") is the same as unsigned char
+			returnPackage.EmergencyStop = (bool)dataBuffer[0];
+			returnPackage.Mode = (ControlMode)dataBuffer[1];
+			returnPackage.Sign = (bool)dataBuffer[2];
+			returnPackage.Speed = (uint8_t)dataBuffer[3];
 			returnPackage.isUpdated = true;
 			return returnPackage;
 		}

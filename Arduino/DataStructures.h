@@ -54,7 +54,7 @@ struct Package
 
 struct JointTorques
 {
-	double torques[6] = { 0,0,0,0,0,0 };
+	double torques[6] = { 0, 0, 0, 0, 0, 0 };
 
 	JointTorques operator+=(const JointTorques& addequal);
 	JointTorques operator+(const JointTorques& add);
@@ -64,7 +64,7 @@ struct JointTorques
 
 struct JointAngles
 {
-	double thetas[6] = { 0,0,0,0,0,0 };
+	double thetas[6] = { 0, 0, 0, 0, 0, 0 };
 	AngleUnitType currentUnitType;
 
 	void ConvertTo(AngleUnitType newType);
@@ -78,10 +78,9 @@ private:
 	void _typeConverter(JointAngles* inputAngles, AngleUnitType desiredUnit);
 };
 
-
 struct Velocities
 {
-	double velocities[6] = { 0,0,0,0,0,0 };
+	double velocities[6] = { 0, 0, 0, 0, 0, 0 };
 	VelocityUnitType currentUnitType;
 	SpaceType currentSpaceType;
 
@@ -97,7 +96,7 @@ private:
 };
 
 struct Accelerations {
-	double accelerations[6] = { 0,0,0,0,0,0 };
+	double accelerations[6] = { 0, 0, 0, 0, 0, 0 };
 };
 
 struct Joint

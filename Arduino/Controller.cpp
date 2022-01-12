@@ -286,15 +286,17 @@ Velocities Controller::_spaceConverter(JointAngles& jointAngles, Velocities& ins
 
 // Function used to brake velocity depending on the size of the Jacobian's determinant. 
 void Controller::brakeVelocityAtSingularity(double& velocity, double determinant) {
-	// We check whether the current determinant is below a certain threshold. If true, the velocity is reduced by multiplying with a gain expressed through a power function.
-	// NOTE: The shift ensures that joints stop before the singularity, while absolute determinant allows for both positive and negative approaches.
+	// We check whether the current determinant is below a certain threshold. If true, the velocity is reduced by multiplying with a gain expressed 
+	// through a power function.
+		// NOTE: The shift ensures that joints stop before the singularity, while absolute determinant allows for both positive and negative approaches.
 	if ((abs(determinant) - determinantShift) < determinantThreshold) { 
-		// If current direction sign is equal the previous direction sign, it is assumed that the user continues to move towards a singularity and the velocity is thus reduced
+		// If current direction sign is equal to the previous direction sign, it is assumed that the user continues
+		// to move towards a singularity and the velocity is thus reduced
 		if (directionSign == prevDirectionSign) {
 			velocity *= pow((abs(determinant) - determinantShift) / determinantThreshold, exp(1));
 		}
 	}
-	// If not, the variable "prevDirectionSign" is assigned to current direction sign
+	// If not, the current direction sign is assigned to the variable "prevDirectionSign"
 	else {
 		prevDirectionSign = directionSign;
 	}
@@ -303,18 +305,20 @@ void Controller::brakeVelocityAtSingularity(double& velocity, double determinant
 // Function to calculate the determinant of a 3x3 matrix
 double Controller::getDeterminant(BLA::Matrix<3, 3> matrix) {
 	return matrix(0, 0) * (matrix(1, 1) * matrix(2, 2) - matrix(1, 2) * matrix(2, 1)) -
-		matrix(0, 1) * (matrix(1, 0) * matrix(2, 2) - matrix(1, 2) * matrix(2, 0)) +
-		matrix(0, 2) * (matrix(1, 0) * matrix(2, 1) - matrix(1, 1) * matrix(2, 0));
+		   matrix(0, 1) * (matrix(1, 0) * matrix(2, 2) - matrix(1, 2) * matrix(2, 0)) +
+		   matrix(0, 2) * (matrix(1, 0) * matrix(2, 1) - matrix(1, 1) * matrix(2, 0));
 }
 
 // Function used to brake the velocity when joint angle limits are approached
 void Controller::brakeVelocitiesAtLimit(JointAngles& jointAngles, Velocities& instructionJointVelocities) {
 	// Local variable used to store angle difference
 	double angleDiff = 0;
-	// Local variable used to flag a joint if braking has occured. 
-	// This is used to brake joint 2 and 3 as a pair during Cartesian movements whenever one of them reaches a limit. 
+
+	// Local variable used to flag a joint if braking has occured. Used to brake joint 2 and 3 as a pair during Cartesian
+	// movements, whenever one of them reaches a limit. 
 	bool flag[6] = { 0,0,0,0,0,0 };
 
+	// The joint angles are converted to the unit Raw, so that it is possible to compare with angle limits, as these are defined in Raw
 	jointAngles.ConvertTo(Raw);
 
 	// We check for each joint if they are within their limits 
@@ -338,6 +342,8 @@ void Controller::brakeVelocitiesAtLimit(JointAngles& jointAngles, Velocities& in
 		if ((jointAngles.thetas[i] > (Joints[i]->MaxTheta - limitBoundary)) &&
 			(instructionJointVelocities.velocities[i] > 1e-6))
 		{
+			// The angle difference is calculated
+				// NOTE: Reversed from the "angleDiff" in the previous if statement, due to the direction being opposite
 			angleDiff = Joints[i]->MaxTheta - jointAngles.thetas[i];
 
 			// We brake the velocity of the i'th joint
@@ -375,14 +381,15 @@ void Controller::brakeVelocitiesAtLimit(JointAngles& jointAngles, Velocities& in
 	}
 }
 
-// Function used to brake velocity when a joint limit has occurred.
+// Function used to brake velocity of a joint the joint limit is approached
 void Controller::brakeVelocityAtLimit(double& velocity, double angleDiff) {
-	// The sign of current velocity is stored. This is used to 
+	// The sign of current velocity is stored. This is used in the subsequent if statement
 	double sign = copysign(1.0, velocity);
+	
 	// Braking the velocity - as angleDiff goes to 0, so does the velocity.
 	velocity = (velocity / limitBoundary) * angleDiff;
 
-	// We set the velocity to 0 if the expression is below zero. This is necessary to check as the angleDiff is negative when the limit has been crossed, 
+	// We set the velocity to 0 if the expression is below zero. This is necessary to check as the "angleDiff" is negative when the limit has been crossed, 
 	// which results in a velocity of opposite sign. Multiplying with its original sign will always result in a negative number if the limit has been crossed. 
 	if (sign * velocity < 0) velocity = 0;
 }

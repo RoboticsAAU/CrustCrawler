@@ -1,33 +1,37 @@
 #include "ControlSystem.h"
-ControlSystem::ControlSystem(ComputerConnection* pointer) : pComCon(pointer) {}
+ControlSystem::ControlSystem(ComputerConnection* pointer) : pComCon(pointer) {} // The pointer is only for debugging purposes
 
 JointTorques ControlSystem::Control(Velocities& errorVelocities, JointAngles& currentAngles, unsigned long& deltaTime)
 {
-	// We convert our angles and velocities to the correct unit  
-	currentAngles.ConvertTo(Radians); errorVelocities.ConvertTo(RadiansPerSec); 
+	// We make sure our angles and velocities are in the correct units
+	currentAngles.ConvertTo(Radians); 
+	errorVelocities.ConvertTo(RadiansPerSec); 
 
-	//_handleJointLimitations(errorVelocities, currentAngles);
-
-	//_gripperSynchronisation(errorVelocities, currentAngles);
-
-	// From the now corrected velocities, we can create our regulation torques.
 	JointTorques returnJointTorques;
+
+	// From the error velocities, we can create the regulation torques. This is done for all five joints
 	for (size_t i = 1; i < 6; i++)
 	{
-		// Main regulating system
-		//returnJointTorques.torques[i] = _PD(errorVelocities.velocities[i],i,deltaTime);
+		// Regulation torques are found based on the error velocities
+			// NOTE: While the function is a PID-controller, the constants Ki and Kp are set to zero making it only a P-controller in this case
 		returnJointTorques.torques[i] = _PID(errorVelocities.velocities[i], i, deltaTime);
 	}
+
 	return returnJointTorques;
 }
 
+// The function determines each of the three PID terms depending on the error and returns the sum of them
 double ControlSystem::_PID(double& error, int&& iterator, unsigned long& deltaTime){
+	// The proportional term
 	double proportional = _P(Kp[iterator], error);
 
+	// The derivative term
 	double derivative = _D(Kd[iterator], error, lastError[iterator], deltaTime);
 
-	// Avoids integral windup
-	// If we want to expand on this we could limit it further by thresholding the derivative of the step reponse. 
+	// The integral term
+	// If statement avoids integral windup by only activating the integral term when the response begins to settle. First part of the if statement
+	// is true when reaching a sufficiently small error and second part is true when the  slope (derivative) is sufficiently small
+		// NOTE: If we want to expand on this, we could limit it further by thresholding the derivative of the step reponse. 
 	double slopeConstant = 1;
 	if (abs(error) < 0.1 && abs(derivative / Kd[iterator]) < slopeConstant) {
 		integral[iterator] = _I(Ki[iterator], error, integral[iterator], deltaTime);
@@ -36,10 +40,35 @@ double ControlSystem::_PID(double& error, int&& iterator, unsigned long& deltaTi
 		integral[iterator] = 0; 
 	}
 
+	// We update the last error to the current error
 	lastError[iterator] = error;
 
+	// We return the sum of the three terms
 	return (proportional + integral[iterator] + derivative);
 }
+
+// The function returns the proportional term depending on the Kp value and the error
+double ControlSystem::_P(double& Kp, double& error)
+{
+	return Kp * error;
+}
+
+// The function returns the integral term depending on the Ki value and the accumulated error
+double ControlSystem::_I(double& Ki, double& error, double& integral, unsigned long& deltaTime)
+{
+	return Ki * Integrate(error, integral, deltaTime);
+}
+
+// The function returns the derivative term depending on the Kd value and the difference in error
+double ControlSystem::_D(double& Kd, double& error, double& lastError, unsigned long& deltaTime)
+{
+	return  Kd * Differentiate(error, lastError, deltaTime);
+}
+
+
+/////////////////////////////////////////////////////////////////////////////
+// THE FOLLOWING FUNCTIONS ARE NOT IMPLEMENTED, I.E. THEY ARE NEVER CALLED //
+/////////////////////////////////////////////////////////////////////////////
 
 double ControlSystem::_PD(double& error, int&& iterator, unsigned long& deltaTime)
 {
@@ -49,21 +78,6 @@ double ControlSystem::_PD(double& error, int&& iterator, unsigned long& deltaTim
 	lastError[iterator] = error;
 
 	return proportional + derivative;
-}
-
-double ControlSystem::_P(double& Kp, double& error)
-{
-	return Kp * error;
-}
-
-double ControlSystem::_I(double& Ki, double& error, double& integral, unsigned long& deltaTime)
-{
-	return Ki * Integrate(error, integral, deltaTime);
-}
-
-double ControlSystem::_D(double& Kd, double& error, double& lastError, unsigned long& deltaTime)
-{
-	return  Kd * Differentiate(error, lastError, deltaTime);
 }
 
 void ControlSystem::_handleJointLimitations(Velocities& errorVelocities, JointAngles& currentAngles)

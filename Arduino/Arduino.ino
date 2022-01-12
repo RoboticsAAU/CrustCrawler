@@ -1,20 +1,15 @@
-/*
- Name:		Arduino.ino
- Created:	15/11/2021 15:36:53
- Author:	P-363
-*/
-// Generel includes
-
-// Library includes
-
-// Custom includes
 #include "Controller.h"
 
+// Defining a object pointer of the Controller class
 Controller* controller;
 
 // The setup function runs once when you press reset or power the board
 void setup() {
+	
+	// Delay to manually place the robot in a starting configuration before torque is turned on
 	delay(1000);
+	
+	// A new object of the Controller class is instantiated (heap allocation) and its address is assigned to the global pointer "controller".
 	controller = new Controller();
 }
 
