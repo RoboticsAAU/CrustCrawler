@@ -77,9 +77,9 @@ void ControlSystem::_handleJointLimitations(Velocities& errorVelocities, JointAn
 
 		switch (i) {
 			// For joint 3 and 5, if the previous joint was corrected, we must also correct the current.
-		case 3: case 5: if (correctionFlags[i - 1]) { errorVelocities.velocities[i] = _velocityBreaker(i, currentAngles.thetas[i]); continue; }
+		case 3: case 5: if (correctionFlags[i - 1]) { errorVelocities.velocities[i] = _velocityBraker(i, currentAngles.thetas[i]); continue; }
 			  // If joint 3 and 5 were corrected later down the chain, we are returned here, so we can correct the previous joint.
-		case 2: case 4: if (correctionFlags[i + 1]) { errorVelocities.velocities[i] = _velocityBreaker(i, currentAngles.thetas[i]); continue; }
+		case 2: case 4: if (correctionFlags[i + 1]) { errorVelocities.velocities[i] = _velocityBraker(i, currentAngles.thetas[i]); continue; }
 		}
 
 		// If the joint is not within our set boundaries, then we set the velocity to zero.
@@ -89,9 +89,9 @@ void ControlSystem::_handleJointLimitations(Velocities& errorVelocities, JointAn
 			continue;
 		}
 
-		// Here we must be within the boundaries, so we check if the joint is close to the limits. If it is, then we must break it. 
-		else if (_isWithinBreakingThreshold(*Joints[i], currentAngles.thetas[i])) {
-			_velocityBreaker(i, currentAngles.thetas[i]);
+		// Here we must be within the boundaries, so we check if the joint is close to the limits. If it is, then we must brake it. 
+		else if (_isWithinBrakingThreshold(*Joints[i], currentAngles.thetas[i])) {
+			_velocityBraker(i, currentAngles.thetas[i]);
 			correctionFlags[i] = true;
 
 			// If have corrected joint 3 or 5, we must return to return to correct joint 2 or 4.
@@ -107,7 +107,7 @@ void ControlSystem::_handleJointLimitations(Velocities& errorVelocities, JointAn
 	}
 }
 
-double ControlSystem::_velocityBreaker(int&& iterator, double& inputAngle)
+double ControlSystem::_velocityBraker(int&& iterator, double& inputAngle)
 {
 	double angleDiff;
 	double _boundaryMidPoint = (Joints[iterator]->MaxTheta + Joints[iterator]->MinTheta) / 2;
@@ -117,17 +117,17 @@ double ControlSystem::_velocityBreaker(int&& iterator, double& inputAngle)
 	// Min case
 	else if (inputAngle < _boundaryMidPoint) { angleDiff = Joints[iterator]->MaxTheta - inputAngle; }
 	
-	// The breaking formula
-	return angleDiff / (angleDiff - breakingConstant);
+	// The braking formula
+	return angleDiff / (angleDiff - brakingConstant);
 }
 
 bool ControlSystem::_isWithinAngleBoundaries(Joint& inputJoint, double inputAngle) {
 	return (inputAngle > inputJoint.MinTheta) && (inputAngle < inputJoint.MaxTheta);
 }
 
-bool ControlSystem::_isWithinBreakingThreshold(Joint& inputJoint, double inputAngle) {
-	return (inputAngle < (inputJoint.MinTheta + breakingThreshold) && inputAngle > inputJoint.MinTheta) || // Min breaking zone
-		   (inputAngle > (inputJoint.MaxTheta - breakingThreshold) && inputAngle < inputJoint.MaxTheta) ;  // Max breaking zone
+bool ControlSystem::_isWithinBrakingThreshold(Joint& inputJoint, double inputAngle) {
+	return (inputAngle < (inputJoint.MinTheta + brakingThreshold) && inputAngle > inputJoint.MinTheta) || // Min braking zone
+		   (inputAngle > (inputJoint.MaxTheta - brakingThreshold) && inputAngle < inputJoint.MaxTheta) ;  // Max braking zone
 }
 
 void ControlSystem::_gripperSynchronisation(Velocities& errorVelocities, JointAngles& currentAngles)

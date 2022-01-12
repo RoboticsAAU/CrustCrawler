@@ -29,12 +29,6 @@ private:
 	Dynamics dyn;
 	ControlSystem conSys;
 
-	// Returns the necessary angles based on the control mode
-	JointAngles _getJointAngles(ControlMode controlMode);
-
-	// Returns the necessary joint velocities based on control mode
-	Velocities _getJointVelocities(ControlMode controlMode);
-
 	// Updates the current delta/loop-time
 	void _updateDeltaTime();
 	unsigned long deltaTime = 0;
@@ -60,14 +54,12 @@ private:
 	double determinantThreshold = 5.0, determinantShift = 2.0;
 	int directionSign = 0, prevDirectionSign = 0;
 
-	void breakVelocityAtSingularity(double& velocity, double determinant);
+	void brakeVelocityAtSingularity(double& velocity, double determinant);
 
 	// Slows down the velocities when close to angle limits.
-	void breakVelocitiesAtLimit(JointAngles& jointAngles, Velocities& instructionJointVelocities);
-	void breakVelocityAtLimit(double& velocity, double angleDiff);
+	void brakeVelocitiesAtLimit(JointAngles& jointAngles, Velocities& instructionJointVelocities);
+	void brakeVelocityAtLimit(double& velocity, double angleDiff);
 	double limitBoundary = 100; // Unit: Raw
 	
-	//For testing
-	unsigned long timeStamp = 5000;
 };
 

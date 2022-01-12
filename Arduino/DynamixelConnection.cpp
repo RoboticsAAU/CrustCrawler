@@ -20,12 +20,12 @@ DynamixelConnection::DynamixelConnection(ComputerConnection* pointer) : dynamixe
 			dynamixel.torqueOff(Joints[i]->ID);
 		}
 
-#ifdef VELOCITY_CONTROL
+#ifdef VELOCITY_OPERATINGMODE
 		bool ControlMode = dynamixel.writeControlTableItem(ControlTableItem::OPERATING_MODE, Joints[i]->ID, OperatingMode::OP_VELOCITY);
-#endif // VELOCITY_CONTROL
-#ifdef PWM_CONTROL
+#endif // VELOCITY_OPERATINGMODE
+#ifdef PWM_OPERATINGMODE
 		bool ControlMode = dynamixel.writeControlTableItem(ControlTableItem::OPERATING_MODE, Joints[i]->ID, OperatingMode::OP_PWM);
-#endif // PWM_CONTROL
+#endif // PWM_OPERATINGMODE
 
 		//bool Maxtheta = dynamixel.writeControlTableItem(ControlTableItem::MAX_POSITION_LIMIT, Joints[i]->ID, Joints[i]->MaxTheta);
 		//bool Mintheta = dynamixel.writeControlTableItem(ControlTableItem::MIN_POSITION_LIMIT, Joints[i]->ID, Joints[i]->MinTheta);

@@ -1,214 +1,132 @@
 #include "Controller.h"
 
 Controller::Controller() : conSys(&comCon), dynCon(&comCon), dyn(&comCon) {
+	// As the very first thing, the "previousTime" is set to the current time in microseconds (run once upon startup)
 	previousTime = micros();
 
+	// Variables later used in the function "toVel", where the parameters are converted to velocity
+	// The first two variables ("_maxJointLength" and "_maxAngularVelocity") are only used to determine the third ("_LinearToAngularRatio")
 	_maxJointLength = Joints[2]->Length + Joints[3]->Length + Joints[4]->Length;
 	_maxAngularVelocity = MaxLinearVelocity / _maxJointLength;
 	_LinearToAngularRatio = _maxAngularVelocity / MaxLinearVelocity;
 }
 
+// Main function that represent the loop structure.
 void Controller::run()
 {
-	//comCon.Print<char*>("\n");
 
-#ifdef DYNAMICS_TEST
-
-	JointAngles desiredAngles;
-	desiredAngles.thetas[2] = 20;
-	desiredAngles.currentUnitType = Degree;
-	desiredAngles.ConvertTo(Radians);
-
-	//desiredAngles = dynCon.getJointAngles();
-
-	Velocities desiredJointVelocities;
-
-	Accelerations desiredAcceleration;
-
-	JointTorques torques;
-
-	//torques = dyn.InverseDynamics(desiredAngles, desiredJointVelocities, desiredAcceleration);
-
-	dynCon.setJointPWM(torques, desiredJointVelocities);
-
-
-	return;
-#endif // DYNAMICS_TEST
-
+	// Updating the difference in time between current loop iteration and last
 	_updateDeltaTime();
-	//comCon.Print<char*>("\nDeltatime: ");
-	//comCon.Print<unsigned long>(deltaTime);
 
 	// Get currently read package 
 	Package currentInstructions = comCon.getPackage();
 
-	if (millis() - timeStamp >= 5000) {
-		comCon.Print<unsigned int>(currentInstructions.EmergencyStop);
-		comCon.Print<char*>("\n");
-		comCon.Print<unsigned int>(currentInstructions.Mode);
-		comCon.Print<char*>("\n");
-		comCon.Print<unsigned int>(currentInstructions.Sign);
-		comCon.Print<char*>("\n");
-		comCon.Print<unsigned int>(currentInstructions.Speed);
-		comCon.Print<char*>("\n\n");
-		timeStamp = millis();
-	}
-
-
-	// Call emergency stop function if spacebar is pressed on the computer.
+	// Call emergency stop function if spacebar is pressed on the computer
 	if (currentInstructions.EmergencyStop)
 	{
 		dynCon.EmergencyStop();
 		return;
 	}
 
-	// We read the data once per loop from the CrustCrawler
+	// We get and assign the current joint angles and velocities of the individual servos of the CrustCrawler
 	JointAngles currentJointAngles = dynCon.getJointAngles();
-
-
-	// For solution testing 
-	/*if (millis() - timeStamp >= 5000) {
-		for (int i = 1; i < 6; i++) {
-			comCon.Print<double>(currentJointAngles.thetas[i]);
-			comCon.Print<char*>("\n");
-		}
-		timeStamp = millis();
-		comCon.Print<char*>("\n");
-	}*/
-	// We convert our instructions to joint velocities
-	Velocities desiredJointVelocities = _toJointVel(currentJointAngles, currentInstructions);
-
 	Velocities currentJointVelocities = dynCon.getJointVelocities();
 
-#ifdef VELOCITY_CONTROL
-	// If we control our robot by velocity, we can then just set the joint velocities now,
-	// since the joints have their own control system
-	desiredJointVelocities.ConvertTo(RPM);
+	// We convert our instructions (the four retrieved parameters from the computer) to joint velocities
+	Velocities desiredJointVelocities = _toJointVel(currentJointAngles, currentInstructions);
 
-#endif // VELOCITY_CONTROL
+	// If macro is defined, we operate only by using the built-in controllers of the servos (controller / gravity compensation is not required in code).
+	// This means that we just find the desired velocity of each servo
+	#ifdef VELOCITY_OPERATINGMODE
+		desiredJointVelocities.ConvertTo(RPM);
+	#endif // VELOCITY_OPERATINGMODE
 
-#ifdef PWM_CONTROL
+	// If macro is defined, the servos bypass built-in controllers  (controller / gravity compensation is required in code).
+	// This means that we find the desired torque of each servo
+	#ifdef PWM_OPERATINGMODE
+		currentJointVelocities.ConvertTo(RadiansPerSec);
 
-	// If we control our robot by PWM, then our robot has no internal control systems.
-	// We therefore need to control/regulate them ourselves.
+		// We calculate the torques required to keep maintain the CrustCrawler's current motion (model-based compensation)
+		Accelerations zeroAcceleration;
+		JointTorques currentTorques = dyn.InverseDynamics(currentJointAngles, currentJointVelocities, zeroAcceleration);
 
-	currentJointVelocities.ConvertTo(RadiansPerSec);
+		// We calculate the additional torques as defined by the control system
+		Velocities errorVelocities = desiredJointVelocities - currentJointVelocities; // Finding the error velocities
+		JointTorques controlTorques = conSys.Control(errorVelocities, currentJointAngles, deltaTime);
 
-	// We take our desired and current joint velocities and calculate our correction/error velocities
-	Velocities errorVelocities = desiredJointVelocities - currentJointVelocities;
+		// The torques of model-based compensation and control system are added together to find the overall torques
+		JointTorques goalTorques = controlTorques + currentTorques;
+	#endif // PWM_OPERATINGMODE
+	
 
-	// We calculate our torques from the control system
-	JointTorques controlTorques = conSys.Control(errorVelocities, currentJointAngles, deltaTime);
-
-	// We calculate our static torques.
-	Accelerations zeroAcceleration;
-	Velocities zeroVelocity;
-	JointTorques currentTorques = dyn.InverseDynamics(currentJointAngles, currentJointVelocities, zeroAcceleration);
-	//JointTorques currentTorques = dyn.InverseDynamics(currentJointAngles, zeroVelocity, zeroAcceleration);
-
-	JointTorques goalTorques = controlTorques + currentTorques;
-
-#endif // PWM_CONTROL
-
-	// Ensures a fixed send time
+	// The previous runtime is added to the accumulated runtime.
+	// This is used below to ensure that the latest data is fetched if discrete-time differentiation is used
 	accumulatedTime += deltaTime;
-	// We check if another loop can be achieved with the same deltaTime. If not then instructions are sent
+
+	// We check if another loop can be achieved with the same deltaTime. If it can, another loop is run before sending new values
 	if (accumulatedTime + deltaTime < fixedSendTime) {
 		return;
 	}
+	// If it cannot, the program is delayed to until achieving the fixed send time, and the new values are sent
 	else if (accumulatedTime + deltaTime > fixedSendTime) {
 		delayMicroseconds(fixedSendTime - accumulatedTime);
 
-#ifdef PWM_CONTROL
-		dynCon.setJointPWM(goalTorques, currentJointVelocities);
-#endif
+		// Instructions to joint servos are sent depending on which macro is defined for control
+		#ifdef VELOCITY_OPERATINGMODE
+			dynCon.setJointVelocity(desiredJointVelocities);
+		#endif		
+		#ifdef PWM_OPERATINGMODE
+			dynCon.setJointPWM(goalTorques, currentJointVelocities);
+		#endif
 
-#ifdef VELOCITY_CONTROL
-		dynCon.setJointVelocity(desiredJointVelocities);
-#endif
-
+		//Since intructions are sent, the accumulated time is reset
 		accumulatedTime = 0;
 	}
 }
 
+// Function used to determine the last runtime
 void Controller::_updateDeltaTime()
 {
 	unsigned long currentTime = micros();
-	//comCon.Print<char*>("\nCurrent time: ");
-	//comCon.Print<unsigned long>(currentTime);
+
 	deltaTime = currentTime - previousTime;
 	previousTime = currentTime;
 }
 
-JointAngles Controller::_getJointAngles(ControlMode controlMode)
-{
-	JointAngles returnJointAngles;
-	switch (controlMode) {
-	case Gripper: {
-		returnJointAngles.thetas[4] = dynCon.getJointAngle(*Joints[4]);
-		returnJointAngles.thetas[5] = dynCon.getJointAngle(*Joints[5]);
-		break;
-	}
-	case Base: case InOut: case UpDown: {
-		returnJointAngles.thetas[1] = dynCon.getJointAngle(*Joints[1]);
-		returnJointAngles.thetas[2] = dynCon.getJointAngle(*Joints[2]);
-		returnJointAngles.thetas[3] = dynCon.getJointAngle(*Joints[3]);
-		break;
-	}
-	case Lock: {
-		returnJointAngles = dynCon.getJointAngles();
-		return returnJointAngles;
-	}
-	}
-	returnJointAngles.currentUnitType = Raw;
-	return returnJointAngles;
-}
-
-Velocities Controller::_getJointVelocities(ControlMode controlMode)
-{
-	Velocities returnJointVelocities;
-	switch (controlMode) {
-	case Gripper: {
-		returnJointVelocities.velocities[4] = dynCon.getJointVelocity(*Joints[4]);
-		returnJointVelocities.velocities[5] = dynCon.getJointVelocity(*Joints[5]);
-		break;
-	}
-	case Base: case InOut: case UpDown: {
-		returnJointVelocities.velocities[1] = dynCon.getJointVelocity(*Joints[1]);
-		returnJointVelocities.velocities[2] = dynCon.getJointVelocity(*Joints[2]);
-		returnJointVelocities.velocities[3] = dynCon.getJointVelocity(*Joints[3]);
-		break;
-	}
-	case Lock: {
-		returnJointVelocities = dynCon.getJointVelocities();
-		return returnJointVelocities;
-	}
-	}
-	returnJointVelocities.currentUnitType = RPM;
-	returnJointVelocities.currentSpaceType = JointSpace;
-	return returnJointVelocities;
-}
-
+// Function that converts the package intructions to joint velocity
 Velocities Controller::_toJointVel(JointAngles& jointAngles, Package& instructions)
 {
 	jointAngles.ConvertTo(Radians);
+
+	// The package instructions are converted to velocity (represented either in joint space or Cartesian space
+	// depending on the instruction control mode)
 	Velocities instructionVelocities = _toVel(instructions);
+	
+	// The intruction velocities are converted to joint space
 	Velocities instructionJointVelocities = _spaceConverter(jointAngles, instructionVelocities, JointSpace);
+	
+	// Unit is assigned to rad/s, which is the same type returned by "_spaceConverter"
 	instructionJointVelocities.currentUnitType = RadiansPerSec;
 
-	breakVelocitiesAtLimit(jointAngles, instructionJointVelocities);
+	// If the joints of the CrustCrawler are approaching an angle limit, the velocities are linearly decreased to zero
+	brakeVelocitiesAtLimit(jointAngles, instructionJointVelocities);
 
 	return instructionJointVelocities;
 }
 
-// Remember that in JointSpace the .velocities refer to the velocities of the individual joints, 
-// where as in CartesianSpace only .velocities[1-3] are only used to refer to cartesian x,y,z- velocities
+
+
+// The velocity in either Cartesian- or joint space is defined based on the instructions
+	// NOTE: in JointSpace, the .velocities refer to the joint velocities of the individual joints, whereas in CartesianSpace, 
+	// only .velocities[1-3] are used to refer to Cartesian x-, y-, and z- velocities, i.e. velocities[4-5] are zero
 Velocities Controller::_toVel(Package& instructions)
 {
 	Velocities returnVelocities;
 
+	// The boolean variable "Sign" is converted to a signed integer that represent movement direction. This is done for arithmetic purposes 
 	directionSign = instructions.Sign ? 1 : -1;
 
+	// The speed is converted to SI-unit (from mm/s to m/s)
 	double speedMS = instructions.Speed / 1000.0;
 
 	// If the last gripper direction corresponded to closing, we make the fingers close at a constant speed.
@@ -218,17 +136,19 @@ Velocities Controller::_toVel(Package& instructions)
 		returnVelocities.velocities[5] = _GripperCloseConstant;
 	}
 
-
+	// Velocity is in the following defined based on the instruction mode.
 	switch (instructions.Mode)
 	{
 	case Gripper: {
 		// We determine whether or not the current direction sign corresponds to closing
 		if (instructions.Speed > 0) _isClosing = !instructions.Sign;
-#ifdef VELOCITY_CONTROL
-		_isClosing = false;
-#endif
+		
+		// In velocity operating mode, we don't use the _isClosing feature - instead we just close like we open (done to avoid overload)
+		#ifdef VELOCITY_OPERATINGMODE
+			_isClosing = false;
+		#endif
 
-		// If we are not closing, we open with the user inputs velocity (times 3 for faster motion)
+		// If we are not closing, we open with the user input velocity (times 3 for faster motion)
 		if (!_isClosing) {
 			returnVelocities.velocities[4] = 3 * directionSign * speedMS;
 			returnVelocities.velocities[5] = -3 * directionSign * speedMS;
@@ -238,22 +158,25 @@ Velocities Controller::_toVel(Package& instructions)
 		break;
 	}
 	case Base: {
-		returnVelocities.velocities[1] = -directionSign * (speedMS * _LinearToAngularRatio);
+		// Base: theta1 correponding to [1] in joint space (multiplying by "_LinearToAngularRatio" to go from linear velocity to angular velocity)
+		returnVelocities.velocities[1] = -directionSign * (speedMS * _LinearToAngularRatio); 
 		returnVelocities.currentSpaceType = JointSpace;
 		break;
 	}
 	case InOut: {
+		// InOut: x-axis correponding to [1] in Cartesian space
 		returnVelocities.velocities[1] = directionSign * speedMS;
 		returnVelocities.currentSpaceType = CartesianSpace;
 		break;
 	}
 	case UpDown: {
+		// UpDown: z-axis correponding to [3] in Cartesian space
 		returnVelocities.velocities[3] = directionSign * speedMS;
 		returnVelocities.currentSpaceType = CartesianSpace;
 		break;
 	}
 	case Lock: {
-		// Return velocities is initialised with 0
+		// "returnVelocities" is initialised with 0, so no need to reassign
 		returnVelocities.currentSpaceType = JointSpace;
 		break;
 	}
@@ -261,20 +184,26 @@ Velocities Controller::_toVel(Package& instructions)
 		// Invalid Control mode
 		break;
 	}
+
 	return returnVelocities;
 }
 
-// This does not convert joint 4 and 5
+// Converts to a desired space (either joint space or Cartesian space) using Jacobians
+	// NOTE: This does not convert joint 4 and 5
 Velocities Controller::_spaceConverter(JointAngles& jointAngles, Velocities& instructionVelocities, SpaceType desiredSpace)
 {
+	// If the velocitities are already in the desired space, we simply return them
 	if (instructionVelocities.currentSpaceType == desiredSpace)
 	{
 		return instructionVelocities;
 	}
+	
 	Velocities returnVelocities;
+	
+	// Converting the joint angles to radians for use in the Jacobian
 	jointAngles.ConvertTo(Radians);
 
-	// Jacobian:
+	// Jacobian matrix (found from the CrustCrawler using Maple and subsequently inserted here):
 	BLA::Matrix<3, 3> jacobian;
 	jacobian(0, 0) = sin(jointAngles.thetas[1]) * (Joints[2]->Length * sin(jointAngles.thetas[2]) + Joints[3]->Length * sin(jointAngles.thetas[2] + jointAngles.thetas[3]));
 	jacobian(0, 1) = -cos(jointAngles.thetas[1]) * (Joints[2]->Length * cos(jointAngles.thetas[2]) + Joints[3]->Length * cos(jointAngles.thetas[2] + jointAngles.thetas[3]));
@@ -286,13 +215,17 @@ Velocities Controller::_spaceConverter(JointAngles& jointAngles, Velocities& ins
 	jacobian(2, 1) = -Joints[2]->Length * sin(jointAngles.thetas[2]) - Joints[3]->Length * sin(jointAngles.thetas[2] + jointAngles.thetas[3]);
 	jacobian(2, 2) = -Joints[3]->Length * sin(jointAngles.thetas[2] + jointAngles.thetas[3]);
 
+	// The velocities that were obtained from the instructions are seen from frame {1} to {W}. 
+	// Such a vector is defined and assigned with the instruction velocities
 	BLA::Matrix<3, 1> velocityVectorFrame1W;
-	// Should probably be done by reference - for optimisation
+	
+		// NOTE: Should probably be done by reference - for optimisation
 	for (size_t i = 1; i < 4; i++)
 	{
 		velocityVectorFrame1W(i - 1, 0) = instructionVelocities.velocities[i];
 	}
 
+	// A rotation matrix from frame {0} to {1} is defined for conversion of the velocity vector
 	BLA::Matrix<3, 3> rotationMatrixFrame01;
 	rotationMatrixFrame01(0, 0) = cos(jointAngles.thetas[1]);
 	rotationMatrixFrame01(0, 1) = -sin(jointAngles.thetas[1]);
@@ -304,49 +237,55 @@ Velocities Controller::_spaceConverter(JointAngles& jointAngles, Velocities& ins
 	rotationMatrixFrame01(2, 1) = 0;
 	rotationMatrixFrame01(2, 2) = 1;
 
+	// The velocity vector is converted to be defined globally, i.e. from frame {0} to {W} using the found rotation matrix
 	BLA::Matrix<3, 1> velocityVectorFrame0W = rotationMatrixFrame01 * velocityVectorFrame1W;
+	
+	// Switch for converting to the desired space
 	switch (desiredSpace)
 	{
-	case JointSpace: {
-		//Inverse Jacobian:
+	case JointSpace: { // If we want to convert from Cartesian space to joint space
+		// Finding the inverse Jacobian
 		BLA::Matrix<3, 3> jacobianInverse = jacobian;
-		bool isNonSingular = Invert(jacobianInverse);
+		bool isNonSingular = Invert(jacobianInverse); // NOTE: The boolean "isNonSingular" is currently unused
 
-		//If the jacobian is singular
-		//if (!isNonSingular) {
-		//	// Some error message
-		//}
+		// The global velocity vector in joint space
 		velocityVectorFrame0W = jacobianInverse * velocityVectorFrame0W;
 		break;
 	}
-	case CartesianSpace: {
+	case CartesianSpace: { // If we want to convert from joint space to Cartesian space
+		// The global velocity vector in Cartesian space
 		velocityVectorFrame0W = jacobian * velocityVectorFrame0W;
 		break;
 	}
 	default:
-		// Invalid desiredSpace
+		// Invalid "desiredSpace"
 		break;
 	}
 
+	// Assigning the determinant of the Jacobian for use in determining limits when near singularities
+		// NOTE: Multiplied by 1000 to get more usable values (otherwise the value is very small)
 	double determinant = 1000 * getDeterminant(jacobian);
-	//comCon.Print<char*>("\nDeterminant: ");
-	//comCon.Print<double>(determinant);
 
-	for (size_t i = 1; i < 6; i++)
+	// Turning the global velocity vector back into an object of the Velocities class
+	for (size_t i = 1; i < 4; i++)
 	{
 		returnVelocities.velocities[i] = velocityVectorFrame0W(i - 1, 0);
-		breakVelocityAtSingularity(returnVelocities.velocities[i], determinant);
+
+		// If the configuration approaches a singularity, the velocity for each joint is non-linearly decreased to zero
+		brakeVelocityAtSingularity(returnVelocities.velocities[i], determinant);
 	}
 
-	// Remember the gripper velocities
+	// We remember to insert the gripper velocities
 	returnVelocities.velocities[4] = instructionVelocities.velocities[4];
 	returnVelocities.velocities[5] = instructionVelocities.velocities[5];
-
+	
+	// We update the current space type to the one we have just converted to
 	returnVelocities.currentSpaceType = desiredSpace;
 	return returnVelocities;
 }
 
-void Controller::breakVelocityAtSingularity(double& velocity, double determinant) {
+// Function used to brake velocity depending on the size of the Jacobian's determinant. 
+void Controller::brakeVelocityAtSingularity(double& velocity, double determinant) {
 	if ((abs(determinant) - determinantShift) < determinantThreshold) {
 		if (directionSign == prevDirectionSign) {
 			velocity *= pow((abs(determinant) - determinantShift) / determinantThreshold, exp(1));
@@ -363,7 +302,7 @@ double Controller::getDeterminant(BLA::Matrix<3, 3> matrix) {
 		matrix(0, 2) * (matrix(1, 0) * matrix(2, 1) - matrix(1, 1) * matrix(2, 0));
 }
 
-void Controller::breakVelocitiesAtLimit(JointAngles& jointAngles, Velocities& instructionJointVelocities) {
+void Controller::brakeVelocitiesAtLimit(JointAngles& jointAngles, Velocities& instructionJointVelocities) {
 	double angleDiff = 0;
 	bool flag[6] = { 0,0,0,0,0,0 };
 	jointAngles.ConvertTo(Raw);
@@ -377,8 +316,8 @@ void Controller::breakVelocitiesAtLimit(JointAngles& jointAngles, Velocities& in
 		{
 			angleDiff = jointAngles.thetas[i] - Joints[i]->MinTheta;
 
-			// We break the velocity of the i'th joint
-			breakVelocityAtLimit(instructionJointVelocities.velocities[i], angleDiff);
+			// We brake the velocity of the i'th joint
+			brakeVelocityAtLimit(instructionJointVelocities.velocities[i], angleDiff);
 			flag[i] = true;
 		}
 
@@ -388,26 +327,26 @@ void Controller::breakVelocitiesAtLimit(JointAngles& jointAngles, Velocities& in
 		{
 			angleDiff = Joints[i]->MaxTheta - jointAngles.thetas[i];
 
-			// We break the velocity of the i'th joint
-			breakVelocityAtLimit(instructionJointVelocities.velocities[i], angleDiff);
+			// We brake the velocity of the i'th joint
+			brakeVelocityAtLimit(instructionJointVelocities.velocities[i], angleDiff);
 			flag[i] = true;
 		}
 
 	}
 
-	// If the flag of the i'th velocity is true, meaning that joint is breaking
+	// If the flag of the i'th velocity is true, meaning that joint is braking
 	for (int i = 1; i < 6; i++) {
 		if (flag[i]) {
 			switch (i) {
 			case 1: break;
 			case 2:
 				if (!flag[i + 1]) {
-					breakVelocityAtLimit(instructionJointVelocities.velocities[i + 1], angleDiff);
+					brakeVelocityAtLimit(instructionJointVelocities.velocities[i + 1], angleDiff);
 					break;
 				}
 			case 3:
 				if (!flag[i - 1]) {
-					breakVelocityAtLimit(instructionJointVelocities.velocities[i - 1], angleDiff);
+					brakeVelocityAtLimit(instructionJointVelocities.velocities[i - 1], angleDiff);
 					break;
 				}
 			}
@@ -415,9 +354,9 @@ void Controller::breakVelocitiesAtLimit(JointAngles& jointAngles, Velocities& in
 	}
 }
 
-void Controller::breakVelocityAtLimit(double& velocity, double angleDiff) {
+void Controller::brakeVelocityAtLimit(double& velocity, double angleDiff) {
 	double sign = copysign(1.0, velocity);
-	// Breaking the velocity - as angleDiff goes to 0, so does the velocity.
+	// Braking the velocity - as angleDiff goes to 0, so does the velocity.
 	velocity = (velocity / limitBoundary) * angleDiff;
 
 	// We set the velocity to 0 if it is under - happens when we have crossed the angle limit

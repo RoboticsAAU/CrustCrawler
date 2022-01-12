@@ -36,13 +36,13 @@ private:
 	// Used for error handling
 	void _handleJointLimitations(Velocities& errorVelocities, JointAngles& currentAngles);
 
-	double _velocityBreaker(int&& iterator, double& inputAngle);
-	double breakingConstant;
+	double _velocityBraker(int&& iterator, double& inputAngle);
+	double brakingConstant;
 
 	bool _isWithinAngleBoundaries(Joint& inputJoint, double inputAngle);
 
-	bool _isWithinBreakingThreshold(Joint& inputJoint, double inputAngle);
-	double breakingThreshold;
+	bool _isWithinBrakingThreshold(Joint& inputJoint, double inputAngle);
+	double brakingThreshold;
 
 	void _gripperSynchronisation(Velocities& errorVelocities, JointAngles& currentAngles);
 	double gripperZeroAngle;

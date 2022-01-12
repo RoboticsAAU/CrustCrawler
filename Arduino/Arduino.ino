@@ -12,13 +12,13 @@
 
 Controller* controller;
 
-// the setup function runs once when you press reset or power the board
+// The setup function runs once when you press reset or power the board
 void setup() {
 	delay(1000);
 	controller = new Controller();
 }
 
-// the loop function runs over and over again until power down or reset
+// The loop function runs over and over again until power down or reset
 void loop() {
 	controller->run();
 }
